@@ -86,6 +86,9 @@
               openssl
               pkg-config
               rust
+              # business_card/
+              typst
+              imagemagick
             ] ++ pre-commit-check.enabledPackages ++ combined.enabledPackages;
 
             env.RUST_BACKTRACE = 1;
