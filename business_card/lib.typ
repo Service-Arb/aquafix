@@ -62,45 +62,51 @@
   body,
 )
 
-// -- external interface -------------------------------------------------------
+// The chrome is the design's, not the caller's, so a new language starts here.
+#let _labels = (
+  en: (direct: "DIRECT", email: "EMAIL", web: "WEB", serving: "SERVING", guarantee: "THE GUARANTEE"),
+  fr: (direct: "DIRECT", email: "COURRIEL", web: "SITE", serving: "SECTEUR", guarantee: "NOTRE GARANTIE"),
+)
 
-#let guarantee(claim) = {
-  assert(type(claim) == str and claim != "", message: "guarantee claim must be a non-empty string")
-  claim
-}
+#let _copy-fields = ("role", "hours", "promise", "credentials", "serving", "guarantees")
+
+// -- external interface -------------------------------------------------------
 
 #let card(
   name: none,
-  role: none,
   phone: none,
   email: none,
   site: none,
-  hours: none,
-  promise: none,
-  credentials: none,
-  serving: none,
-  guarantees: (),
+  langs: (:),
 ) = {
-  let fields = (
-    name: name,
-    role: role,
-    phone: phone,
-    email: email,
-    site: site,
-    hours: hours,
-    promise: promise,
-    credentials: credentials,
-    serving: serving,
-  )
+  let fields = (name: name, phone: phone, email: email, site: site)
   for (k, v) in fields {
     assert(type(v) == str and v != "", message: "card." + k + " must be a non-empty string, got " + repr(v))
   }
-  // the back's guarantee box is sized by the front's fixed layout, not by content
-  assert(
-    guarantees.len() == 3,
-    message: "the guarantee box fits exactly 3 claims, got " + str(guarantees.len()),
-  )
-  (..fields, guarantees: guarantees.map(guarantee))
+  assert("en" in langs, message: "card.langs must carry en, the language render() defaults to")
+  for (lang, copy) in langs {
+    assert(
+      lang in _labels,
+      message: lang + " has no label set; add one to _labels, available: " + repr(_labels.keys()),
+    )
+    assert(
+      copy.keys().sorted() == _copy-fields.sorted(),
+      message: "card.langs." + lang + " must carry exactly " + repr(_copy-fields) + ", got " + repr(copy.keys()),
+    )
+    for k in _copy-fields.filter(k => k != "guarantees") {
+      let v = copy.at(k)
+      assert(
+        type(v) == str and v != "",
+        message: "card.langs." + lang + "." + k + " must be a non-empty string, got " + repr(v),
+      )
+    }
+    // the back's guarantee box is sized by the front's fixed layout, not by content
+    assert(
+      copy.guarantees.len() == 3,
+      message: "the guarantee box fits exactly 3 claims, got " + str(copy.guarantees.len()) + " in " + lang,
+    )
+  }
+  (..fields, langs: langs)
 }
 
 // -- renderers ----------------------------------------------------------------
@@ -122,7 +128,8 @@
 #let _trim-w = card-w - 2 * bleed
 
 // the lock-up spans 59% of the trim width, so it is the largest object on the card
-#let front(c, trim-guide: false) = {
+#let front(c, lang, trim-guide: false) = {
+  let t = c.langs.at(lang)
   set page(fill: palette.bg-inverse)
   _at(825, -60, _mark(palette.watermark, width: 606.2 * px, height: 700 * px))
   _at(
@@ -149,35 +156,44 @@
     418.5,
     box(
       width: _trim-w * px,
-      align(center, _sans(20, weight: "medium", tracking: 3.6, fill: palette.brand-accent, c.promise)),
+      align(center, _sans(20, weight: "medium", tracking: 3.6, fill: palette.brand-accent, t.promise)),
     ),
   )
   if trim-guide { _trim-guide }
+}
+
+// The boxes are transcribed from Figma and cannot grow, so a translation that would
+// wrap or run into the guarantee box has to say so rather than render badly.
+#let _fits(width, s, body) = context {
+  assert(measure(body).width <= width * px, message: repr(s) + " overflows its " + str(width) + "px box")
+  body
 }
 
 #let _contact-row(label, value) = grid(
   columns: (120 * px, auto),
   column-gutter: 16 * px,
   align: horizon,
-  _sans(14, weight: "medium", tracking: 1.96, fill: palette.text-secondary, label), _sans(20, weight: "semibold", fill: palette.text-primary, value),
+  _fits(120, label, _sans(14, weight: "medium", tracking: 1.96, fill: palette.text-secondary, label)), _fits(364, value, _sans(20, weight: "semibold", fill: palette.text-primary, value)),
 )
 
-#let back(c, trim-guide: false) = {
+#let back(c, lang, trim-guide: false) = {
+  let t = c.langs.at(lang)
+  let l = _labels.at(lang)
   set page(fill: palette.bg-base)
   _at(0, 0, rect(width: card-w * px, height: 14 * px, fill: palette.brand-accent))
   _at(97.5, 101.5, _mark(palette.brand-accent, width: 83.136 * px, height: 96 * px))
   _at(97.5, 240, _lh(1.05, 54, _display(54, fill: palette.text-primary, c.name)))
-  _at(97.5, 306, _sans(22, fill: palette.text-secondary, c.role))
+  _at(97.5, 306, _sans(22, fill: palette.text-secondary, t.role))
   _at(
     97.5,
     372,
     stack(
       dir: ttb,
       spacing: 14 * px,
-      _contact-row("DIRECT", c.phone),
-      _contact-row("EMAIL", c.email),
-      _contact-row("WEB", c.site),
-      _contact-row("SERVING", c.serving),
+      _contact-row(l.direct, c.phone),
+      _contact-row(l.email, c.email),
+      _contact-row(l.web, c.site),
+      _contact-row(l.serving, t.serving),
     ),
   )
   _at(
@@ -192,11 +208,11 @@
       stack(
         dir: ttb,
         spacing: 18 * px,
-        _sans(14, weight: "medium", tracking: 2.52, fill: palette.brand-accent)[THE GUARANTEE],
-        ..c.guarantees.map(g => grid(
+        _sans(14, weight: "medium", tracking: 2.52, fill: palette.brand-accent, l.guarantee),
+        ..t.guarantees.map(g => grid(
           columns: (16 * px, 1fr),
           column-gutter: 14 * px,
-          _sans(18, weight: "semibold", fill: palette.status-success)[✓], _lh(1.4, 18, _sans(18, fill: palette.text-primary, g)),
+          _sans(18, weight: "semibold", fill: palette.status-success)[✓], _fits(332, g, _lh(1.4, 18, _sans(18, fill: palette.text-primary, g))),
         )),
       ),
     ),
@@ -205,16 +221,17 @@
   _at(
     97.5,
     572,
-    _sans(15, weight: "medium", tracking: 1.5, fill: palette.text-secondary, c.hours + "  ·  " + c.credentials),
+    _sans(15, weight: "medium", tracking: 1.5, fill: palette.text-secondary, t.hours + "  ·  " + t.credentials),
   )
   if trim-guide { _trim-guide }
 }
 
-#let render(c, trim-guide: false) = {
+#let render(c, lang: "en", trim-guide: false) = {
+  assert(lang in c.langs, message: lang + " has no copy on this card, available: " + repr(c.langs.keys()))
   set page(width: card-w * px, height: card-h * px, margin: 0pt)
   set text(top-edge: "ascender", bottom-edge: "descender")
   set par(leading: 0pt, spacing: 0pt)
-  front(c, trim-guide: trim-guide)
+  front(c, lang, trim-guide: trim-guide)
   pagebreak()
-  back(c, trim-guide: trim-guide)
+  back(c, lang, trim-guide: trim-guide)
 }

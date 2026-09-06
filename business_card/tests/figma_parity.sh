@@ -13,8 +13,11 @@ tolerance=0.001
 
 rm -rf "$out"
 mkdir -p "$out"
-typst compile --ignore-system-fonts --font-path fonts --input trim-guide=true \
-	--ppi 300 --format png __main__.typ "$out/page-{p}.png"
+compile() { # <lang> <destination pattern>
+	typst compile --ignore-system-fonts --font-path fonts --input "lang=$1" --input trim-guide=true \
+		--ppi 300 --format png __main__.typ "$2"
+}
+compile en "$out/page-{p}.png"
 
 status=0
 for pair in 1:front 2:back; do
@@ -33,6 +36,17 @@ for pair in 1:front 2:back; do
 		printf '  ✗ %s diverges from the Figma design (%s > %s)\n' "$name" "$ratio" "$tolerance"
 		printf '      expected  %s\n      actual    %s\n      diff      %s\n' \
 			"$PWD/$expected" "$PWD/$actual" "$PWD/$out/$name-diff.png"
+	fi
+done
+
+# Only en has Figma frames. The rest are checked for fitting the fixed boxes, which
+# is where a translation breaks — lib.typ asserts on every box it cannot grow.
+for lang in fr; do
+	if compile "$lang" "$out/$lang-{p}.png"; then
+		printf '  ✓ %s fits the layout\n' "$lang"
+	else
+		status=1
+		printf '  ✗ %s does not fit the layout\n' "$lang"
 	fi
 done
 
