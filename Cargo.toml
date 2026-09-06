@@ -15,9 +15,28 @@ get_first = "allow"
 get_last_with_len = "allow"
 manual_is_multiple_of = "allow"
 
+[workspace.lints.rust]
+unused_features = "allow"
+
 [workspace.dependencies]
-derive-new = "^0"
-color-eyre = "^0.6.5"
-miette = { version = "^7.6.0", features = ["fancy", "serde", "syntect-highlighter"] }
+aquafix_assets = { path = "aquafix_assets" }
 clap = { version = "^4.5.4", features = ["derive"] }
+color-eyre = "^0.6.5"
 v_utils = { version = "^2.15.0", features = ["io", "macros", "cli"] }
+
+# fullstack stack — versions tracked against real_estate_allocation, which
+# verified this exact set against dx 0.7.
+dioxus = { version = "^0.7" }
+dioxus-ssr = "0.7"
+getrandom = { version = "^0.4", features = ["wasm_js"] }
+insta = "^1"
+serde = { version = "^1", features = ["derive"] }
+serde_json = "^1"
+smart-default = "^0.7"
+sqlx = { version = "^0.9", default-features = false, features = ["runtime-tokio", "sqlite", "macros", "migrate"] }
+thiserror = "^2.0"
+tokio = { version = "^1", features = ["full"] }
+toml = "0.9"
+tracing = "^0.1"
+wasm-bindgen = "=0.2.125" #NB: don't bump carelessly, - must match the nix `wasm-bindgen-cli`
+web-sys = "0.3"

@@ -1,0 +1,12 @@
+[package]
+name = "aquafix_assets"
+version = "0.1.0"
+edition = "2024"
+description = "Build-time staging of the shared brand assets into the aquafix crate."
+
+[build-dependencies]
+serde.workspace = true
+toml.workspace = true
+
+[lints]
+workspace = true

@@ -1,0 +1,12 @@
+[application]
+name = "aquafix"
+
+# No `base_path`: we own our origin, we are not mounted as a zone.
+[web.app]
+title = "Aquafix Plumbing"
+
+[web.resource.dev]
+style = []
+
+[web.resource]
+style = []

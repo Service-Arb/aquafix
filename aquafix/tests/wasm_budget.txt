@@ -1,0 +1,17 @@
+# Maximum bytes for the release `*_bg.wasm`, checked by `nix run .#size`.
+#
+# The visitor this page is designed for is on mobile data in the middle of an
+# emergency, so this is the one number worth gating.
+#
+# Measured: 833,202 B. Ceiling set ~5% above so ordinary churn does not trip it
+# and a real regression does. Reference points on the way here:
+#   1,059,047  with ev_lib::analytics (reqwest transport)
+#     833,202  with the same events over navigator.sendBeacon
+#     823,287  with analytics removed entirely — i.e. capture now costs ~10 KB
+# REA measured the bare dioxus floor (core + web + signals) at ~420 KB; the rest
+# here is the router plus SSR hydration.
+#
+# Raising this is a deliberate commit with a reason in the message, never a
+# silent edit. The levers, in order: move another interaction to native HTML
+# (the FAQ and the mobile drawer are already `<details>`), then wasm-opt -Oz.
+875000

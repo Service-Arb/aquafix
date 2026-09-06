@@ -1,0 +1,48 @@
+# aquafix — the site
+
+A Dioxus fullstack landing funnel. One page, one action; every other page exists
+to answer an objection that would otherwise stop that action.
+
+## The rules this crate obeys
+
+- **Copper is CTA-only.** `action/bg` (`bg-action`) appears on calls to action
+  and nowhere else, so the eye can always find the next step. `brand/accent`
+  (`text-accent`) is the eyebrow and price colour and is a *different* value on
+  purpose.
+- **Sections take typed data.** A `sections/*` function receives its slice of
+  `content` and nothing else. There is no literal copy inside an `rsx!`. This is
+  what makes a price row render *and* emit its `Offer` from one value.
+- **Layout classes live only in `blocks.rs`.** Section padding, container width,
+  the eyebrow treatment and the display type scale appear in exactly one file.
+  A section that writes its own `py-` has broken the contract.
+- **The no-JS form path is not optional.** The quote form is a real
+  `<form method="post" action="/quote">`. It must keep working before the wasm
+  loads, because that is when the visitor we care about most submits it.
+- **Nothing in `seo` or `ld` restates a string `content` owns.** A description
+  is one field read three times.
+
+## What lives where
+
+```text
+content.rs   every fact and every string, once
+blocks.rs    Section/Tone/SectionHead/Head/Prose/CtaButton/PhoneLink/Pill/StatRow
+brand.rs     the mark, the wordmark, the @font-face block — all from assets/
+sections/    one file per Figma frame, ≤120 lines
+pages.rs     the Route enum and the four page compositions
+seo.rs       per-route <head>, robots.txt, sitemap.xml
+ld.rs        the schema.org @graph, derived from content
+quote.rs     the form, its no-JS POST target and its server fn
+store.rs     lead persistence (server-only); the commit point of the funnel
+status.rs    404/403/500/thanks over one StatusCopy
+analytics.rs PostHog capture, wrapped so no section writes a cfg
+```
+
+## Constraints from below
+
+`ev_lib` is not used. Its `uikit` is shadcn-shaped around the EV palette, and
+its `analytics` — right on shape — costs 236 KB of wasm because it POSTs through
+`reqwest`. Both decisions, with the numbers, are in `docs/ARCHITECTURE.md`.
+
+Where a native element does the job, it is used: `<details>` for the FAQ and the
+mobile drawer, a real `<table>` for the price list, a real `<form>` for the
+quote. Less to hydrate is both faster and less to test.

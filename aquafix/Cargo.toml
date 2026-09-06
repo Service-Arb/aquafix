@@ -3,13 +3,53 @@ name = "aquafix"
 version = "0.1.0"
 edition = "2024"
 
-[dependencies]
-derive-new.workspace = true
-color-eyre.workspace = true
-miette.workspace = true
+[features]
+# `dx serve` toggles these per-build; mirrors dioxus' own split so the platform
+# auto-detects correctly.
+default = []
+web = ["dioxus/web"]
+server = ["dioxus/server"]
+
+# Everything the CLI and the lead store need. Kept off the wasm target on
+# purpose: the client is what an emergency visitor downloads over mobile data,
+# and clap/color-eyre/miette are ~400 KB of it for no client-side benefit.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 clap.workspace = true
-v_utils.workspace = true
-aquafix_macros = { path = "../aquafix_macros" }
+color-eyre.workspace = true
+dioxus = { workspace = true, features = ["fullstack", "server"] }
+# `config` (with its SmartDefault'd AppConfig) is server-only.
+smart-default.workspace = true
+sqlx.workspace = true
+tokio.workspace = true
+tracing-subscriber = { version = "0.3", features = ["registry", "env-filter", "fmt"] }
+v_utils = { workspace = true, features = ["io", "macros", "cli"] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+dioxus = { workspace = true, features = ["fullstack", "web"] }
+getrandom.workspace = true
+getrandom_03 = { package = "getrandom", version = "0.3", features = ["wasm_js"] }
+js-sys = "^0.3"
+wasm-bindgen.workspace = true
+# Analytics POSTs through `fetch` rather than a client crate — see
+# src/analytics.rs for what that measured.
+web-sys = { workspace = true, features = ["Window", "Location", "Navigator", "Storage"] }
+
+[dependencies]
+dioxus = { workspace = true, features = ["fullstack", "router"] }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+
+# Present for its build script alone: it stages assets/ and emits tokens.css.
+# Cargo runs a build-dependency's build script before this crate compiles, which
+# is the ordering `asset!()` needs.
+[build-dependencies]
+aquafix_assets.workspace = true
+
+[dev-dependencies]
+dioxus-ssr.workspace = true
+insta.workspace = true
 
 [lints]
 workspace = true
