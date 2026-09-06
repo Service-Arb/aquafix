@@ -111,6 +111,20 @@
               '';
           };
 
+        apps.help = {
+          type = "app";
+          program = pkgs.lib.getExe (pkgs.writeShellScriptBin "help" ''
+            cat <<'EOF'
+            nix build             ${pname}
+            nix build .#card      business card -> result/{${builtins.concatStringsSep "," (builtins.attrNames cardCopy.langs)}}.{pdf,vcf}
+            nix develop           rust, typst, imagemagick
+            nix run .#help        this
+
+            business_card/tests/figma_parity.sh   card against the Figma exports
+            EOF
+          '');
+        };
+
         devShells.default =
           with pkgs;
           mkShell {
