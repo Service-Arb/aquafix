@@ -16,13 +16,18 @@ and three Inter weights, which only the pinned instances in [fonts/](fonts) carr
 `lib.typ` exposes exactly two things a caller touches.
 
 ```
-             card(…)  ──▶  validated data  ──▶  render(data)  ──▶  front page
-                                                                   back page
+             card(…)  ──▶  validated data  ──▶  render(data)  ──▶  front: lock-up + promise
+                                                                   back:  everything else
 ```
 
 `card()` takes the copy — `name`, `role`, `phone`, `email`, `site`, `hours`,
 `promise`, `credentials`, `serving`, `guarantees` — and rejects anything blank
 or a guarantee list that is not exactly three claims. `render()` lays it out.
+
+The front holds the lock-up and the promise line; every other field lands on the
+back. The lock-up spans 59% of the trim width, which is what keeps it the largest
+object on the card — the measured reference set is in
+[`docs/refs/cards/`](../docs/refs/cards/README.md).
 `--input trim-guide=true` adds the dashed cut line; leave it off for print.
 
 Everything else is internal: the palette, the mark, and the geometry, which is

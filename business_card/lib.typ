@@ -119,34 +119,39 @@
   ),
 )
 
+#let _trim-w = card-w - 2 * bleed
+
+// the lock-up spans 59% of the trim width, so it is the largest object on the card
 #let front(c, trim-guide: false) = {
   set page(fill: palette.bg-inverse)
   _at(825, -60, _mark(palette.watermark, width: 606.2 * px, height: 700 * px))
   _at(
-    51.5,
-    73.5,
+    bleed,
+    232.5,
     box(
-      width: 395.6 * px,
-      height: 103.2 * px,
+      width: _trim-w * px,
+      height: 121.93 * px,
       align(
         center + horizon,
         stack(
           dir: ltr,
-          spacing: 13.76 * px,
-          align(horizon, _mark(palette.brand-accent, width: 34.259 * px, height: 39.56 * px)),
-          align(horizon, _display(32.68, tracking: 0.4902, fill: palette.text-on-inverse)[
+          spacing: 42.41 * px,
+          align(horizon, _mark(palette.brand-accent, width: 105.59 * px, height: 121.93 * px)),
+          align(horizon, _display(100.72, tracking: 1.5108, fill: palette.text-on-inverse)[
             AQUA#text(fill: palette.brand-accent)[FIX]
           ]),
         ),
       ),
     ),
   )
-  _at(97.5, 300, _sans(18, weight: "medium", tracking: 3.24, fill: palette.text-on-inverse-muted, c.hours))
-  _at(97.5, 336, _lh(1.0, 74, _display(74, fill: palette.action-bg, c.phone)))
-  _at(97.5, 440, _sans(24, weight: "medium", fill: palette.text-on-inverse, c.site))
-  _at(97.5, 512, rect(width: 930 * px, height: 2 * px, fill: palette.border-inverse))
-  _at(97.5, 546, _sans(17, weight: "medium", tracking: 3.06, fill: palette.brand-accent, c.promise))
-  _at(97.5, 580, _sans(15, weight: "medium", tracking: 1.5, fill: palette.text-on-inverse-muted, c.credentials))
+  _at(
+    bleed,
+    418.5,
+    box(
+      width: _trim-w * px,
+      align(center, _sans(20, weight: "medium", tracking: 3.6, fill: palette.brand-accent, c.promise)),
+    ),
+  )
   if trim-guide { _trim-guide }
 }
 
@@ -160,23 +165,23 @@
 #let back(c, trim-guide: false) = {
   set page(fill: palette.bg-base)
   _at(0, 0, rect(width: card-w * px, height: 14 * px, fill: palette.brand-accent))
-  _at(97.5, 101.5, _mark(palette.brand-accent, width: 83.136 * px, height: 96 * px))
-  _at(97.5, 240, _lh(1.05, 54, _display(54, fill: palette.text-primary, c.name)))
-  _at(97.5, 306, _sans(22, fill: palette.text-secondary, c.role))
+  _at(97.5, 160, _lh(1.05, 54, _display(54, fill: palette.text-primary, c.name)))
+  _at(97.5, 226, _sans(22, fill: palette.text-secondary, c.role))
   _at(
     97.5,
-    372,
+    292,
     stack(
       dir: ttb,
       spacing: 14 * px,
       _contact-row("DIRECT", c.phone),
       _contact-row("EMAIL", c.email),
+      _contact-row("WEB", c.site),
       _contact-row("SERVING", c.serving),
     ),
   )
   _at(
     597.5,
-    240,
+    160,
     block(
       width: 430 * px,
       fill: palette.bg-subtle,
@@ -194,6 +199,12 @@
         )),
       ),
     ),
+  )
+  _at(97.5, 546, rect(width: 930 * px, height: 2 * px, fill: palette.border-default))
+  _at(
+    97.5,
+    572,
+    _sans(15, weight: "medium", tracking: 1.5, fill: palette.text-secondary, c.hours + "  ·  " + c.credentials),
   )
   if trim-guide { _trim-guide }
 }
