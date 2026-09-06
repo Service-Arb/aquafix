@@ -13,16 +13,22 @@ tolerance=0.001
 
 rm -rf "$out"
 mkdir -p "$out"
-typst compile --ignore-system-fonts --font-path fonts --input trim-guide=true \
-	--ppi 300 --format png __main__.typ "$out/page-{p}.png"
+render() { # <prefix> [extra typst inputs…]
+	local prefix=$1
+	shift
+	typst compile --ignore-system-fonts --font-path fonts --input trim-guide=true "$@" \
+		--ppi 300 --format png __main__.typ "$out/$prefix-{p}.png"
+}
+render plain
+render marked --input back-mark=true
 
 status=0
-for page in 1:front 2:back; do
-	name=${page#*:}
+for pair in plain-1:front plain-2:back marked-2:back-marked; do
+	name=${pair#*:}
 	expected=$out/$name-expected.png
 	actual=$out/$name-actual.png
 	magick "tests/__screenshots__/figma-$name.png" -blur 0x1.5 "$expected"
-	magick "$out/page-${page%%:*}.png" -blur 0x1.5 "$actual"
+	magick "$out/${pair%%:*}.png" -blur 0x1.5 "$actual"
 
 	ratio=$(compare -metric AE -fuzz 20% "$expected" "$actual" "$out/$name-diff.png" 2>&1 |
 		sed -E 's/.*\(([0-9.eE+-]+)\).*/\1/' || true)
