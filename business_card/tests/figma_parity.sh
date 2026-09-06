@@ -13,8 +13,10 @@ tolerance=0.001
 
 rm -rf "$out"
 mkdir -p "$out"
+# `--root ..`: lib.typ reads the shared brand.toml and mark.svg from ../assets/.
 compile() { # <lang> <destination pattern>
-	typst compile --ignore-system-fonts --font-path fonts --input "lang=$1" --input trim-guide=true \
+	typst compile --root .. --ignore-system-fonts --font-path ../assets/fonts \
+		--input "lang=$1" --input trim-guide=true \
 		--ppi 300 --format png __main__.typ "$2"
 }
 compile en "$out/page-{p}.png"
@@ -50,7 +52,7 @@ for lang in fr; do
 	fi
 done
 
-if typst compile --ignore-system-fonts --font-path fonts --format png \
+if typst compile --root .. --ignore-system-fonts --font-path ../assets/fonts --format png \
 	tests/rejects_invalid_card.typ /dev/null 2>/dev/null; then
 	status=1
 	printf '  ✗ card() accepted a blank name\n'

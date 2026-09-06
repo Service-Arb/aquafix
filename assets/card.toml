@@ -1,0 +1,36 @@
+# The card's copy, keyed exactly as `business_card/lib.typ`'s `card()` takes it.
+# Read by `business_card/__main__.typ` (typst `toml()`) and by `flake.nix`, which
+# emits the vCards from the same fields.
+#
+# Global keys are one person's and read the same in every language; a `langs`
+# entry is what a reader parses, so it is translated. Adding a language needs a
+# `_labels` entry in lib.typ too — the chrome belongs to the design.
+
+name = "Valeriy Sakharov"
+phone = "(503) 555-0148"
+email = "val@aquafix.top"
+site = "aquafix.top"
+
+[langs.en]
+role = "Master Plumber · Owner"
+hours = "24 HOURS · 7 DAYS"
+promise = "FIXED PRICE. FIXED TODAY."
+credentials = "LICENCE #PL-40219  ·  $2M INSURED"
+serving = "Portland metro · 30 mile radius"
+guarantees = [
+  "Written flat rate before we start.",
+  "2-hour arrival window. Late is free.",
+  "12-month workmanship warranty.",
+]
+
+[langs.fr]
+role = "Maître plombier · Propriétaire"
+hours = "24 HEURES · 7 JOURS"
+promise = "PRIX FIXE. RÉPARÉ AUJOURD’HUI."
+credentials = "LICENCE #PL-40219  ·  ASSURÉ 2 M$"
+serving = "Grand Portland · rayon de 50 km"
+guarantees = [
+  "Prix ferme écrit avant de commencer.",
+  "Fenêtre de 2 h. Retard, c’est gratuit.",
+  "Main-d’œuvre garantie 12 mois.",
+]

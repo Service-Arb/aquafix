@@ -4,33 +4,18 @@
 #let card-w = 1125
 #let card-h = 675
 
-#let palette = (
-  bg-base: rgb("#ffffff"),
-  bg-subtle: rgb("#f6f8fa"),
-  bg-inverse: rgb("#0a2540"),
-  brand-accent: rgb("#c2703d"),
-  action-bg: rgb("#e08a3c"),
-  text-primary: rgb("#051726"),
-  text-secondary: rgb("#5a6b7c"),
-  text-on-inverse: rgb("#ffffff"),
-  text-on-inverse-muted: rgb("#a9bdd1"),
-  border-default: rgb("#dce3ea"),
-  border-inverse: rgb("#1b3a57"),
-  status-success: rgb("#1e9e6a"),
-  status-danger: rgb("#d8362a"),
-  // brand-accent at the watermark's opacity, pre-composited over bg-inverse
-  watermark: rgb("#1a2c3f"),
-)
-#for (k, v) in palette {
-  assert(type(v) == color, message: "palette." + k + " is not a color")
+// Shared with the site; compile with `--root ..` so these escape business_card/.
+#let brand = toml("../assets/brand.toml")
+#let palette = {
+  let d = (:)
+  for (k, v) in brand.colors { d.insert(k, rgb(v)) }
+  d
 }
 
+// typst does not resolve `currentColor`, so the shared mark is re-fill()ed here.
+#let _mark-src = read("../assets/mark.svg")
 #let _mark(fill, width: none, height: none) = image(
-  bytes(
-    "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 86.6 100'><path fill-rule='evenodd' d='M43.3 0L86.6 25V75L43.3 100L0 75V25L43.3 0ZM43.3 20C48 35.06 63.46 44.02 63.46 56.9C63.46 68.03 54.43 77.06 43.3 77.06C32.17 77.06 23.14 68.03 23.14 56.9C23.14 44.02 38.6 35.06 43.3 20Z' fill='"
-      + fill.to-hex()
-      + "'/></svg>",
-  ),
+  bytes(_mark-src.replace("currentColor", fill.to-hex())),
   format: "svg",
   width: width,
   height: height,
@@ -45,7 +30,7 @@
 }
 
 #let _sans(size, weight: "regular", tracking: 0, fill: none, body) = text(
-  font: "Inter",
+  font: brand.fonts.text,
   size: size * px,
   weight: weight,
   tracking: tracking * px,
@@ -54,7 +39,7 @@
 )
 
 #let _display(size, tracking: 0, fill: none, body) = text(
-  font: "Archivo",
+  font: brand.fonts.display,
   weight: "bold",
   size: size * px,
   tracking: tracking * px,

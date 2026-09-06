@@ -1,0 +1,42 @@
+# The brand's single source: the Figma variable collection of
+# `hn1D34By2eYTsakhzDWWkV`, verbatim. Read by `business_card/lib.typ` (typst
+# `toml()`) and by `aquafix/examples/gen_tokens.rs`, which emits
+# `aquafix/assets/tokens.css` from it.
+#
+# Add a colour here only if Figma has it; the mapping onto CSS custom properties
+# lives in gen_tokens, not here.
+
+wordmark = ["AQUA", "FIX"] # the second half takes brand.accent
+
+[colors]
+bg-base = "#ffffff"
+bg-subtle = "#f6f8fa"
+bg-mist = "#edf1f5"
+bg-inverse = "#0a2540"
+bg-inverse-raised = "#12395c"
+bg-inverse-deep = "#051726"
+brand-primary = "#0a2540"
+brand-accent = "#c2703d"
+action-bg = "#e08a3c"
+action-text = "#051726"
+text-primary = "#051726"
+text-secondary = "#5a6b7c"
+text-tertiary = "#33475b"
+text-on-inverse = "#ffffff"
+text-on-inverse-muted = "#a9bdd1"
+border-default = "#dce3ea"
+border-inverse = "#1b3a57"
+status-success = "#1e9e6a"
+status-danger = "#d8362a"
+
+# brand-accent at the watermark's opacity, pre-composited over bg-inverse.
+# Card-only: on the web the watermark is a real alpha fill.
+watermark = "#1a2c3f"
+
+[fonts]
+display = "Archivo" # headings, prices, buttons
+text = "Inter"      # everything else
+
+# Weights cut as static instances (see fonts/README.md) and shipped as woff2.
+display-weights = [600, 700]
+text-weights = [400, 500, 600]

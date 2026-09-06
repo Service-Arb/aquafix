@@ -4,12 +4,19 @@ Typst port of the [Figma design](https://www.figma.com/design/IcOjAnEPBHnQbMWemV
 Two pages, 3.75×2.25in — a 3.5×2in card plus 0.125in bleed on every side.
 
 ```sh
-typst compile --ignore-system-fonts --font-path fonts __main__.typ card.pdf
+nix build .#card    # $out/{en,fr}.{pdf,vcf} — print-ready, no trim guide
+typst compile --root .. --ignore-system-fonts --font-path ../assets/fonts __main__.typ card.pdf
 ./tests/figma_parity.sh
 ```
 
 `--ignore-system-fonts` is not optional: the design needs Archivo at `wdth 100`
-and three Inter weights, which only the pinned instances in [fonts/](fonts) carry.
+and three Inter weights, which only the pinned instances in
+[`assets/fonts/`](../assets/fonts) carry. `--root ..` is what lets the card reach
+them and the shared brand.
+
+The `.vcf` beside each PDF is the same card as vCard 4.0 (RFC 6350) — the format
+a phone imports. `flake.nix` writes it from `assets/card.toml`, the file
+`__main__.typ` renders, so the printed card and the scanned one cannot disagree.
 
 ## Interface
 
@@ -25,15 +32,16 @@ or a guarantee list that is not exactly three claims. `render()` lays one
 language out.
 
 ```
-card(name phone email site)          one person, one number — same in every language
-     langs.<lang>(role hours promise  written for a reader, so it is translated
-                 credentials serving
-                 guarantees)
-lib.typ _labels.<lang>              DIRECT / EMAIL / WEB / SERVING / THE GUARANTEE
+assets/card.toml  name phone email site   one person, one number — same in every language
+                  langs.<lang>            role hours promise credentials serving guarantees
+                                          — written for a reader, so it is translated
+lib.typ           _labels.<lang>          DIRECT / EMAIL / WEB / SERVING / THE GUARANTEE
 ```
 
-Adding a language means a `langs` entry here and a `_labels` entry in `lib.typ`,
-which is where the chrome lives because it belongs to the design, not the caller.
+Adding a language means a `langs` table in `assets/card.toml` and a `_labels`
+entry in `lib.typ`, which is where the chrome lives because it belongs to the
+design, not the caller. `nix build .#card` picks the languages up from the TOML;
+the parity test names them.
 
 The front holds the lock-up and the promise line; every other field lands on the
 back. The lock-up spans 59% of the trim width, which is what keeps it the largest
@@ -43,9 +51,10 @@ object on the card — the measured reference set is in
 `--input lang=fr` picks the language, `en` if unset. `--input trim-guide=true`
 adds the dashed cut line; leave it off for print.
 
-Everything else is internal: the palette, the mark, and the geometry, which is
-transcribed 1:1 from the Figma frame in its own unit (`px`, a 300dpi pixel).
-Changing a brand colour means editing `palette`, and the parity test will say so.
+Everything else is internal: the geometry, transcribed 1:1 from the Figma frame in
+its own unit (`px`, a 300dpi pixel), and the palette and mark, which come from
+[`assets/`](../assets) because the site reads them too. Changing a brand colour is
+an edit to `assets/brand.toml`, and the parity test will say so.
 
 ## Parity test
 
