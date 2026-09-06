@@ -17,6 +17,5 @@
       "12-month workmanship warranty.",
     ),
   ),
-  back-mark: sys.inputs.at("back-mark", default: "false") == "true",
   trim-guide: sys.inputs.at("trim-guide", default: "false") == "true",
 )

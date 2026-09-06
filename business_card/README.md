@@ -29,9 +29,7 @@ back. The lock-up spans 59% of the trim width, which is what keeps it the larges
 object on the card — the measured reference set is in
 [`docs/refs/cards/`](../docs/refs/cards/README.md).
 
-`--input back-mark=true` sets the copper mark above the name and drops the
-information block 80px to clear it. `--input trim-guide=true` adds the dashed cut
-line; leave it off for print.
+`--input trim-guide=true` adds the dashed cut line; leave it off for print.
 
 Everything else is internal: the palette, the mark, and the geometry, which is
 transcribed 1:1 from the Figma frame in its own unit (`px`, a 300dpi pixel).
@@ -39,8 +37,8 @@ Changing a brand colour means editing `palette`, and the parity test will say so
 
 ## Parity test
 
-`tests/__screenshots__/figma-{front,back,back-marked}.png` are 300dpi exports of
-the Figma frames — the baseline cannot be regenerated locally, it comes from
-Figma. `tests/figma_parity.sh` renders both back variants and counts pixels that
-survive a blur, which drops the antialiasing fringe that two different
-rasterisers always disagree on. Failures print the expected / actual / diff paths.
+`tests/__screenshots__/figma-{front,back}.png` are 300dpi exports of the Figma
+frames — the baseline cannot be regenerated locally, it comes from Figma.
+`tests/figma_parity.sh` renders both pages and counts pixels that survive a blur,
+which drops the antialiasing fringe that two different rasterisers always
+disagree on. Failures print the expected / actual / diff paths.

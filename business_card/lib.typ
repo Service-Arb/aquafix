@@ -162,16 +162,15 @@
   _sans(14, weight: "medium", tracking: 1.96, fill: palette.text-secondary, label), _sans(20, weight: "semibold", fill: palette.text-primary, value),
 )
 
-#let back(c, mark: false, trim-guide: false) = {
+#let back(c, trim-guide: false) = {
   set page(fill: palette.bg-base)
-  let dy = if mark { 80 } else { 0 }
   _at(0, 0, rect(width: card-w * px, height: 14 * px, fill: palette.brand-accent))
-  if mark { _at(97.5, 101.5, _mark(palette.brand-accent, width: 83.136 * px, height: 96 * px)) }
-  _at(97.5, 160 + dy, _lh(1.05, 54, _display(54, fill: palette.text-primary, c.name)))
-  _at(97.5, 226 + dy, _sans(22, fill: palette.text-secondary, c.role))
+  _at(97.5, 101.5, _mark(palette.brand-accent, width: 83.136 * px, height: 96 * px))
+  _at(97.5, 240, _lh(1.05, 54, _display(54, fill: palette.text-primary, c.name)))
+  _at(97.5, 306, _sans(22, fill: palette.text-secondary, c.role))
   _at(
     97.5,
-    292 + dy,
+    372,
     stack(
       dir: ttb,
       spacing: 14 * px,
@@ -183,7 +182,7 @@
   )
   _at(
     597.5,
-    160 + dy,
+    240,
     block(
       width: 430 * px,
       fill: palette.bg-subtle,
@@ -211,11 +210,11 @@
   if trim-guide { _trim-guide }
 }
 
-#let render(c, back-mark: false, trim-guide: false) = {
+#let render(c, trim-guide: false) = {
   set page(width: card-w * px, height: card-h * px, margin: 0pt)
   set text(top-edge: "ascender", bottom-edge: "descender")
   set par(leading: 0pt, spacing: 0pt)
   front(c, trim-guide: trim-guide)
   pagebreak()
-  back(c, mark: back-mark, trim-guide: trim-guide)
+  back(c, trim-guide: trim-guide)
 }

@@ -191,10 +191,9 @@ The **Sotheby's split**. Front carries the lock-up at 59% of the trim width plus
 line, and nothing else. Phone, hours, licence, site and serving radius all moved to the back,
 which is now the information side — four contact rows, the guarantee box, and a terms strip.
 
-The back exists in two variants, still undecided. Sotheby's forbids the mark on the back and
-the reference set gives no reason to keep it once the front is 100% brand; against that, the
-mark anchors the top-left corner and the block sits denser under it. `--input back-mark=true`
-renders the second.
+The back carries the mark. Sotheby's forbids it once the front is 100% brand, and the
+reference set gives no reason to keep it; it stays because it anchors the top-left corner and
+the information block sits denser under it.
 
 The rejected alternative was to keep both on the front and flatten the type instead (phone
 17.8pt → ~11pt, wordmark → ~13pt), which is the Goldman shape. It survives as frame 10 in the
