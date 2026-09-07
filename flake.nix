@@ -119,7 +119,7 @@
             echo "▶ cargo test (insta snapshots)"
             nix develop "$repo" --command cargo test
             echo "▶ playwright (1440 + 390)"
-            nix develop "$repo" --command bash -c 'cd aquafix && npx --yes playwright test'
+            nix develop "$repo" --command bash -c 'cd aquafix && playwright test'
           '';
         };
 
@@ -132,8 +132,10 @@
             echo "▶ accepting insta snapshots"
             nix develop "$repo" --command cargo insta accept
             echo "▶ accepting screenshot baselines ''${filter:+for $filter}"
+            # The quotes are for the inner bash; the expansion is this shell's.
+            # shellcheck disable=SC2016
             nix develop "$repo" --command bash -c \
-              "cd aquafix && npx --yes playwright test --update-snapshots ''${filter:+-g '$filter'}"
+              "cd aquafix && playwright test --update-snapshots ''${filter:+-g '$filter'}"
           '';
         };
 
@@ -220,6 +222,10 @@
             # Derived from the repo-root assets/ by aquafix/assets.rs + tailwind.
             aquafix/assets/
             /data/
+            # Playwright failure artefacts. The baselines under
+            # aquafix/tests/__screenshots__/ are tracked; these are not.
+            **/test-results/
+            **/playwright-report/
           '';
         };
         readme = v_flakes.readme-fw {
@@ -397,7 +403,9 @@
               dioxus-cli # `dx serve` / `dx build`
               tailwindcss_4 # standalone Tailwind v4 CLI
               wasm-bindgen-cli # must match wasm-bindgen =0.2.125
-              nodejs # playwright
+              # runner + nixpkgs-pinned browsers; its wrapper exports NODE_PATH,
+              # which is what resolves `@playwright/test` from playwright.config.ts.
+              playwright-test
               sqlite # inspecting the lead store
               # business_card/
               typst

@@ -92,4 +92,8 @@ graphify-out/
 # Derived from the repo-root assets/ by aquafix/assets.rs + tailwind.
 aquafix/assets/
 /data/
+# Playwright failure artefacts. The baselines under
+# aquafix/tests/__screenshots__/ are tracked; these are not.
+**/test-results/
+**/playwright-report/
 

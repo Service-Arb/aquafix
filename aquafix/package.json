@@ -1,9 +1,0 @@
-{
-  "name": "aquafix-tests",
-  "private": true,
-  "description": "Playwright visual-regression harness. Not shipped — the site has no JavaScript build.",
-  "devDependencies": {
-    "@playwright/test": "^1.50.0",
-    "@types/node": "^22"
-  }
-}

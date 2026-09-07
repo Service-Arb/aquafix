@@ -23,6 +23,7 @@ export default defineConfig({
     toHaveScreenshot: {
       maxDiffPixelRatio: 0.01,
       animations: "disabled",
+      stylePath: "./tests/screenshot.css",
     },
   },
 
