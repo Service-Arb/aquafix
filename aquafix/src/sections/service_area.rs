@@ -3,26 +3,27 @@
 
 use dioxus::prelude::*;
 
-use crate::{
-	blocks::{Eyebrow, Head, Pill, Tone},
-	content::Lang,
-};
+use ev_lib::uikit::{Badge, BadgeVariant, Display, Eyebrow, Section};
+
+use crate::content::Lang;
 
 #[component]
 pub fn ServiceArea(lang: Lang) -> Element {
 	let t = lang.text();
 	let (eyebrow, title, lede) = t.area_head;
 	rsx! {
-		section { id: "areas", class: "bg-surface px-5 py-8 md:px-30 md:py-14",
+		Section { id: "areas", tight: true,
 			div { class: "flex flex-col gap-6 md:flex-row md:gap-14",
 				div { class: "flex flex-col gap-3 md:w-[500px] md:gap-3.5",
 					Eyebrow { "{eyebrow}" }
-					Head { "{title}" }
-					p { class: "text-[15px] md:text-[16.5px] leading-[1.62] {Tone::Base.muted()}", "{lede}" }
+					Display { "{title}" }
+					p { class: "text-[15px] md:text-[16.5px] leading-[1.62] text-ink-soft", "{lede}" }
 				}
 				div { class: "flex flex-1 flex-wrap content-start gap-2.5",
 					for area in t.areas {
-						Pill { "{area}" }
+						// `Badge` is the right thing — a small labelled chip — at the wrong
+						// shape, so only the shape is overridden.
+						Badge { variant: BadgeVariant::Outline, class: "rounded-full bg-card px-4 py-2.5 text-[14px] text-ink-mid", "{area}" }
 					}
 				}
 			}

@@ -6,9 +6,11 @@
 
 use dioxus::prelude::*;
 
+use ev_lib::uikit::{Button, Display, Eyebrow, Section, Size, Surface};
+
 use crate::{
 	analytics,
-	blocks::{Eyebrow, Head, Section, Tone},
+	brand::CTA_FACE,
 	content::{Lang, SITE},
 	quote::QuoteFormInline,
 };
@@ -17,13 +19,15 @@ use crate::{
 pub fn ClosingCta(lang: Lang) -> Element {
 	let t = lang.text();
 	rsx! {
-		Section { tone: Tone::Action,
+		Section { surface: Surface::Primary,
 			div { class: "flex flex-col gap-4 md:gap-[26px]",
 				div { class: "flex flex-col gap-2.5 md:gap-4",
 					span { class: "hidden md:block",
-						Eyebrow { "{t.closing.eyebrow}" }
+						// One copper now, so the eyebrow's own colour would vanish into
+						// the band it sits on.
+						Eyebrow { class: "text-on-primary opacity-80", "{t.closing.eyebrow}" }
 					}
-					Head { "{t.closing.title}" }
+					Display { "{t.closing.title}" }
 					p { class: "text-[14.5px] md:text-[19px] leading-[1.55] opacity-[0.78]",
 						span { class: "md:hidden", "{t.closing.lede_short}" }
 						span { class: "hidden md:inline", "{t.closing.lede}" }
@@ -32,10 +36,11 @@ pub fn ClosingCta(lang: Lang) -> Element {
 				div { class: "hidden md:block",
 					QuoteFormInline { lang }
 				}
-				a {
+				Button {
 					href: SITE.tel_href(),
+					size: Size::Xl,
 					onclick: move |_| analytics::capture(analytics::HERO_PHONE, &[("surface", "closing")]),
-					class: "md:hidden w-full rounded-[9px] bg-inverse-deep py-4 text-center font-display text-[16px] font-semibold text-on-inverse",
+					class: "dark md:hidden w-full bg-background text-ink {CTA_FACE}",
 					"{t.call_label()}"
 				}
 				p { class: "hidden md:block text-[16px] font-medium opacity-80", "{t.closing_aside()}" }

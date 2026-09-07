@@ -26,6 +26,7 @@ v_utils = { workspace = true, features = ["io", "macros", "cli"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 dioxus = { workspace = true, features = ["fullstack", "web"] }
+ev_lib = { workspace = true, features = ["wasm"] }
 getrandom.workspace = true
 getrandom_03 = { package = "getrandom", version = "0.3", features = ["wasm_js"] }
 js-sys = "^0.3"
@@ -36,6 +37,7 @@ web-sys = { workspace = true, features = ["Window", "Location", "Navigator", "St
 
 [dependencies]
 dioxus = { workspace = true, features = ["fullstack", "router"] }
+ev_lib.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true

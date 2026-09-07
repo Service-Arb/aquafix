@@ -3,13 +3,14 @@
 # The visitor this page is designed for is on mobile data in the middle of an
 # emergency, so this is the one number worth gating.
 #
-# Measured: 1,043,157 B. Ceiling set ~5% above so ordinary churn does not trip
+# Measured: 1,168,203 B. Ceiling set ~4.5% above so ordinary churn does not trip
 # it and a real regression does. Reference points on the way here:
 #   1,059,047  with ev_lib::analytics (reqwest transport)
 #     833,202  with the same events over navigator.sendBeacon
 #     823,287  with analytics removed entirely — i.e. capture now costs ~10 KB
 #     833,186  the same tree remeasured through `nix build .#dx`
 #   1,043,157  with French
+#   1,168,203  with ev_lib::uikit
 # REA measured the bare dioxus floor (core + web + signals) at ~420 KB; the rest
 # here is the router plus SSR hydration.
 #
@@ -22,8 +23,21 @@
 #             router macro's codegen is a large share of this bundle
 # A third language costs roughly the first term again and nothing else.
 #
+# The uikit delta is +125,046 B, decomposed by building the same tree with the
+# `cn!` fuse reduced to concatenation:
+#    +95,404  tailwind_fuse — a runtime tailwind-merge, linked whole because any
+#             reachable call site can reach it. Skipping the call when there is
+#             no override (which `cn!` now does) saves the work, not the bytes.
+#    +29,642  the components and their class tables, net of the markup they
+#             replaced — which is the part that was supposed to cost something.
+# The lever, if this ever needs to come back: merging is only needed because a
+# caller override can conflict with a kit class. Every colour and every control
+# dimension here is already a token, so the conflicts left are geometry on
+# `Card`, `Input` and the table cells. Move those behind `--control-*` too and
+# `cn!` can concatenate, which unlinks the engine.
+#
 # Raising this is a deliberate commit with a reason in the message, never a
 # silent edit. The levers, in order: move another interaction to native HTML
 # (the FAQ and the mobile drawer are already `<details>`), then wasm-opt -Oz,
 # then serve the two languages as two bundles rather than one.
-1100000
+1220000

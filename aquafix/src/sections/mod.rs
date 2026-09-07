@@ -1,5 +1,6 @@
-//! One file per Figma frame, each composing `blocks` primitives over a slice of
-//! `content`. No literal copy and no spacing class lives here.
+//! One file per Figma frame, each composing `ev_lib::uikit` primitives over a
+//! slice of `content`. No literal copy lives here, and the band rhythm, gutter
+//! and type scale come from the kit's tokens rather than a class.
 //!
 //! `page_head` and `inline_cta` are shared by the three sub-pages; everything
 //! else belongs to exactly one page.
@@ -30,7 +31,7 @@ pub use emergency_bar::EmergencyBar;
 pub use faq::Faq;
 pub use footer::Footer;
 pub use guarantee::Guarantee;
-pub use header::Header;
+pub use header::{Header, LangSwitch};
 pub use hero::Hero;
 pub use how_it_works::HowItWorks;
 pub use inline_cta::InlineCta;

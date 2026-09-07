@@ -7,10 +7,9 @@
 
 use dioxus::prelude::*;
 
-use crate::{
-	blocks::{Section, SectionHead, Tick, Tone},
-	content::Lang,
-};
+use ev_lib::uikit::{Check, Section, SectionHead, Surface, Table, TableBody, TableCell, TableHead, TableHeader, TableRow};
+
+use crate::content::Lang;
 
 #[component]
 pub fn Prices(lang: Lang) -> Element {
@@ -18,36 +17,36 @@ pub fn Prices(lang: Lang) -> Element {
 	let (eyebrow, title, lede) = t.price_head;
 	let (col_job, col_price, col_time) = t.price_columns;
 	rsx! {
-		Section { tone: Tone::Subtle, id: "prices",
+		Section { surface: Surface::Card, id: "prices",
 			div { class: "flex flex-col gap-5 md:gap-7",
-				SectionHead { tone: Tone::Subtle, eyebrow, title, lede }
-				div { class: "overflow-hidden rounded-[14px] border border-rule bg-surface",
-					table { class: "w-full border-collapse text-left",
-						thead {
-							tr { class: "border-b border-rule bg-mist text-[10.5px] md:text-[11.5px] font-medium tracking-[0.14em] text-ink-soft",
-								th { class: "px-4 py-3 md:px-[30px] md:py-4 font-medium", "{col_job}" }
-								th { class: "px-4 py-3 md:px-[30px] md:py-4 text-right font-medium md:w-[190px]", "{col_price}" }
-								th { class: "hidden md:table-cell px-[30px] py-4 text-right font-medium w-[200px]", "{col_time}" }
+				SectionHead { eyebrow, title, lede }
+				div { class: "overflow-hidden rounded-[14px] border border-border bg-background",
+					Table { class: "border-collapse text-left",
+						TableHeader {
+							TableRow { class: "bg-muted text-[10.5px] md:text-[11.5px] font-medium tracking-[0.14em] text-ink-soft",
+								TableHead { class: "h-auto px-4 py-3 md:px-[30px] md:py-4 font-medium text-ink-soft", "{col_job}" }
+								TableHead { class: "h-auto px-4 py-3 md:px-[30px] md:py-4 text-right font-medium md:w-[190px] text-ink-soft", "{col_price}" }
+								TableHead { class: "hidden md:table-cell h-auto px-[30px] py-4 text-right font-medium w-[200px] text-ink-soft", "{col_time}" }
 							}
 						}
-						tbody {
+						TableBody {
 							for row in t.prices {
-								tr { class: "border-b border-rule",
-									td { class: "px-4 py-3 md:px-[30px] md:py-3.5 text-[14px] md:text-[16px] font-semibold text-ink",
+								TableRow {
+									TableCell { class: "px-4 py-3 md:px-[30px] md:py-3.5 text-[14px] md:text-[16px] font-semibold text-ink",
 										"{row.job}"
 									}
-									td { class: "px-4 py-3 md:px-[30px] md:py-3.5 text-right font-display font-num text-[17px] md:text-[19px] font-bold text-accent",
+									TableCell { class: "px-4 py-3 md:px-[30px] md:py-3.5 text-right font-display font-num text-[17px] md:text-[19px] font-bold text-primary",
 										"{row.from_display()}"
 									}
-									td { class: "hidden md:table-cell px-[30px] py-3.5 text-right text-[15px] text-ink-soft",
+									TableCell { class: "hidden md:table-cell px-[30px] py-3.5 text-right text-[15px] text-ink-soft",
 										"{row.typical_time}"
 									}
 								}
 							}
 						}
 					}
-					div { class: "flex items-start gap-3 bg-mist px-4 py-4 md:px-[30px] md:pb-[22px] md:pt-5",
-						Tick {}
+					div { class: "flex items-start gap-3 bg-muted px-4 py-4 md:px-[30px] md:pb-[22px] md:pt-5",
+						Check {}
 						p { class: "text-[13.5px] md:text-[14.5px] font-medium leading-[1.55] text-ink-mid",
 							span { class: "md:hidden", "{t.price_note_short}" }
 							span { class: "hidden md:inline", "{t.price_note}" }
