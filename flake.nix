@@ -180,7 +180,7 @@
               nix run .#figma-parity   blur-diff against the Figma export  [advisory]
               nix run .#size           wasm budget check (after `nix build .#dx`)
               nix build .#dx           release server + public/
-              nix build .#container    OCI image
+              nix build .#${pname}-container   OCI image
               nix build .#card         business card -> result/<lang>.{pdf,vcf}
             EOF
           '';
