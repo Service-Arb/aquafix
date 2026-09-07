@@ -5,18 +5,19 @@ use dioxus::prelude::*;
 
 use crate::{
 	blocks::{Section, SectionHead, Tone},
-	content::{OBJECTIONS, OBJECTIONS_HEAD},
+	content::Lang,
 };
 
 #[component]
-pub fn Objections() -> Element {
-	let (eyebrow, title, lede) = OBJECTIONS_HEAD;
+pub fn Objections(lang: Lang) -> Element {
+	let t = lang.text();
+	let (eyebrow, title, lede) = t.objections_head;
 	rsx! {
 		Section { tone: Tone::Base, tight: true,
 			div { class: "flex flex-col gap-6 md:gap-12",
 				SectionHead { tone: Tone::Base, eyebrow, title, lede }
 				div { class: "grid gap-5 md:grid-cols-2 lg:grid-cols-4",
-					for objection in OBJECTIONS {
+					for objection in t.objections {
 						div { class: "flex flex-col gap-4 rounded-[14px] border border-rule bg-subtle px-[26px] pb-7 pt-[26px] md:gap-[18px]",
 							p { class: "text-[15px] font-medium leading-[1.5] text-ink-soft", "{objection.quote}" }
 							div { class: "h-0.5 w-10 bg-accent" }

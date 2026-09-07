@@ -5,6 +5,8 @@ fn main() {
 	use aquafix::{
 		App,
 		config::{LiveSettings, SettingsFlags},
+		content::{LANGS, Lang},
+		l10n,
 		quote::Lead,
 		seo,
 		store::Store,
@@ -12,7 +14,9 @@ fn main() {
 	use clap::Parser;
 	use dioxus::server::axum::{
 		Extension, Form, Router,
+		extract::Query,
 		http::{StatusCode, header},
+		middleware,
 		response::{IntoResponse, Redirect},
 		routing::{get, post},
 	};
@@ -38,24 +42,32 @@ fn main() {
 	let rt = tokio::runtime::Runtime::new().expect("tokio runtime");
 	let store = rt.block_on(async { Store::open(config.db_path.as_ref()).await.expect("open the lead store") });
 
+	/// The `?lang=` the French forms post to. Absent means the default, which is
+	/// the one case where a default is what the URL actually says.
+	#[derive(serde::Deserialize, Default)]
+	struct LangQuery {
+		lang: Option<String>,
+	}
+
 	/// The no-JS path, and the one that has to keep working: a plain form POST
 	/// answered with a 303 so a refresh does not resubmit. Reached before the
 	/// wasm has loaded, which is when an emergency visitor submits.
-	async fn quote(Extension(store): Extension<Store>, Form(lead): Form<Lead>) -> impl IntoResponse {
+	async fn quote(Extension(store): Extension<Store>, Query(q): Query<LangQuery>, Form(lead): Form<Lead>) -> impl IntoResponse {
+		let lang: Lang = q.lang.as_deref().and_then(|t| LANGS.iter().copied().find(|l| l.tag() == t)).unwrap_or_default();
 		if let Err(why) = lead.validate() {
 			tracing::warn!(%why, "rejected quote submission");
-			return (StatusCode::SEE_OTHER, [(header::LOCATION, "/#quote")]).into_response();
+			return (StatusCode::SEE_OTHER, [(header::LOCATION, lang.href("/#quote"))]).into_response();
 		}
 		// A 303 to /thanks on a lead that was never written is the worst outcome
 		// this system can produce, so a store failure is a 500, never a redirect.
 		match store.insert(&lead).await {
 			Ok(_) => {
 				aquafix::store::notify(&lead);
-				Redirect::to("/thanks").into_response()
+				Redirect::to(&lang.href("/thanks")).into_response()
 			}
 			Err(e) => {
 				tracing::error!(error = %e, "lead store rejected a submission");
-				(StatusCode::SEE_OTHER, [(header::LOCATION, "/500")]).into_response()
+				(StatusCode::SEE_OTHER, [(header::LOCATION, lang.href("/500"))]).into_response()
 			}
 		}
 	}
@@ -73,6 +85,9 @@ fn main() {
 			.route("/quote", post(quote))
 			.route("/robots.txt", get(|| async { ([(header::CONTENT_TYPE, "text/plain; charset=utf-8")], seo::robots_txt()) }))
 			.route("/sitemap.xml", get(|| async { ([(header::CONTENT_TYPE, "application/xml; charset=utf-8")], seo::sitemap_xml()) }))
+			// Outermost, so it sees the raw URL before any route matches — and it
+			// whitelists the page paths itself, so /quote and the assets are unaffected.
+			.layer(middleware::from_fn(l10n::negotiate_language))
 			.layer(Extension(store.clone()))
 	};
 

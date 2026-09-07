@@ -9,9 +9,12 @@ to answer an objection that would otherwise stop that action.
   and nowhere else, so the eye can always find the next step. `brand/accent`
   (`text-accent`) is the eyebrow and price colour and is a *different* value on
   purpose.
-- **Sections take typed data.** A `sections/*` function receives its slice of
-  `content` and nothing else. There is no literal copy inside an `rsx!`. This is
-  what makes a price row render *and* emit its `Offer` from one value.
+- **Sections take typed data, and a `Lang`.** A `sections/*` function receives
+  its slice of `content` and nothing else. There is no literal copy inside an
+  `rsx!`. This is what makes a price row render *and* emit its `Offer` from one
+  value. `lang` is required, never defaulted below a page: a section that
+  forgets to thread it is a compile error, not an English patch inside a French
+  page. Every internal `href` goes through `lang.href(...)`.
 - **Layout classes live only in `blocks.rs`.** Section padding, container width,
   the eyebrow treatment and the display type scale appear in exactly one file.
   A section that writes its own `py-` has broken the contract.
@@ -24,12 +27,13 @@ to answer an objection that would otherwise stop that action.
 ## What lives where
 
 ```text
-content.rs   every fact and every string, once
-blocks.rs    Section/Tone/SectionHead/Head/Prose/CtaButton/PhoneLink/Pill/StatRow
+content.rs   every fact once; every string once per Lang (EN / FR)
+blocks.rs    Section/Tone/SectionHead/Head/Prose/CtaButton/PhoneLink/Pill/StatRow/LangSwitch
 brand.rs     the mark, the wordmark, the @font-face block — all from assets/
 sections/    one file per Figma frame, ≤120 lines
-pages.rs     the Route enum and the four page compositions
-seo.rs       per-route <head>, robots.txt, sitemap.xml
+pages.rs     the Route enum (each page at /x and /:lang/x) and the four compositions
+l10n.rs      which language a request gets (server-only)
+seo.rs       per-route <head>, hreflang cluster, robots.txt, sitemap.xml
 ld.rs        the schema.org @graph, derived from content
 quote.rs     the form, its no-JS POST target and its server fn
 store.rs     lead persistence (server-only); the commit point of the funnel

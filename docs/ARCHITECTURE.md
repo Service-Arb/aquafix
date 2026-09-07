@@ -17,10 +17,11 @@ flowchart LR
     end
     subgraph site["aquafix/ — dioxus fullstack"]
       T["assets.rs (build.rs)<br/>→ tokens.css + woff2"]
-      K["content.rs<br/>every fact, once"]
+      K["content.rs<br/>every fact once<br/>+ Text × {en, fr}"]
       K --> R["sections/ → rsx"]
       K --> L["ld.rs → schema.org"]
-      K --> S["seo.rs → head · robots · sitemap"]
+      K --> S["seo.rs → head · hreflang · sitemap"]
+      N["l10n.rs<br/>cookie · Accept-Language"] --> K
       Q["quote.rs → store.rs<br/>the commit point"]
     end
     B --> C
@@ -47,9 +48,17 @@ schema.org `Offer` from a single `u32`. A description is one field read by the
 placeholder phone number and licence safe to hold in the tree: replacing them
 cannot half-land.
 
+A second language does not weaken this. The language-free half of a record — the
+price, the slug, the licence, the crew member's name — is written once in `EN`,
+and `the_language_free_half_of_every_record_is_identical` is what holds `FR` to
+it. A French price that drifts from its English twin would put one number on the
+page and another in the `Offer`, and that test is the only thing that would
+notice.
+
 **The copy is argued, not written.** Every section traces to graded conversion
 evidence in `docs/refs/sites/README.md`. Improving a headline without going back
-to that argument silently detaches the page from its reasoning.
+to that argument silently detaches the page from its reasoning. `FR` is a
+translation of that graded copy, not a second grading of it.
 
 **Copper is the action.** `action/bg` marks calls to action and nothing else, so
 the eye can always find the next step. `brand/accent` is a deliberately
@@ -63,6 +72,7 @@ different value for eyebrows and prices.
 | `business_card/` | The typst card. Reads `assets/` with `--root ..`. Its Figma-parity test is the guard that the shared move did not change the print output. |
 | `aquafix/assets.rs` | Run from `build.rs`. Derives `aquafix/assets/` (gitignored) from `assets/`: stages the woff2s and emits `tokens.css`. Owns the Figma-name → Tailwind-name map and fails the build on an unmapped colour. |
 | `aquafix/src/` | The site. Local conventions in `aquafix/src/README.md`. |
+| `aquafix/src/l10n.rs` | Server-only. Decides which language a request gets before the router sees it: `?lang=` mints the cookie, `/en/*` 301s to the unprefixed URL, an unprefixed entry with no cookie negotiates `Accept-Language`. English is unprefixed and canonical; French lives under `/fr`. |
 | `deploy/config.nix` | Prod `AppConfig`, evaluated to JSON at build time and passed as `--config`. |
 | `flake.nix` | `dev` / `test` / `accept-test` / `figma-parity` / `size`, the release build and the container. `tmp/site_dev_plans/nix.md` records what each non-obvious line prevents. |
 

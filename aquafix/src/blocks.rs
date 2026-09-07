@@ -13,7 +13,7 @@
 
 use dioxus::prelude::*;
 
-use crate::content::SITE;
+use crate::content::{LANGS, Lang, SITE};
 
 /// A section's colour field. The design alternates deliberately — a light
 /// stretch, then an inverse one — and every tone carries its own text colour so
@@ -159,6 +159,36 @@ pub fn PhoneLink(#[props(default)] class: Option<String>, #[props(default)] oncl
 			"{SITE.phone}"
 		}
 	}
+}
+
+/// `EN · FR`, linking to the same page in the other language.
+///
+/// `?lang=` is what mints the cookie server-side, so the choice survives the
+/// next unprefixed visit and stops the negotiator from fighting the visitor —
+/// and it needs no JavaScript, which is the rule this funnel is built on.
+/// `path` is the language-free route (`/prices`), not the current URL: the page
+/// already knows it, and taking it as data keeps this renderable without a
+/// router context.
+#[component]
+pub fn LangSwitch(lang: Lang, path: &'static str, class: String) -> Element {
+	rsx! {
+		span { class: "flex items-center gap-1.5 {class}",
+			for (i , other) in LANGS.iter().copied().enumerate() {
+				if i > 0 {
+					span { class: "opacity-40", "·" }
+				}
+				a {
+					href: "{other.href(path)}?lang={other}",
+					class: switch_emphasis(other == lang),
+					"{other.tag().to_uppercase()}"
+				}
+			}
+		}
+	}
+}
+
+fn switch_emphasis(current: bool) -> &'static str {
+	if current { "font-semibold" } else { "opacity-60 hover:opacity-100" }
 }
 
 /// A rounded chip. Service areas, and nothing else so far.

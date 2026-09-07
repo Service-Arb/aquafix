@@ -8,25 +8,26 @@ use crate::{
 	analytics,
 	blocks::{Cta, CtaButton, StatRow, Tick, Tone},
 	brand::Mark,
-	content::{CTA, HERO_EYEBROW, HERO_MICROPROOF, HERO_TICKS, SITE, page},
+	content::{Lang, SITE},
 	quote::QuoteCard,
 };
 
 #[component]
-pub fn Hero() -> Element {
-	let p = page("/");
+pub fn Hero(lang: Lang) -> Element {
+	let t = lang.text();
+	let p = lang.page("/");
 	rsx! {
 		div { class: "relative overflow-hidden bg-inverse-deep px-5 py-9 md:px-30 md:py-15",
 			Mark { class: "pointer-events-none absolute -left-24 -top-16 h-[520px] w-[450px] text-accent opacity-[0.06] md:-left-45 md:-top-30 md:h-[760px] md:w-[658px]" }
 			div { class: "relative flex flex-col gap-8 md:flex-row md:items-start md:gap-9",
 				div { class: "flex w-full flex-col gap-4 md:w-[656px] md:gap-[18px]",
-					p { class: "text-[10px] md:text-[11.5px] font-medium tracking-[0.14em] text-accent", "{HERO_EYEBROW}" }
+					p { class: "text-[10px] md:text-[11.5px] font-medium tracking-[0.14em] text-accent", "{t.hero_eyebrow}" }
 					h1 { class: "font-display font-bold text-[30px] md:text-[46px] leading-[1.08] tracking-[-0.01em] text-on-inverse",
 						"{p.h1}"
 					}
 					p { class: "hidden md:block text-[17px] leading-[1.58] text-on-inverse-muted", "{p.lede}" }
 					div { class: "flex flex-col gap-3 text-[14px] md:text-[16px]",
-						for tick in HERO_TICKS {
+						for tick in t.hero_ticks {
 							div { class: "flex items-center gap-3",
 								Tick {}
 								span { class: "font-medium text-on-inverse", "{tick}" }
@@ -34,7 +35,7 @@ pub fn Hero() -> Element {
 						}
 					}
 					div { class: "hidden md:flex items-center gap-3.5",
-						CtaButton { kind: Cta::Primary, href: "#quote", "{CTA}" }
+						CtaButton { kind: Cta::Primary, href: "#quote", "{t.cta}" }
 						CtaButton {
 							kind: Cta::Outline,
 							href: SITE.tel_href(),
@@ -43,7 +44,7 @@ pub fn Hero() -> Element {
 						}
 					}
 					div { class: "flex flex-wrap items-center gap-x-4 gap-y-2 text-[13px] md:text-[14px] text-on-inverse",
-						for (i , (figure , label)) in HERO_MICROPROOF.iter().enumerate() {
+						for (i , (figure , label)) in t.hero_microproof.iter().enumerate() {
 							if i > 0 {
 								span { class: "text-rule-inverse", "|" }
 							}
@@ -51,7 +52,7 @@ pub fn Hero() -> Element {
 						}
 					}
 				}
-				QuoteCard {}
+				QuoteCard { lang }
 			}
 		}
 	}

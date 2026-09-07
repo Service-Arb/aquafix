@@ -4,16 +4,22 @@
 //! instead of reading each as a separate thing. The price table and the FAQ are
 //! the two real rich-result opportunities and both fall out of the typed data
 //! for free — a `PriceRow` renders a row *and* emits its `Offer` from one value.
+//!
+//! The `@id`s of the page-level nodes are keyed off the localized URL, so the
+//! French page describes the French URL; the business and the website are one
+//! entity across both.
 
 use dioxus::prelude::*;
 use serde_json::{Value, json};
 
-use crate::content::{AREAS, CREW, FAQS, PRICES, Page, RATING, SITE};
+use crate::content::{Lang, Page, RATING, SITE, Text};
 
-/// The `@graph` for one route.
-pub fn graph(page: &Page) -> Value {
+/// The `@graph` for one route in one language.
+pub fn graph(page: &Page, lang: Lang) -> Value {
+	let t = lang.text();
+	let url = SITE.url(&lang.href(page.path));
 	let mut nodes = vec![
-		business(),
+		business(t),
 		json!({
 			"@type": "WebSite",
 			"@id": website_id(),
@@ -23,29 +29,30 @@ pub fn graph(page: &Page) -> Value {
 		}),
 		json!({
 			"@type": "WebPage",
-			"@id": format!("{}#page", SITE.url(page.path)),
-			"url": SITE.url(page.path),
+			"@id": format!("{url}#page"),
+			"url": url,
 			"name": page.title,
 			"description": page.description,
+			"inLanguage": lang.tag(),
 			"isPartOf": {"@id": website_id()},
 			"about": {"@id": business_id()},
 		}),
-		breadcrumbs(page),
+		breadcrumbs(page, lang),
 	];
 	// The price list is on both the landing page and /prices; the FAQ is only on
 	// /prices. Emitting either where it is not rendered is a structured-data
 	// mismatch Google penalises.
 	if matches!(page.path, "/" | "/prices") {
-		nodes.extend(offers());
+		nodes.extend(offers(t));
 	}
 	if page.path == "/prices" {
-		nodes.push(faq_page());
+		nodes.push(faq_page(t));
 	}
 	json!({"@context": "https://schema.org", "@graph": nodes})
 }
 #[component]
-pub fn JsonLd(page: ReadSignal<&'static Page>) -> Element {
-	let body = graph(page()).to_string();
+pub fn JsonLd(page: ReadSignal<&'static Page>, lang: Lang) -> Element {
+	let body = graph(page(), lang).to_string();
 	rsx! {
 		document::Script { r#type: "application/ld+json", {body} }
 	}
@@ -58,7 +65,7 @@ fn website_id() -> String {
 	format!("{}/#website", SITE.origin())
 }
 
-fn business() -> Value {
+fn business(t: &Text) -> Value {
 	let (rating, count) = RATING;
 	json!({
 		"@type": ["Plumber", "LocalBusiness"],
@@ -77,7 +84,7 @@ fn business() -> Value {
 			"postalCode": SITE.postal_code,
 			"addressCountry": "US",
 		},
-		"areaServed": AREAS.iter().map(|a| json!({"@type": "Place", "name": a})).collect::<Vec<_>>(),
+		"areaServed": t.areas.iter().map(|a| json!({"@type": "Place", "name": a})).collect::<Vec<_>>(),
 		// The phone is answered 24/7; bookings are 7am–9pm. The wider window is
 		// the one a customer in an emergency needs to see.
 		"openingHoursSpecification": [{
@@ -92,7 +99,7 @@ fn business() -> Value {
 			"reviewCount": count,
 			"bestRating": 5,
 		},
-		"employee": CREW.iter().map(|c| json!({
+		"employee": t.crew.iter().map(|c| json!({
 			"@type": "Person",
 			"@id": format!("{}/about#crew-{}", SITE.origin(), c.initials),
 			"name": c.name,
@@ -101,8 +108,8 @@ fn business() -> Value {
 	})
 }
 
-fn offers() -> Vec<Value> {
-	PRICES
+fn offers(t: &Text) -> Vec<Value> {
+	t.prices
 		.iter()
 		.map(|row| {
 			json!({
@@ -128,10 +135,10 @@ fn offers() -> Vec<Value> {
 		.collect()
 }
 
-fn faq_page() -> Value {
+fn faq_page(t: &Text) -> Value {
 	json!({
 		"@type": "FAQPage",
-		"mainEntity": FAQS.iter().map(|f| json!({
+		"mainEntity": t.faqs.iter().map(|f| json!({
 			"@type": "Question",
 			"name": f.q,
 			"acceptedAnswer": {"@type": "Answer", "text": f.a},
@@ -141,33 +148,37 @@ fn faq_page() -> Value {
 
 /// `/` → just Home. `/prices` → Home › Prices. The chain is the path, so a new
 /// route cannot forget its breadcrumb.
-fn breadcrumbs(page: &Page) -> Value {
+fn breadcrumbs(page: &Page, lang: Lang) -> Value {
 	let mut items = vec![json!({
 		"@type": "ListItem",
 		"position": 1,
 		"name": SITE.name,
-		"item": SITE.origin(),
+		"item": SITE.url(&lang.href("/")),
 	})];
 	if page.path != "/" {
 		items.push(json!({
 			"@type": "ListItem",
 			"position": 2,
 			"name": page.title,
-			"item": SITE.url(page.path),
+			"item": SITE.url(&lang.href(page.path)),
 		}));
 	}
 	json!({"@type": "BreadcrumbList", "itemListElement": items})
 }
 
-/// Every route in `PAGES` builds a graph. Cheap insurance against a `json!`
-/// that only panics on the one page nobody opened before deploying.
+/// Every route in every language builds a graph. Cheap insurance against a
+/// `json!` that only panics on the one page nobody opened before deploying.
 #[cfg(test)]
 mod tests {
+	use crate::content::LANGS;
+
 	#[test]
 	fn every_page_has_a_graph() {
-		for page in crate::content::PAGES {
-			let graph = super::graph(page);
-			assert!(graph["@graph"].as_array().is_some_and(|n| n.len() >= 4), "{} has a thin graph", page.path);
+		for lang in LANGS.iter().copied() {
+			for page in lang.text().pages {
+				let graph = super::graph(page, lang);
+				assert!(graph["@graph"].as_array().is_some_and(|n| n.len() >= 4), "{} ({lang}) has a thin graph", page.path);
+			}
 		}
 	}
 }

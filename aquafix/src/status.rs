@@ -8,31 +8,33 @@
 use dioxus::prelude::*;
 
 use crate::{
-	blocks::{Cta, CtaButton, Tick},
+	blocks::{Cta, CtaButton, LangSwitch, Tick},
 	brand::{Lockup, Mark},
-	content::{NAV, SITE, STATUS_LEGAL, STATUS_STRIP, StatusCopy},
+	content::{Lang, SITE, StatusCopy},
 };
 
 #[component]
-pub fn StatusScreen(copy: ReadSignal<StatusCopy>) -> Element {
+pub fn StatusScreen(copy: ReadSignal<StatusCopy>, lang: Lang, path: &'static str) -> Element {
 	let copy = copy();
+	let t = lang.text();
 	commit(copy.code);
 	let (lead, accent) = copy.headline;
 	rsx! {
-		div { class: "relative flex min-h-screen flex-col bg-inverse-deep",
+		div { lang: lang.tag(), class: "relative flex min-h-screen flex-col bg-inverse-deep",
 			// The design's glow. A radial gradient, not an asset — one less request.
 			div { class: "pointer-events-none absolute inset-x-0 top-24 h-[760px] bg-[radial-gradient(ellipse_at_center,rgba(194,112,61,0.16),transparent_65%)]" }
 			header { class: "relative flex items-center border-b border-rule-inverse px-5 py-4 md:px-12 md:py-[22px]",
-				a { href: "/",
+				a { href: lang.href("/"),
 					Lockup { mark: "h-[30px] w-[26px] text-accent", word: "text-[23px] text-on-inverse" }
 				}
 				div { class: "flex-1" }
 				nav { class: "hidden md:flex items-center gap-7 text-[14px] font-medium text-on-inverse-muted",
-					for (label , href) in NAV {
-						a { href: "{href}", "{label}" }
+					for (label , href) in t.nav.iter().copied() {
+						a { href: lang.href(href), "{label}" }
 					}
 				}
 				div { class: "flex-1 hidden md:block" }
+				LangSwitch { lang, path, class: "mr-5 text-[13px] font-medium text-on-inverse-muted" }
 				a { href: SITE.tel_href(), class: "font-display text-[16px] md:text-[20px] font-bold text-action", "{SITE.phone}" }
 			}
 			main { class: "relative flex flex-1 flex-col items-center gap-5 px-5 py-12 text-center md:gap-6 md:py-[110px]",
@@ -47,11 +49,11 @@ pub fn StatusScreen(copy: ReadSignal<StatusCopy>) -> Element {
 				}
 				p { class: "max-w-[41rem] text-[15px] md:text-[17px] leading-[1.6] text-on-inverse-muted", "{copy.body}" }
 				div { class: "flex flex-col gap-3.5 sm:flex-row",
-					CtaButton { kind: Cta::Primary, href: copy.primary.href(), "{copy.primary.label()}" }
-					CtaButton { kind: Cta::Outline, href: copy.secondary.href(), "{copy.secondary.label()}" }
+					CtaButton { kind: Cta::Primary, href: copy.primary.href(lang), "{copy.primary.label(t)}" }
+					CtaButton { kind: Cta::Outline, href: copy.secondary.href(lang), "{copy.secondary.label(t)}" }
 				}
 				div { class: "flex flex-col items-center gap-3 text-[14px] sm:flex-row sm:gap-[26px]",
-					for term in STATUS_STRIP {
+					for term in t.status_strip {
 						span { class: "flex items-center gap-2",
 							Tick {}
 							span { class: "font-medium text-on-inverse-muted", "{term}" }
@@ -63,7 +65,7 @@ pub fn StatusScreen(copy: ReadSignal<StatusCopy>) -> Element {
 				p { "{SITE.copyright.to_uppercase()} · OREGON CCB {SITE.ccb} · LICENCE {SITE.licence}" }
 				div { class: "flex-1" }
 				div { class: "flex gap-[26px]",
-					for label in STATUS_LEGAL {
+					for label in t.status_legal {
 						span { "{label}" }
 					}
 				}

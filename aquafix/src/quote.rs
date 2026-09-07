@@ -11,14 +11,14 @@
 //!
 //! Delivery order is persist-then-notify. The store is the commit point: a
 //! notification failure logs at `error!` and the lead is still durable.
+//!
+//! A French page posts to `/quote?lang=fr`, which is the only thing the handler
+//! needs to send the visitor to `/fr/thanks`. The [`Lead`] and the SQLite row
+//! are language-free.
 
 use dioxus::prelude::*;
 
-use crate::{
-	analytics,
-	blocks::Tick,
-	content::{JOBS, QUOTE_FORM, quote_reassurance},
-};
+use crate::{analytics, blocks::Tick, content::Lang};
 
 const CONTROL: &str = "w-full rounded-[9px] border border-rule bg-subtle px-4 py-[15px] text-[16px] text-ink placeholder:text-ink-soft focus:outline-none focus:ring-2 focus:ring-accent";
 /// A submitted lead. `zip` and `mobile` are trimmed but not otherwise parsed:
@@ -34,6 +34,9 @@ pub struct Lead {
 impl Lead {
 	/// The one rule worth enforcing: a lead with no way to reach the customer
 	/// is not a lead. Everything else is accepted as typed.
+	///
+	/// The message is a diagnostic — it is logged and returned to the server fn,
+	/// never rendered — so it stays out of `Text` and out of the language seam.
 	pub fn validate(&self) -> Result<(), &'static str> {
 		if self.mobile.chars().filter(char::is_ascii_digit).count() < 10 {
 			return Err("A mobile number we can text your price to");
@@ -56,29 +59,39 @@ pub async fn submit_quote(lead: Lead) -> Result<(), ServerFnError> {
 	Ok(())
 }
 
+/// The no-JS POST target. English keeps the bare path — it is the default, and
+/// the handler falls back to it.
+fn action(lang: Lang) -> String {
+	match lang {
+		Lang::En => "/quote".into(),
+		other => format!("/quote?lang={other}"),
+	}
+}
+
 /// Figma `4:5` / `26:48` — the hero's card.
 #[component]
-pub fn QuoteCard() -> Element {
+pub fn QuoteCard(lang: Lang) -> Element {
+	let t = lang.text();
 	rsx! {
 		form {
 			id: "quote",
 			method: "post",
-			action: "/quote",
+			action: action(lang),
 			onsubmit: move |_| analytics::capture(analytics::QUOTE_SUBMITTED, &[("surface", "hero")]),
 			class: "flex w-full flex-col gap-5 rounded-[18px] bg-surface px-6 py-7 shadow-[0_20px_48px_0_rgba(0,13,31,0.34)] md:w-[480px] md:px-[34px] md:pb-[30px] md:pt-8",
 			div { class: "flex flex-col gap-[7px]",
-				p { class: "font-display text-[24px] font-bold text-ink md:text-[30px]", "{QUOTE_FORM.title}" }
-				p { class: "text-[15px] text-ink-soft", "{QUOTE_FORM.lede}" }
+				p { class: "font-display text-[24px] font-bold text-ink md:text-[30px]", "{t.quote_form.title}" }
+				p { class: "text-[15px] text-ink-soft", "{t.quote_form.lede}" }
 			}
-			Controls { labelled: true }
+			Controls { lang, labelled: true }
 			button { r#type: "submit", class: "w-full rounded-[10px] bg-action py-[19px] font-display text-[18px] font-semibold text-on-action",
-				"{QUOTE_FORM.submit}"
+				"{t.quote_form.submit}"
 			}
-			p { class: "text-[13px] leading-[1.52] text-ink-soft", "{quote_reassurance()}" }
+			p { class: "text-[13px] leading-[1.52] text-ink-soft", "{t.quote_reassurance()}" }
 			div { class: "h-px w-full bg-rule" }
 			div { class: "flex items-center gap-2.5",
 				Tick {}
-				span { class: "text-[13px] font-medium text-ink-mid", "{QUOTE_FORM.privacy}" }
+				span { class: "text-[13px] font-medium text-ink-mid", "{t.quote_form.privacy}" }
 			}
 		}
 	}
@@ -86,16 +99,17 @@ pub fn QuoteCard() -> Element {
 /// Figma `9:9` — the closing band's one-line form. Same three fields, laid out
 /// across instead of down.
 #[component]
-pub fn QuoteFormInline() -> Element {
+pub fn QuoteFormInline(lang: Lang) -> Element {
+	let t = lang.text();
 	rsx! {
 		form {
 			method: "post",
-			action: "/quote",
+			action: action(lang),
 			onsubmit: move |_| analytics::capture(analytics::QUOTE_SUBMITTED, &[("surface", "closing")]),
 			class: "flex w-full flex-col gap-3 md:flex-row md:items-center",
-			Controls {}
+			Controls { lang }
 			button { r#type: "submit", class: "shrink-0 rounded-[10px] bg-inverse-deep px-[34px] py-[18px] font-display text-[18px] font-semibold text-on-inverse",
-				"{QUOTE_FORM.submit}"
+				"{t.quote_form.submit}"
 			}
 		}
 	}
@@ -115,29 +129,30 @@ fn Field(label: String, children: Element) -> Element {
 /// The job `<select>`, the ZIP and the mobile — the three inputs both form
 /// layouts share, so a field cannot exist on one and not the other.
 #[component]
-fn Controls(#[props(default = false)] labelled: bool) -> Element {
+fn Controls(lang: Lang, #[props(default = false)] labelled: bool) -> Element {
+	let f = &lang.text().quote_form;
 	rsx! {
 		if labelled {
-			Field { label: "WHAT'S WRONG?", JobSelect {} }
-			Field { label: "WHERE ARE YOU?",
-				input { class: CONTROL, r#type: "text", name: "zip", placeholder: "Suburb or ZIP code", required: true }
+			Field { label: f.job_label, JobSelect { lang } }
+			Field { label: f.zip_label,
+				input { class: CONTROL, r#type: "text", name: "zip", placeholder: f.zip_placeholder, required: true }
 			}
-			Field { label: "MOBILE",
-				input { class: CONTROL, r#type: "tel", name: "mobile", placeholder: "(503) 000-0000", required: true }
+			Field { label: f.mobile_label,
+				input { class: CONTROL, r#type: "tel", name: "mobile", placeholder: f.mobile_placeholder, required: true }
 			}
 		} else {
-			JobSelect {}
-			input { class: CONTROL, r#type: "text", name: "zip", placeholder: "ZIP code", required: true }
-			input { class: CONTROL, r#type: "tel", name: "mobile", placeholder: "Mobile number", required: true }
+			JobSelect { lang }
+			input { class: CONTROL, r#type: "text", name: "zip", placeholder: f.zip_placeholder_short, required: true }
+			input { class: CONTROL, r#type: "tel", name: "mobile", placeholder: f.mobile_placeholder_short, required: true }
 		}
 	}
 }
 
 #[component]
-fn JobSelect() -> Element {
+fn JobSelect(lang: Lang) -> Element {
 	rsx! {
 		select { class: CONTROL, name: "job", required: true,
-			for (value , label) in JOBS {
+			for (value , label) in lang.text().jobs {
 				option { value: "{value}", "{label}" }
 			}
 		}

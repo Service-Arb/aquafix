@@ -5,9 +5,13 @@
 //! that silently drops a colour, a section that stops emitting its anchor. It
 //! is not allowed to be asked about anything visual; that is Playwright's.
 //!
+//! One French snapshot, not nineteen: French renders the same structure, so a
+//! second full set would only restate this one. `hero_fr` is here to prove the
+//! prop reaches a leaf.
+//!
 //! Never hand-edit a `.snap`. Run `cargo insta accept` and read the diff.
 
-use aquafix::{content::page, sections::*};
+use aquafix::{content::Lang, sections::*};
 use dioxus::prelude::*;
 
 fn render(app: fn() -> Element) -> String {
@@ -28,23 +32,24 @@ macro_rules! snapshot {
 	};
 }
 
-snapshot!(emergency_bar, rsx! { EmergencyBar {} });
-snapshot!(header, rsx! { Header {} });
-snapshot!(hero, rsx! { Hero {} });
-snapshot!(proof_bar, rsx! { ProofBar {} });
-snapshot!(prices, rsx! { Prices {} });
-snapshot!(guarantee, rsx! { Guarantee {} });
-snapshot!(reviews, rsx! { Reviews {} });
-snapshot!(closing_cta, rsx! { ClosingCta {} });
-snapshot!(footer, rsx! { Footer {} });
-snapshot!(bottom_call_bar, rsx! { BottomCallBar {} });
-snapshot!(services, rsx! { Services {} });
-snapshot!(faq, rsx! { Faq {} });
-snapshot!(objections, rsx! { Objections {} });
-snapshot!(how_it_works, rsx! { HowItWorks {} });
-snapshot!(crew, rsx! { Crew {} });
-snapshot!(service_area, rsx! { ServiceArea {} });
-snapshot!(inline_cta, rsx! { InlineCta {} });
-snapshot!(page_head_prices, rsx! { PageHead { page: page("/prices") } });
+snapshot!(emergency_bar, rsx! { EmergencyBar { lang: Lang::En } });
+snapshot!(header, rsx! { Header { lang: Lang::En, path: "/" } });
+snapshot!(hero, rsx! { Hero { lang: Lang::En } });
+snapshot!(hero_fr, rsx! { Hero { lang: Lang::Fr } });
+snapshot!(proof_bar, rsx! { ProofBar { lang: Lang::En } });
+snapshot!(prices, rsx! { Prices { lang: Lang::En } });
+snapshot!(guarantee, rsx! { Guarantee { lang: Lang::En } });
+snapshot!(reviews, rsx! { Reviews { lang: Lang::En } });
+snapshot!(closing_cta, rsx! { ClosingCta { lang: Lang::En } });
+snapshot!(footer, rsx! { Footer { lang: Lang::En } });
+snapshot!(bottom_call_bar, rsx! { BottomCallBar { lang: Lang::En } });
+snapshot!(services, rsx! { Services { lang: Lang::En } });
+snapshot!(faq, rsx! { Faq { lang: Lang::En } });
+snapshot!(objections, rsx! { Objections { lang: Lang::En } });
+snapshot!(how_it_works, rsx! { HowItWorks { lang: Lang::En } });
+snapshot!(crew, rsx! { Crew { lang: Lang::En } });
+snapshot!(service_area, rsx! { ServiceArea { lang: Lang::En } });
+snapshot!(inline_cta, rsx! { InlineCta { lang: Lang::En } });
+snapshot!(page_head_prices, rsx! { PageHead { page: Lang::En.page("/prices") } });
 
-snapshot!(status_not_found, rsx! { aquafix::status::StatusScreen { copy: aquafix::content::NOT_FOUND } });
+snapshot!(status_not_found, rsx! { aquafix::status::StatusScreen { copy: aquafix::content::EN.not_found, lang: Lang::En, path: "/" } });

@@ -14,10 +14,13 @@ pub mod sections;
 pub mod seo;
 pub mod status;
 
-// The lead store and the `v_utils`-backed config are the server's; neither has
-// any business in the bundle the emergency visitor downloads.
+// The lead store, the language negotiation and the `v_utils`-backed config are
+// the server's; none has any business in the bundle the emergency visitor
+// downloads.
 #[cfg(not(target_arch = "wasm32"))]
 pub mod config;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod l10n;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod store;
 

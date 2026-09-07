@@ -7,12 +7,13 @@ use dioxus::prelude::*;
 use crate::{
 	analytics,
 	blocks::{Eyebrow, Head, Section, Tone},
-	content::{FAQ_HEAD, FAQS},
+	content::Lang,
 };
 
 #[component]
-pub fn Faq() -> Element {
-	let (eyebrow, title) = FAQ_HEAD;
+pub fn Faq(lang: Lang) -> Element {
+	let t = lang.text();
+	let (eyebrow, title) = t.faq_head;
 	rsx! {
 		Section { tone: Tone::Subtle, tight: true, id: "faq",
 			div { class: "flex flex-col gap-6 md:gap-11",
@@ -21,7 +22,7 @@ pub fn Faq() -> Element {
 					Head { "{title}" }
 				}
 				div { class: "overflow-hidden rounded-[14px] border border-rule bg-surface",
-					for (i , faq) in FAQS.iter().enumerate() {
+					for (i , faq) in t.faqs.iter().enumerate() {
 						details {
 							class: "border-b border-rule last:border-b-0",
 							ontoggle: move |_| analytics::capture(analytics::FAQ_OPENED, &[("index", &i.to_string())]),
