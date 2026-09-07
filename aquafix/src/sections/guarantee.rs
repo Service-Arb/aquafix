@@ -18,7 +18,7 @@ pub fn Guarantee(lang: Lang) -> Element {
 		Section { tone: Tone::Inverse, id: "guarantee",
 			div { class: "flex flex-col gap-4 md:gap-8",
 				div { class: "flex flex-col gap-2 md:gap-3.5",
-					Eyebrow { "{eyebrow}" }
+					Eyebrow { tone: Tone::Inverse, "{eyebrow}" }
 					Head { "{title}" }
 				}
 				div { class: "flex flex-col md:flex-row md:gap-6",

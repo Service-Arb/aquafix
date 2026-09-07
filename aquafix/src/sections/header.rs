@@ -5,7 +5,7 @@
 use dioxus::prelude::*;
 
 use crate::{
-	blocks::{Cta, CtaButton, LangSwitch},
+	blocks::{Cta, CtaButton, GUTTER, LangSwitch},
 	brand::Lockup,
 	content::{Lang, SITE},
 };
@@ -15,7 +15,7 @@ pub fn Header(lang: Lang, path: &'static str) -> Element {
 	let t = lang.text();
 	rsx! {
 		header { class: "border-b border-rule bg-surface",
-			div { class: "flex items-center px-5 py-2.5 md:px-30 md:py-[18px]",
+			div { class: "flex items-center py-2.5 md:py-[18px] {GUTTER}",
 				a { href: lang.href("/"), class: "shrink-0",
 					Lockup { mark: "h-[26px] w-[22.5px] md:h-8 md:w-[27.7px] text-accent", word: "text-[20px] md:text-[25px] text-brand" }
 				}

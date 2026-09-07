@@ -18,7 +18,7 @@ pub fn Faq(lang: Lang) -> Element {
 		Section { tone: Tone::Subtle, tight: true, id: "faq",
 			div { class: "flex flex-col gap-6 md:gap-11",
 				div { class: "flex flex-col gap-2 md:gap-3.5",
-					Eyebrow { "{eyebrow}" }
+					Eyebrow { tone: Tone::Subtle, "{eyebrow}" }
 					Head { "{title}" }
 				}
 				div { class: "overflow-hidden rounded-[14px] border border-rule bg-surface",

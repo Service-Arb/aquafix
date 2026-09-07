@@ -6,7 +6,7 @@ use dioxus::prelude::*;
 
 use crate::{
 	analytics,
-	blocks::{Cta, CtaButton, StatRow, Tick, Tone},
+	blocks::{Cta, CtaButton, GUTTER, StatRow, Tick, Tone},
 	brand::Mark,
 	content::{Lang, SITE},
 	quote::QuoteCard,
@@ -17,10 +17,13 @@ pub fn Hero(lang: Lang) -> Element {
 	let t = lang.text();
 	let p = lang.page("/");
 	rsx! {
-		div { class: "relative overflow-hidden bg-inverse-deep px-5 py-9 md:px-30 md:py-15",
+		div { class: "relative overflow-hidden bg-inverse-deep py-9 md:py-15 {GUTTER}",
 			Mark { class: "pointer-events-none absolute -left-24 -top-16 h-[520px] w-[450px] text-accent opacity-[0.06] md:-left-45 md:-top-30 md:h-[760px] md:w-[658px]" }
 			div { class: "relative flex flex-col gap-8 md:flex-row md:items-start md:gap-9",
-				div { class: "flex w-full flex-col gap-4 md:w-[656px] md:gap-[18px]",
+				// Figma's 656 is the basis, not the width: the card is fixed, so the
+				// copy takes whatever the column has left rather than leaving a void
+				// beside it on anything wider than the 1440 frame.
+				div { class: "flex w-full flex-col gap-4 md:grow md:shrink md:basis-[656px] md:gap-[18px]",
 					p { class: "text-[10px] md:text-[11.5px] font-medium tracking-[0.14em] text-accent", "{t.hero_eyebrow}" }
 					h1 { class: "font-display font-bold text-[30px] md:text-[46px] leading-[1.08] tracking-[-0.01em] text-on-inverse",
 						"{p.h1}"

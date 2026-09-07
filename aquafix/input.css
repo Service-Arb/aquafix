@@ -6,6 +6,15 @@
  * why ev_lib::uikit is not taken). */
 @source "./src/**/*.rs";
 
+/* `md:` is not a tablet breakpoint here — it is the seam between the two frames
+ * the design actually draws, 390 and 1440. So it sits at the width where the
+ * desktop one fits: 1200 of content plus the 40px minimum gutter. Below it the
+ * 390 composition runs, fluid; there is no third layout to fall into, and at
+ * Tailwind's 768 the desktop header ran out of room and overlapped itself. */
+@theme {
+  --breakpoint-md: 80rem;
+}
+
 @layer base {
   *, *::before, *::after {
     box-sizing: border-box;

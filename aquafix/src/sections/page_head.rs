@@ -2,13 +2,13 @@
 
 use dioxus::prelude::*;
 
-use crate::content::Page;
+use crate::{blocks::GUTTER, content::Page};
 
 #[component]
 pub fn PageHead(page: ReadSignal<&'static Page>) -> Element {
 	let page = page();
 	rsx! {
-		div { class: "flex flex-col gap-3 bg-inverse-deep px-5 pb-9 pt-8 md:gap-3.5 md:px-30 md:pb-13 md:pt-14",
+		div { class: "flex flex-col gap-3 bg-inverse-deep pb-9 pt-8 md:gap-3.5 md:pb-13 md:pt-14 {GUTTER}",
 			p { class: "text-[10px] md:text-[11px] font-medium tracking-[0.16em] text-accent", "{page.eyebrow}" }
 			h1 { class: "max-w-[54rem] font-display text-[30px] md:text-[44px] font-bold leading-[1.14] tracking-[-0.01em] text-on-inverse",
 				"{page.h1}"

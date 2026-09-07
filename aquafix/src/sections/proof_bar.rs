@@ -3,12 +3,12 @@
 
 use dioxus::prelude::*;
 
-use crate::content::Lang;
+use crate::{blocks::GUTTER, content::Lang};
 
 #[component]
 pub fn ProofBar(lang: Lang) -> Element {
 	rsx! {
-		div { class: "grid grid-cols-2 gap-x-6 gap-y-4 border-b border-rule bg-subtle px-5 py-4 md:flex md:items-center md:justify-between md:px-30 md:py-6",
+		div { class: "grid grid-cols-2 gap-x-6 gap-y-4 border-b border-rule bg-subtle py-4 md:flex md:items-center md:justify-between md:py-6 {GUTTER}",
 			for stat in lang.text().proof {
 				div { class: "flex flex-col gap-1",
 					span { class: "text-[10px] md:text-[10.5px] font-medium tracking-[0.14em] text-ink-soft", "{stat.label}" }

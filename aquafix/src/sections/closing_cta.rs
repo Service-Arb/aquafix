@@ -21,7 +21,7 @@ pub fn ClosingCta(lang: Lang) -> Element {
 			div { class: "flex flex-col gap-4 md:gap-[26px]",
 				div { class: "flex flex-col gap-2.5 md:gap-4",
 					span { class: "hidden md:block",
-						Eyebrow { "{t.closing.eyebrow}" }
+						Eyebrow { tone: Tone::Action, "{t.closing.eyebrow}" }
 					}
 					Head { "{t.closing.title}" }
 					p { class: "text-[14.5px] md:text-[19px] leading-[1.55] opacity-[0.78]",

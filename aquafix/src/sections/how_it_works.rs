@@ -15,7 +15,7 @@ pub fn HowItWorks(lang: Lang) -> Element {
 		Section { tone: Tone::Base, tight: true,
 			div { class: "flex flex-col gap-6 md:gap-11",
 				div { class: "flex flex-col gap-2 md:gap-3.5",
-					Eyebrow { "{eyebrow}" }
+					Eyebrow { tone: Tone::Base, "{eyebrow}" }
 					Head { "{title}" }
 				}
 				div { class: "grid gap-6 md:grid-cols-3 md:gap-6",

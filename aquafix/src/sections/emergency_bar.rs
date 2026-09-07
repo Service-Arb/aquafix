@@ -2,13 +2,16 @@
 
 use dioxus::prelude::*;
 
-use crate::{blocks::PhoneLink, content::Lang};
+use crate::{
+	blocks::{GUTTER, PhoneLink},
+	content::Lang,
+};
 
 #[component]
 pub fn EmergencyBar(lang: Lang) -> Element {
 	let t = lang.text();
 	rsx! {
-		div { class: "flex items-center justify-center gap-3 bg-inverse-deep px-5 py-2.5 md:px-30 md:py-[11px] text-[13px] md:text-[14px]",
+		div { class: "flex items-center justify-center gap-3 bg-inverse-deep py-2.5 md:py-[11px] text-[13px] md:text-[14px] {GUTTER}",
 			span { class: "size-[9px] shrink-0 rounded-full bg-danger" }
 			p { class: "truncate text-on-inverse-muted", "{t.emergency_line}" }
 			PhoneLink { class: "shrink-0 font-semibold text-action" }

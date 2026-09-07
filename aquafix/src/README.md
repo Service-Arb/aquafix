@@ -17,7 +17,9 @@ to answer an objection that would otherwise stop that action.
   page. Every internal `href` goes through `lang.href(...)`.
 - **Layout classes live only in `blocks.rs`.** Section padding, container width,
   the eyebrow treatment and the display type scale appear in exactly one file.
-  A section that writes its own `py-` has broken the contract.
+  A section that writes its own `py-` has broken the contract, and a band that
+  writes its own `px-` instead of `blocks::GUTTER` puts its content on a
+  different vertical from every other band's.
 - **The no-JS form path is not optional.** The quote form is a real
   `<form method="post" action="/quote">`. It must keep working before the wasm
   loads, because that is when the visitor we care about most submits it.
@@ -28,7 +30,7 @@ to answer an objection that would otherwise stop that action.
 
 ```text
 content.rs   every fact once; every string once per Lang (EN / FR)
-blocks.rs    Section/Tone/SectionHead/Head/Prose/CtaButton/PhoneLink/Pill/StatRow/LangSwitch
+blocks.rs    GUTTER/Section/Tone/SectionHead/Head/Prose/CtaButton/PhoneLink/Pill/StatRow/LangSwitch
 brand.rs     the mark, the wordmark, the @font-face block — all from assets/
 sections/    one file per Figma frame, ≤120 lines
 pages.rs     the Route enum (each page at /x and /:lang/x) and the four compositions

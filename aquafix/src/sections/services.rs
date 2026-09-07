@@ -15,7 +15,7 @@ pub fn Services(lang: Lang) -> Element {
 		Section { tone: Tone::Subtle, tight: true,
 			div { class: "flex flex-col gap-6 md:gap-11",
 				SectionHead { tone: Tone::Subtle, eyebrow, title, lede }
-				div { class: "grid gap-5 sm:grid-cols-2 lg:grid-cols-4",
+				div { class: "grid gap-5 sm:grid-cols-2 md:grid-cols-4",
 					for service in t.services {
 						div { class: "flex flex-col gap-3 rounded-[12px] border border-rule bg-surface px-6 pb-[26px] pt-6",
 							p { class: "font-display text-[19px] font-bold leading-[1.3] text-ink", "{service.name}" }

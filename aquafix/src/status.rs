@@ -8,7 +8,7 @@
 use dioxus::prelude::*;
 
 use crate::{
-	blocks::{Cta, CtaButton, LangSwitch, Tick},
+	blocks::{Cta, CtaButton, GUTTER, LangSwitch, Tick},
 	brand::{Lockup, Mark},
 	content::{Lang, SITE, StatusCopy},
 };
@@ -23,7 +23,7 @@ pub fn StatusScreen(copy: ReadSignal<StatusCopy>, lang: Lang, path: &'static str
 		div { lang: lang.tag(), class: "relative flex min-h-screen flex-col bg-inverse-deep",
 			// The design's glow. A radial gradient, not an asset — one less request.
 			div { class: "pointer-events-none absolute inset-x-0 top-24 h-[760px] bg-[radial-gradient(ellipse_at_center,rgba(194,112,61,0.16),transparent_65%)]" }
-			header { class: "relative flex items-center border-b border-rule-inverse px-5 py-4 md:px-12 md:py-[22px]",
+			header { class: "relative flex items-center border-b border-rule-inverse py-4 md:py-[22px] {GUTTER}",
 				a { href: lang.href("/"),
 					Lockup { mark: "h-[30px] w-[26px] text-accent", word: "text-[23px] text-on-inverse" }
 				}
@@ -61,7 +61,7 @@ pub fn StatusScreen(copy: ReadSignal<StatusCopy>, lang: Lang, path: &'static str
 					}
 				}
 			}
-			footer { class: "relative flex flex-col gap-3 border-t border-rule-inverse px-5 py-6 text-[11.5px] tracking-[0.08em] text-on-inverse-muted md:flex-row md:items-center md:px-12 md:py-7",
+			footer { class: "relative flex flex-col gap-3 border-t border-rule-inverse py-6 text-[11.5px] tracking-[0.08em] text-on-inverse-muted md:flex-row md:items-center md:py-7 {GUTTER}",
 				p { "{SITE.copyright.to_uppercase()} · OREGON CCB {SITE.ccb} · LICENCE {SITE.licence}" }
 				div { class: "flex-1" }
 				div { class: "flex gap-[26px]",

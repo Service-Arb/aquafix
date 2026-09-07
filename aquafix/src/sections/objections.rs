@@ -16,7 +16,7 @@ pub fn Objections(lang: Lang) -> Element {
 		Section { tone: Tone::Base, tight: true,
 			div { class: "flex flex-col gap-6 md:gap-12",
 				SectionHead { tone: Tone::Base, eyebrow, title, lede }
-				div { class: "grid gap-5 md:grid-cols-2 lg:grid-cols-4",
+				div { class: "grid gap-5 sm:grid-cols-2 md:grid-cols-4",
 					for objection in t.objections {
 						div { class: "flex flex-col gap-4 rounded-[14px] border border-rule bg-subtle px-[26px] pb-7 pt-[26px] md:gap-[18px]",
 							p { class: "text-[15px] font-medium leading-[1.5] text-ink-soft", "{objection.quote}" }

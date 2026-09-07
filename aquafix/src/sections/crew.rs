@@ -15,7 +15,7 @@ pub fn Crew(lang: Lang) -> Element {
 		Section { tone: Tone::Base, tight: true, id: "crew",
 			div { class: "flex flex-col gap-6 md:gap-11",
 				SectionHead { tone: Tone::Base, eyebrow, title, lede }
-				div { class: "grid gap-5 sm:grid-cols-2 lg:grid-cols-4",
+				div { class: "grid gap-5 sm:grid-cols-2 md:grid-cols-4",
 					for member in t.crew {
 						div {
 							id: "crew-{member.initials}",

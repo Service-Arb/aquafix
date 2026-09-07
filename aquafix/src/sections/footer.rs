@@ -4,6 +4,7 @@
 use dioxus::prelude::*;
 
 use crate::{
+	blocks::GUTTER,
 	brand::Lockup,
 	content::{Lang, SITE},
 };
@@ -13,7 +14,7 @@ pub fn Footer(lang: Lang) -> Element {
 	let t = lang.text();
 	let (col_services, col_areas, col_company, col_contact) = t.footer_columns;
 	rsx! {
-		footer { id: "footer", class: "bg-inverse-deep px-5 pt-9 md:px-30 md:pt-14",
+		footer { id: "footer", class: "bg-inverse-deep pt-9 md:pt-14 {GUTTER}",
 			div { class: "flex flex-col gap-8 md:flex-row md:gap-12",
 				div { class: "flex flex-col gap-4 md:w-80 md:gap-[18px]",
 					Lockup { mark: "h-[30px] w-[26px] text-accent", word: "text-[23px] text-on-inverse" }

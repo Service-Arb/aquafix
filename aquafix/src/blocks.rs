@@ -9,11 +9,29 @@
 //! design it from.
 //!
 //! Geometry is the Figma frame's, at both breakpoints: 1440 desktop
-//! (`px-30 py-16`) and 390 mobile (`px-5 py-9`).
+//! ([`GUTTER`] `py-16`) and 390 mobile (`px-5 py-9`).
 
 use dioxus::prelude::*;
 
 use crate::content::{LANGS, Lang, SITE};
+
+/// The horizontal frame every full-bleed band on the site shares. A band paints
+/// edge to edge; this is what decides where its *content* starts, so the header
+/// lockup, a price row and the footer copyright all sit on one vertical.
+///
+/// The column is 1200px — the Figma desktop frame draws every head, table and
+/// card grid at `x=120, w=1200` inside 1440. The `max()` hands everything past
+/// that to the gutter instead of to the line: a 42px headline set across a
+/// 1680px monitor is a different design from the one that was drawn.
+///
+/// Both frames get the treatment, which is why there are two numbers. Below the
+/// `md` seam the 390 composition is running, and a single column is not more
+/// readable for being 1200px wide either — it stops at 640.
+///
+/// Written as padding rather than a centred inner wrapper because these bands
+/// need their background full-bleed, and a wrapper would be a second element in
+/// every one of them.
+pub const GUTTER: &str = "px-[max(1.25rem,calc((100%_-_640px)/2))] md:px-[max(2.5rem,calc((100%_-_1200px)/2))]";
 
 /// A section's colour field. The design alternates deliberately — a light
 /// stretch, then an inverse one — and every tone carries its own text colour so
@@ -59,6 +77,15 @@ impl Tone {
 			_ => "border-rule-inverse",
 		}
 	}
+
+	/// The eyebrow colour that reads on this field. Copper everywhere the field
+	/// is not itself copper.
+	fn eyebrow(self) -> &'static str {
+		match self {
+			Tone::Action => "text-on-action",
+			_ => "text-accent",
+		}
+	}
 }
 
 /// A full-bleed horizontal band. `id` is set when the section is a scroll
@@ -67,16 +94,17 @@ impl Tone {
 pub fn Section(tone: Tone, #[props(default)] id: Option<String>, #[props(default = false)] tight: bool, children: Element) -> Element {
 	let pad = if tight { "py-8 md:py-14" } else { "py-9 md:py-16" };
 	rsx! {
-		section { id, class: "px-5 md:px-30 {pad} {tone.field()}", {children} }
+		section { id, class: "{GUTTER} {pad} {tone.field()}", {children} }
 	}
 }
 
 /// The copper all-caps label above a headline. Copper is otherwise reserved for
-/// CTAs, and this is the one exception the design makes.
+/// CTAs, and this is the one exception the design makes — so it takes its tone,
+/// because on the copper band itself the exception has nothing to say.
 #[component]
-pub fn Eyebrow(children: Element) -> Element {
+pub fn Eyebrow(tone: Tone, children: Element) -> Element {
 	rsx! {
-		p { class: "font-medium text-[10px] md:text-[11.5px] tracking-[0.15em] md:tracking-[0.16em] text-accent", {children} }
+		p { class: "font-medium text-[10px] md:text-[11.5px] tracking-[0.15em] md:tracking-[0.16em] {tone.eyebrow()}", {children} }
 	}
 }
 
@@ -85,7 +113,7 @@ pub fn Eyebrow(children: Element) -> Element {
 pub fn SectionHead(tone: Tone, eyebrow: String, title: String, #[props(default)] lede: Option<String>) -> Element {
 	rsx! {
 		div { class: "flex flex-col gap-2 md:gap-3.5",
-			Eyebrow { "{eyebrow}" }
+			Eyebrow { tone, "{eyebrow}" }
 			Head { "{title}" }
 			if let Some(lede) = lede {
 				p { class: "max-w-[52rem] text-[15px] md:text-[17px] leading-[1.58] {tone.muted()}", "{lede}" }

@@ -21,7 +21,7 @@ pub fn Reviews(lang: Lang) -> Element {
 		Section { tone: Tone::Subtle, id: "reviews",
 			div { class: "flex flex-col gap-4 md:gap-6",
 				div { class: "flex flex-col gap-2 md:gap-3.5",
-					Eyebrow { "{eyebrow}" }
+					Eyebrow { tone: Tone::Subtle, "{eyebrow}" }
 					Head { "{title}" }
 				}
 				div {
