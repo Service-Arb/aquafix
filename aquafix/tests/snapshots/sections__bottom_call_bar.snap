@@ -2,4 +2,4 @@
 source: aquafix/tests/sections.rs
 expression: render(app)
 ---
-<div id="callbar" class="sticky bottom-0 z-30 flex gap-2.5 border-t border-rule bg-surface px-3 py-2.5 shadow-[0_-6px_20px_0_rgba(0,13,31,0.18)] md:hidden"><a href="tel:+15035550148" class="flex flex-1 items-center justify-center rounded-lg bg-inverse-deep py-3.5 font-display text-[15px] font-semibold text-on-inverse">Call (503) 555-0148</a><a href="/#quote" class="flex flex-1 items-center justify-center rounded-lg bg-action py-3.5 font-display text-[15px] font-semibold text-on-action">Get my flat price</a></div>
+<div id="callbar" class="sticky bottom-0 z-30 flex gap-2.5 border-t border-rule bg-surface px-3 py-2.5 shadow-[0_-6px_20px_0_rgba(0,13,31,0.18)] md:hidden"><a href="tel:+15035550148" class="flex flex-1 items-center justify-center rounded-full bg-inverse-deep py-3.5 font-display text-[15px] font-semibold text-on-inverse">Call (503) 555-0148</a><a href="/#quote" class="flex flex-1 items-center justify-center rounded-full bg-action py-3.5 font-display text-[15px] font-semibold text-on-action">Get my flat price</a></div>

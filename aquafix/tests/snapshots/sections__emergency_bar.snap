@@ -2,4 +2,4 @@
 source: aquafix/tests/sections.rs
 expression: render(app)
 ---
-<div class="flex items-center justify-center gap-3 bg-inverse-deep py-2.5 md:py-[11px] text-[13px] md:text-[14px] px-[max(1.25rem,calc((100%_-_640px)/2))] md:px-[max(2.5rem,calc((100%_-_1200px)/2))]"><span class="size-[9px] shrink-0 rounded-full bg-danger"></span><p class="truncate text-on-inverse-muted">Burst pipe, no hot water, or a leak you can hear? We answer the phone 24/7 —</p><a href="tel:+15035550148" class="shrink-0 font-semibold text-action">(503) 555-0148</a></div>
+<div class="mx-auto flex w-fit max-w-full items-center gap-2 rounded-full bg-inverse-deep px-3.5 py-2 text-[13px] md:gap-3 md:px-6 md:py-2.5 md:text-[14px]"><span class="size-[9px] shrink-0 rounded-full bg-danger"></span><p class="truncate text-on-inverse-muted"><span class="md:hidden">Emergency? We pick up 24/7</span><span class="hidden md:inline">Burst pipe, no hot water, or a leak you can hear? We answer the phone 24/7 —</span></p><a href="tel:+15035550148" class="shrink-0 font-semibold text-action">(503) 555-0148</a></div>

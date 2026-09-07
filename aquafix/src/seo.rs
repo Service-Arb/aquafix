@@ -31,7 +31,11 @@ pub fn Head(page: ReadSignal<&'static Page>, lang: Lang) -> Element {
 		document::Meta { name: "robots", content: "index,follow" }
 		document::Link { rel: "canonical", href: "{canonical}" }
 		for other in LANGS.iter().copied() {
-			document::Link { rel: "alternate", hreflang: other.tag(), href: SITE.url(&other.href(page.path)) }
+			document::Link {
+				rel: "alternate",
+				hreflang: other.tag(),
+				href: SITE.url(&other.href(page.path)),
+			}
 		}
 		XDefault { href: SITE.url(page.path) }
 		document::Meta { property: "og:type", content: "website" }
@@ -45,7 +49,7 @@ pub fn Head(page: ReadSignal<&'static Page>, lang: Lang) -> Element {
 			document::Meta { property: "og:locale:alternate", content: other.og_locale() }
 		}
 		document::Meta { name: "twitter:card", content: "summary_large_image" }
-		crate::ld::JsonLd { page: page, lang }
+		crate::ld::JsonLd { page, lang }
 	}
 }
 

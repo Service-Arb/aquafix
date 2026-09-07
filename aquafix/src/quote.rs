@@ -18,9 +18,15 @@
 
 use dioxus::prelude::*;
 
-use crate::{analytics, blocks::Tick, content::Lang};
+use crate::{
+	analytics,
+	blocks::{CARD, TILE, Tick},
+	content::Lang,
+};
 
-const CONTROL: &str = "w-full rounded-[9px] border border-rule bg-subtle px-4 py-[15px] text-[16px] text-ink placeholder:text-ink-soft focus:outline-none focus:ring-2 focus:ring-accent";
+/// The radius is not in here: `class: CONTROL` is a raw attribute, not a
+/// format string, so a `{TILE}` written here would ship as a literal class.
+const CONTROL: &str = "w-full border border-rule bg-subtle px-4 py-[15px] text-[16px] text-ink placeholder:text-ink-soft focus:outline-none focus:ring-2 focus:ring-accent";
 /// A submitted lead. `zip` and `mobile` are trimmed but not otherwise parsed:
 /// a lead we cannot fully validate is still a lead, and rejecting it loses a
 /// customer to protect a column type.
@@ -78,13 +84,17 @@ pub fn QuoteCard(lang: Lang) -> Element {
 			method: "post",
 			action: action(lang),
 			onsubmit: move |_| analytics::capture(analytics::QUOTE_SUBMITTED, &[("surface", "hero")]),
-			class: "flex w-full flex-col gap-5 rounded-[18px] bg-surface px-6 py-7 shadow-[0_20px_48px_0_rgba(0,13,31,0.34)] md:w-[480px] md:px-[34px] md:pb-[30px] md:pt-8",
+			class: "flex w-full flex-col gap-5 {CARD} bg-surface px-6 py-7 shadow-[0_20px_48px_0_rgba(0,13,31,0.34)] md:w-[480px] md:px-[34px] md:pb-[30px] md:pt-8",
 			div { class: "flex flex-col gap-[7px]",
-				p { class: "font-display text-[24px] font-bold text-ink md:text-[30px]", "{t.quote_form.title}" }
+				p { class: "font-display text-[24px] font-bold text-ink md:text-[30px]",
+					"{t.quote_form.title}"
+				}
 				p { class: "text-[15px] text-ink-soft", "{t.quote_form.lede}" }
 			}
 			Controls { lang, labelled: true }
-			button { r#type: "submit", class: "w-full rounded-[10px] bg-action py-[19px] font-display text-[18px] font-semibold text-on-action",
+			button {
+				r#type: "submit",
+				class: "w-full rounded-full bg-action py-[19px] font-display text-[18px] font-semibold text-on-action",
 				"{t.quote_form.submit}"
 			}
 			p { class: "text-[13px] leading-[1.52] text-ink-soft", "{t.quote_reassurance()}" }
@@ -108,7 +118,9 @@ pub fn QuoteFormInline(lang: Lang) -> Element {
 			onsubmit: move |_| analytics::capture(analytics::QUOTE_SUBMITTED, &[("surface", "closing")]),
 			class: "flex w-full flex-col gap-3 md:flex-row md:items-center",
 			Controls { lang }
-			button { r#type: "submit", class: "shrink-0 rounded-[10px] bg-inverse-deep px-[34px] py-[18px] font-display text-[18px] font-semibold text-on-inverse",
+			button {
+				r#type: "submit",
+				class: "shrink-0 rounded-full bg-inverse-deep px-[34px] py-[18px] font-display text-[18px] font-semibold text-on-inverse",
 				"{t.quote_form.submit}"
 			}
 		}
@@ -120,7 +132,9 @@ pub fn QuoteFormInline(lang: Lang) -> Element {
 fn Field(label: String, children: Element) -> Element {
 	rsx! {
 		label { class: "flex w-full flex-col gap-2",
-			span { class: "text-[12.5px] font-medium tracking-[0.06em] text-ink-mid", "{label}" }
+			span { class: "text-[12.5px] font-medium tracking-[0.06em] text-ink-mid",
+				"{label}"
+			}
 			{children}
 		}
 	}
@@ -133,17 +147,43 @@ fn Controls(lang: Lang, #[props(default = false)] labelled: bool) -> Element {
 	let f = &lang.text().quote_form;
 	rsx! {
 		if labelled {
-			Field { label: f.job_label, JobSelect { lang } }
+			Field { label: f.job_label,
+				JobSelect { lang }
+			}
 			Field { label: f.zip_label,
-				input { class: CONTROL, r#type: "text", name: "zip", placeholder: f.zip_placeholder, required: true }
+				input {
+					class: "{TILE} {CONTROL}",
+					r#type: "text",
+					name: "zip",
+					placeholder: f.zip_placeholder,
+					required: true,
+				}
 			}
 			Field { label: f.mobile_label,
-				input { class: CONTROL, r#type: "tel", name: "mobile", placeholder: f.mobile_placeholder, required: true }
+				input {
+					class: "{TILE} {CONTROL}",
+					r#type: "tel",
+					name: "mobile",
+					placeholder: f.mobile_placeholder,
+					required: true,
+				}
 			}
 		} else {
 			JobSelect { lang }
-			input { class: CONTROL, r#type: "text", name: "zip", placeholder: f.zip_placeholder_short, required: true }
-			input { class: CONTROL, r#type: "tel", name: "mobile", placeholder: f.mobile_placeholder_short, required: true }
+			input {
+				class: "{TILE} {CONTROL}",
+				r#type: "text",
+				name: "zip",
+				placeholder: f.zip_placeholder_short,
+				required: true,
+			}
+			input {
+				class: "{TILE} {CONTROL}",
+				r#type: "tel",
+				name: "mobile",
+				placeholder: f.mobile_placeholder_short,
+				required: true,
+			}
 		}
 	}
 }
@@ -151,8 +191,8 @@ fn Controls(lang: Lang, #[props(default = false)] labelled: bool) -> Element {
 #[component]
 fn JobSelect(lang: Lang) -> Element {
 	rsx! {
-		select { class: CONTROL, name: "job", required: true,
-			for (value , label) in lang.text().jobs {
+		select { class: "{TILE} {CONTROL}", name: "job", required: true,
+			for (value, label) in lang.text().jobs {
 				option { value: "{value}", "{label}" }
 			}
 		}

@@ -8,37 +8,44 @@
 //! `Importance` is deliberately not built: one site is not enough examples to
 //! design it from.
 //!
-//! Geometry is the Figma frame's, at both breakpoints: 1440 desktop
-//! ([`GUTTER`] `py-16`) and 390 mobile (`px-5 py-9`).
+//! Geometry: the page is white and nothing paints to its edge. A section is a
+//! panel — [`PANEL`] wide, inset by [`STACK`]'s gutter, with white air between
+//! it and the next one. `hyros.com` is the reference for the proportion,
+//! measured at nine widths (`docs/refs/sites/hyros/NOTES.md`).
+//!
+//! The panel caps at 1296 rather than the Figma frame's 1200 so that 48px of
+//! panel padding puts the content back on `x=120, w=1200` at 1440. The Figma
+//! column has not moved; it has a panel drawn around it.
 
 use dioxus::prelude::*;
 
 use crate::content::{LANGS, Lang, SITE};
 
-/// The horizontal frame every full-bleed band on the site shares. A band paints
-/// edge to edge; this is what decides where its *content* starts, so the header
-/// lockup, a price row and the footer copyright all sit on one vertical.
-///
-/// The column is 1200px — the Figma desktop frame draws every head, table and
-/// card grid at `x=120, w=1200` inside 1440. The `max()` hands everything past
-/// that to the gutter instead of to the line: a 42px headline set across a
-/// 1680px monitor is a different design from the one that was drawn.
-///
-/// Both frames get the treatment, which is why there are two numbers. Below the
-/// `md` seam the 390 composition is running, and a single column is not more
-/// readable for being 1200px wide either — it stops at 640.
-///
-/// Written as padding rather than a centred inner wrapper because these bands
-/// need their background full-bleed, and a wrapper would be a second element in
-/// every one of them.
-pub const GUTTER: &str = "px-[max(1.25rem,calc((100%_-_640px)/2))] md:px-[max(2.5rem,calc((100%_-_1200px)/2))]";
+/// The white field a page is stacked on: its gutter, and the air between
+/// panels. The gap lives here rather than as padding inside each panel, which
+/// is what lets a panel stop where its colour stops.
+pub const STACK: &str = "flex flex-col gap-4 bg-surface px-4 py-4 sm:gap-8 sm:px-[38px] sm:py-[38px] md:gap-16 md:py-10";
+
+/// A panel's box, without its colour — the width, the radius and the inset that
+/// puts a painted section's content back on the Figma column. An unpainted
+/// section takes it too, so its head sits on the same vertical as a painted
+/// one's.
+pub const PANEL: &str = "mx-auto w-full max-w-[1296px] rounded-[18px] px-5 sm:rounded-[26px] sm:px-8 md:rounded-[30px] md:px-12";
+
+/// The two steps in from [`PANEL`]'s corner: a card sits on a panel, a tile or
+/// a control sits on a card. The ladder is 30 → 20 → 14; a 14px corner nested
+/// straight inside a 30px one reads as an accident rather than as a level.
+pub const CARD: &str = "rounded-[20px]";
+/// See [`CARD`].
+pub const TILE: &str = "rounded-[14px]";
 
 /// A section's colour field. The design alternates deliberately — a light
 /// stretch, then an inverse one — and every tone carries its own text colour so
-/// a section body never has to pick one.
+/// a section body never has to pick one. `Base` paints nothing: the white page
+/// shows through, and the panel is only a box.
 #[derive(Clone, Copy, PartialEq)]
 pub enum Tone {
-	/// White. `/guarantee` and `/about` bodies.
+	/// The page itself, unpainted. `/guarantee` and `/about` bodies.
 	Base,
 	/// Off-white. Prices, reviews, services, FAQ.
 	Subtle,
@@ -53,7 +60,7 @@ pub enum Tone {
 impl Tone {
 	fn field(self) -> &'static str {
 		match self {
-			Tone::Base => "bg-surface text-ink",
+			Tone::Base => "text-ink",
 			Tone::Subtle => "bg-subtle text-ink",
 			Tone::Inverse => "bg-inverse text-on-inverse",
 			Tone::Deep => "bg-inverse-deep text-on-inverse",
@@ -88,13 +95,13 @@ impl Tone {
 	}
 }
 
-/// A full-bleed horizontal band. `id` is set when the section is a scroll
-/// anchor; `tight` is the shorter vertical rhythm the sub-pages use.
+/// One panel in the stack. `id` is set when the section is a scroll anchor;
+/// `tight` is the shorter vertical rhythm the sub-pages use.
 #[component]
 pub fn Section(tone: Tone, #[props(default)] id: Option<String>, #[props(default = false)] tight: bool, children: Element) -> Element {
-	let pad = if tight { "py-8 md:py-14" } else { "py-9 md:py-16" };
+	let pad = if tight { "py-7 sm:py-9 md:py-12" } else { "py-8 sm:py-11 md:py-14" };
 	rsx! {
-		section { id, class: "{GUTTER} {pad} {tone.field()}", {children} }
+		section { id, class: "{PANEL} {pad} {tone.field()}", {children} }
 	}
 }
 
@@ -104,7 +111,9 @@ pub fn Section(tone: Tone, #[props(default)] id: Option<String>, #[props(default
 #[component]
 pub fn Eyebrow(tone: Tone, children: Element) -> Element {
 	rsx! {
-		p { class: "font-medium text-[10px] md:text-[11.5px] tracking-[0.15em] md:tracking-[0.16em] {tone.eyebrow()}", {children} }
+		p { class: "font-medium text-[10px] md:text-[11.5px] tracking-[0.15em] md:tracking-[0.16em] {tone.eyebrow()}",
+			{children}
+		}
 	}
 }
 
@@ -116,7 +125,9 @@ pub fn SectionHead(tone: Tone, eyebrow: String, title: String, #[props(default)]
 			Eyebrow { tone, "{eyebrow}" }
 			Head { "{title}" }
 			if let Some(lede) = lede {
-				p { class: "max-w-[52rem] text-[15px] md:text-[17px] leading-[1.58] {tone.muted()}", "{lede}" }
+				p { class: "max-w-[52rem] text-[15px] md:text-[17px] leading-[1.58] {tone.muted()}",
+					"{lede}"
+				}
 			}
 		}
 	}
@@ -127,7 +138,9 @@ pub fn SectionHead(tone: Tone, eyebrow: String, title: String, #[props(default)]
 #[component]
 pub fn Head(children: Element) -> Element {
 	rsx! {
-		h2 { class: "font-display font-bold text-[25px] md:text-[42px] leading-[1.16] md:leading-[1.14] tracking-[-0.005em] max-w-[54rem]", {children} }
+		h2 { class: "font-display font-bold text-[25px] md:text-[42px] leading-[1.16] md:leading-[1.14] tracking-[-0.005em] max-w-[54rem]",
+			{children}
+		}
 	}
 }
 
@@ -167,8 +180,12 @@ pub fn CtaButton(kind: Cta, href: String, #[props(default)] class: Option<String
 	rsx! {
 		a {
 			href,
-			onclick: move |e| { if let Some(h) = onclick { h.call(e) } },
-			class: "inline-flex items-center justify-center rounded-[10px] px-[22px] py-[14px] md:px-8 md:py-[19px] font-display font-semibold text-[15px] md:text-[18px] transition-opacity hover:opacity-90 {kind.class()} {class}",
+			onclick: move |e| {
+			    if let Some(h) = onclick {
+			        h.call(e)
+			    }
+			},
+			class: "inline-flex items-center justify-center rounded-full px-[26px] py-[15px] md:px-9 md:py-[19px] font-display font-semibold text-[15px] md:text-[18px] transition-opacity hover:opacity-90 {kind.class()} {class}",
 			{children}
 		}
 	}
@@ -182,7 +199,11 @@ pub fn PhoneLink(#[props(default)] class: Option<String>, #[props(default)] oncl
 	rsx! {
 		a {
 			href: SITE.tel_href(),
-			onclick: move |e| { if let Some(h) = onclick { h.call(e) } },
+			onclick: move |e| {
+			    if let Some(h) = onclick {
+			        h.call(e)
+			    }
+			},
 			class: "{class}",
 			"{SITE.phone}"
 		}
@@ -201,7 +222,7 @@ pub fn PhoneLink(#[props(default)] class: Option<String>, #[props(default)] oncl
 pub fn LangSwitch(lang: Lang, path: &'static str, class: String) -> Element {
 	rsx! {
 		span { class: "flex items-center gap-1.5 {class}",
-			for (i , other) in LANGS.iter().copied().enumerate() {
+			for (i, other) in LANGS.iter().copied().enumerate() {
 				if i > 0 {
 					span { class: "opacity-40", "·" }
 				}
@@ -223,7 +244,9 @@ fn switch_emphasis(current: bool) -> &'static str {
 #[component]
 pub fn Pill(children: Element) -> Element {
 	rsx! {
-		span { class: "rounded-full border border-rule bg-subtle px-4 py-2.5 text-[14px] font-medium text-ink-mid", {children} }
+		span { class: "rounded-full border border-rule bg-subtle px-4 py-2.5 text-[14px] font-medium text-ink-mid",
+			{children}
+		}
 	}
 }
 

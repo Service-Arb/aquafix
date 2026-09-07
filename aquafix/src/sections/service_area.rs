@@ -18,7 +18,9 @@ pub fn ServiceArea(lang: Lang) -> Element {
 				div { class: "flex flex-col gap-3 md:w-[500px] md:gap-3.5",
 					Eyebrow { tone: Tone::Base, "{eyebrow}" }
 					Head { "{title}" }
-					p { class: "text-[15px] md:text-[16.5px] leading-[1.62] {Tone::Base.muted()}", "{lede}" }
+					p { class: "text-[15px] md:text-[16.5px] leading-[1.62] {Tone::Base.muted()}",
+						"{lede}"
+					}
 				}
 				div { class: "flex flex-1 flex-wrap content-start gap-2.5",
 					for area in t.areas {

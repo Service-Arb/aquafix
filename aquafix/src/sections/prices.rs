@@ -8,7 +8,7 @@
 use dioxus::prelude::*;
 
 use crate::{
-	blocks::{Section, SectionHead, Tick, Tone},
+	blocks::{CARD, Section, SectionHead, Tick, Tone},
 	content::Lang,
 };
 
@@ -20,14 +20,25 @@ pub fn Prices(lang: Lang) -> Element {
 	rsx! {
 		Section { tone: Tone::Subtle, id: "prices",
 			div { class: "flex flex-col gap-5 md:gap-7",
-				SectionHead { tone: Tone::Subtle, eyebrow, title, lede }
-				div { class: "overflow-hidden rounded-[14px] border border-rule bg-surface",
+				SectionHead {
+					tone: Tone::Subtle,
+					eyebrow,
+					title,
+					lede,
+				}
+				div { class: "overflow-hidden {CARD} border border-rule bg-surface",
 					table { class: "w-full border-collapse text-left",
 						thead {
 							tr { class: "border-b border-rule bg-mist text-[10.5px] md:text-[11.5px] font-medium tracking-[0.14em] text-ink-soft",
-								th { class: "px-4 py-3 md:px-[30px] md:py-4 font-medium", "{col_job}" }
-								th { class: "px-4 py-3 md:px-[30px] md:py-4 text-right font-medium md:w-[190px]", "{col_price}" }
-								th { class: "hidden md:table-cell px-[30px] py-4 text-right font-medium w-[200px]", "{col_time}" }
+								th { class: "px-4 py-3 md:px-[30px] md:py-4 font-medium",
+									"{col_job}"
+								}
+								th { class: "px-4 py-3 md:px-[30px] md:py-4 text-right font-medium md:w-[190px]",
+									"{col_price}"
+								}
+								th { class: "hidden md:table-cell px-[30px] py-4 text-right font-medium w-[200px]",
+									"{col_time}"
+								}
 							}
 						}
 						tbody {

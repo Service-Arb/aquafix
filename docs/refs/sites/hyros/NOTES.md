@@ -23,9 +23,31 @@ never. There is no hero illustration doing decorative work.
 - H1 carries the guarantee: *"Your plumbing fixed today — at a price we agree before we start."*
 - Proof bar immediately under the hero (Google / Yelp / BBB / licence / insurance), same position as Hyros' client logo row.
 - Named, quantified stats rather than adjectives — `43 min average arrival`, `96% fixed same day`, `4,100 jobs since 2011`.
+- **The page geometry.** Measured off the live site at nine viewport widths:
+
+  | | 1920 | 1440 | 1280 | 1024 | 768 | 390 |
+  |---|---|---|---|---|---|---|
+  | panel width | 1220 | 1220 | 1204 | 948 | 692 | 314 |
+  | page gutter | 350 | 110 | 38 | 38 | 38 | 38 |
+  | panel padding | 48 | 48 | 48 | 38 | 28 | 18 |
+  | h1 | 62 | 62 | 57 | 45 | 33 | 27 |
+
+  A panel is `min(cap, 100vw − 2·gutter)`, radius 30 desktop / 26 mobile, and the
+  page behind it is white — nothing paints to the viewport edge. Radii step
+  30 → 24 → 16 as boxes nest; every button is a pill. Text inside a panel keeps
+  its own measure (h1 900, body 560), which is why a wide panel never produces a
+  wide line.
+
+  Ours caps at 1296 rather than 1220 so that 48px of panel padding lands the
+  content on the Figma column exactly (`x=120, w=1200` at 1440) — the drawn
+  layout is unmoved, it has a panel around it. `blocks::PANEL`.
 
 ## Rejected
 
 - The airy above-fold. Correct for considered B2B, wrong for a homeowner in an emergency.
   Our hero is denser and puts the quote form *in* the fold rather than behind a CTA click.
+  This survives the geometry above: the panel changed, what is inside it did not.
+- The serif display face. Hyros sets its headlines in P22 Mackinac, which is a large part
+  of why the page reads expensive. Aquafix's is Archivo, and the typeface is a brand
+  decision rather than a proportion one, so it was left alone.
 - The segmented "choose your business type" selector — one audience, one path.

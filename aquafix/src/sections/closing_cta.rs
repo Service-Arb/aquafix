@@ -35,10 +35,12 @@ pub fn ClosingCta(lang: Lang) -> Element {
 				a {
 					href: SITE.tel_href(),
 					onclick: move |_| analytics::capture(analytics::HERO_PHONE, &[("surface", "closing")]),
-					class: "md:hidden w-full rounded-[9px] bg-inverse-deep py-4 text-center font-display text-[16px] font-semibold text-on-inverse",
+					class: "md:hidden w-full rounded-full bg-inverse-deep py-4 text-center font-display text-[16px] font-semibold text-on-inverse",
 					"{t.call_label()}"
 				}
-				p { class: "hidden md:block text-[16px] font-medium opacity-80", "{t.closing_aside()}" }
+				p { class: "hidden md:block text-[16px] font-medium opacity-80",
+					"{t.closing_aside()}"
+				}
 			}
 		}
 	}

@@ -6,7 +6,7 @@ use dioxus::prelude::*;
 
 use crate::{
 	analytics,
-	blocks::{Eyebrow, Head, Section, Tone},
+	blocks::{CARD, Eyebrow, Head, Section, Tone},
 	content::Lang,
 };
 
@@ -21,8 +21,8 @@ pub fn Faq(lang: Lang) -> Element {
 					Eyebrow { tone: Tone::Subtle, "{eyebrow}" }
 					Head { "{title}" }
 				}
-				div { class: "overflow-hidden rounded-[14px] border border-rule bg-surface",
-					for (i , faq) in t.faqs.iter().enumerate() {
+				div { class: "overflow-hidden {CARD} border border-rule bg-surface",
+					for (i, faq) in t.faqs.iter().enumerate() {
 						details {
 							class: "border-b border-rule last:border-b-0",
 							ontoggle: move |_| analytics::capture(analytics::FAQ_OPENED, &[("index", &i.to_string())]),

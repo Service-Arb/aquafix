@@ -21,9 +21,15 @@ pub fn HowItWorks(lang: Lang) -> Element {
 				div { class: "grid gap-6 md:grid-cols-3 md:gap-6",
 					for step in t.steps {
 						div { class: "flex flex-col gap-4 border-t-[3px] border-accent pt-5 md:pt-7",
-							p { class: "font-display font-num text-[28px] md:text-[34px] font-bold text-accent", "{step.n}" }
-							p { class: "font-display text-[19px] md:text-[22px] font-bold leading-[1.3] text-ink", "{step.title}" }
-							p { class: "text-[15px] md:text-[15.5px] leading-[1.62] text-ink-soft", "{step.body}" }
+							p { class: "font-display font-num text-[28px] md:text-[34px] font-bold text-accent",
+								"{step.n}"
+							}
+							p { class: "font-display text-[19px] md:text-[22px] font-bold leading-[1.3] text-ink",
+								"{step.title}"
+							}
+							p { class: "text-[15px] md:text-[15.5px] leading-[1.62] text-ink-soft",
+								"{step.body}"
+							}
 						}
 					}
 				}

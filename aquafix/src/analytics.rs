@@ -28,7 +28,9 @@ pub const FAQ_OPENED: &str = "faq_question_opened";
 #[component]
 pub fn Provider(#[props(default)] api_key: Option<String>, children: Element) -> Element {
 	use_context_provider(|| Key(api_key));
-	rsx! { {children} }
+	rsx! {
+		{children}
+	}
 }
 /// Fire-and-forget. Call from an event handler in an interactive leaf.
 pub fn capture(name: &'static str, props: &[(&'static str, &str)]) {

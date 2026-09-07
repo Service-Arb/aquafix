@@ -34,9 +34,7 @@ pub fn App() -> Element {
 		document::Link { rel: "stylesheet", href: TAILWIND }
 		document::Meta { name: "viewport", content: "width=device-width, initial-scale=1" }
 		brand::Fonts {}
-		analytics::Provider { api_key: posthog_key(),
-			Router::<pages::Route> {}
-		}
+		analytics::Provider { api_key: posthog_key(), Router::<pages::Route> {} }
 	}
 }
 

@@ -15,11 +15,16 @@ to answer an objection that would otherwise stop that action.
   value. `lang` is required, never defaulted below a page: a section that
   forgets to thread it is a compile error, not an English patch inside a French
   page. Every internal `href` goes through `lang.href(...)`.
-- **Layout classes live only in `blocks.rs`.** Section padding, container width,
-  the eyebrow treatment and the display type scale appear in exactly one file.
-  A section that writes its own `py-` has broken the contract, and a band that
-  writes its own `px-` instead of `blocks::GUTTER` puts its content on a
-  different vertical from every other band's.
+- **Layout classes live only in `blocks.rs`.** Section padding, panel width, the
+  corner ladder, the eyebrow treatment and the display type scale appear in
+  exactly one file. A section that writes its own `py-` has broken the contract;
+  one that writes its own `px-` instead of `PANEL` puts its content on a
+  different vertical from every other section's; one that writes its own
+  `rounded-` breaks the 30 → 20 → 14 nesting.
+- **Nothing paints to the viewport edge.** The page is white and a section is a
+  panel on it — `STACK` is the field and the air between panels, `PANEL` is the
+  box. The proportion is `hyros.com`'s, measured; `docs/refs/sites/hyros/NOTES.md`
+  has the table.
 - **The no-JS form path is not optional.** The quote form is a real
   `<form method="post" action="/quote">`. It must keep working before the wasm
   loads, because that is when the visitor we care about most submits it.
@@ -30,7 +35,7 @@ to answer an objection that would otherwise stop that action.
 
 ```text
 content.rs   every fact once; every string once per Lang (EN / FR)
-blocks.rs    GUTTER/Section/Tone/SectionHead/Head/Prose/CtaButton/PhoneLink/Pill/StatRow/LangSwitch
+blocks.rs    STACK/PANEL/CARD/TILE/Section/Tone/SectionHead/Head/Prose/CtaButton/PhoneLink/Pill/StatRow/LangSwitch
 brand.rs     the mark, the wordmark, the @font-face block — all from assets/
 sections/    one file per Figma frame, ≤120 lines
 pages.rs     the Route enum (each page at /x and /:lang/x) and the four compositions
