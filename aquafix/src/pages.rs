@@ -67,8 +67,6 @@ pub fn HomePage(#[props(default = Lang::En)] lang: Lang) -> Element {
 			sections::Reviews { lang }
 			sections::ClosingCta { lang }
 		}
-		// The fixed bar overlaps the footer; reserve its height back.
-		div { class: "h-[66px] md:hidden" }
 		sections::BottomCallBar { lang }
 	}
 }

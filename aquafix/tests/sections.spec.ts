@@ -20,7 +20,11 @@ const SECTIONS = [
   { name: "faq", url: "/prices#faq", selector: "#faq" },
   { name: "crew", url: "/about#crew", selector: "#crew" },
   { name: "areas", url: "/about#areas", selector: "#areas" },
+  { name: "callbar", url: "/", selector: "#callbar" },
 ] as const;
+
+// `md:hidden` in the design: at 1440 there is nothing to shoot.
+const MOBILE_ONLY = new Set<string>(["callbar"]);
 
 // The site scrolls smoothly for everyone who has not asked it not to, and an
 // animated scroll is exactly the moving target above. `use.reducedMotion` does
@@ -31,6 +35,7 @@ test.beforeEach(async ({ page }) => {
 
 for (const { name, url, selector } of SECTIONS) {
   test(`- mismatch on: ${name}`, async ({ page }, testInfo) => {
+    test.skip(MOBILE_ONLY.has(name) && testInfo.project.name !== "mobile");
     await page.goto(url);
 
     // Web fonts shift glyph metrics; a shot taken before they apply is a
@@ -57,7 +62,11 @@ for (const { name, url, selector } of SECTIONS) {
       { timeout: 10_000 }
     );
 
-    await expect(section).toHaveScreenshot(`${name}-${testInfo.project.name}.png`);
+    // The call bar rides the viewport until the end of the document, so it is
+    // inside the crop of every section taller than one screen. It is chrome,
+    // not part of those sections — screenshot-section.css takes it out of them,
+    // and it is shot here on its own instead.
+    await expect(section).toHaveScreenshot(`${name}-${testInfo.project.name}.png`, name === "callbar" ? { stylePath: "./tests/screenshot.css" } : {});
   });
 }
 

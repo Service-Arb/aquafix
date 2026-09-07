@@ -1,11 +1,5 @@
-/* Everything pinned to the viewport rather than to the page. Where such a thing
- * lands inside a section's crop is a function of the scroll offset, so it is a
- * different picture every run.
- *
- * `.dx-toast` is `dx serve`'s hot-reload banner; `#callbar` is the mobile call
- * bar, which loses its visual baseline this way — its markup is covered by
- * tests/sections.rs. */
-.dx-toast,
-#callbar {
+/* `dx serve`'s hot-reload banner. Dev-server chrome that is not on the site at
+ * all, and it appears on its own schedule. */
+.dx-toast {
   display: none !important;
 }

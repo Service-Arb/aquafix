@@ -23,7 +23,8 @@ export default defineConfig({
     toHaveScreenshot: {
       maxDiffPixelRatio: 0.01,
       animations: "disabled",
-      stylePath: "./tests/screenshot.css",
+      // The call bar's own shot overrides this back down to screenshot.css.
+      stylePath: ["./tests/screenshot.css", "./tests/screenshot-section.css"],
     },
   },
 

@@ -1,0 +1,5 @@
+/* The call bar is pinned to the viewport, so where it falls inside a section's
+ * crop is a function of the scroll offset. It is shot on its own instead. */
+#callbar {
+  display: none !important;
+}
