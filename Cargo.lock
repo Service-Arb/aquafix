@@ -128,7 +128,6 @@ dependencies = [
  "serde_json",
  "smart-default",
  "sqlx",
- "thiserror 2.0.20",
  "tokio",
  "tracing",
  "tracing-subscriber",
