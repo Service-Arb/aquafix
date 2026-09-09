@@ -41,7 +41,7 @@ pub const RATING: (f64, u32) = (4.9, 612);
 /// English is the default and its URLs carry no prefix; French is served under
 /// `/fr`. Slugs stay English in both — `Page.path` is the one key `page()`, the
 /// sitemap, `ld::breadcrumbs` and the route table all share.
-#[derive(Clone, Copy, PartialEq, Eq, Debug, Default, Hash)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
 pub enum Lang {
 	#[default]
 	En,

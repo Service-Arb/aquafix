@@ -18,9 +18,14 @@
 
 use dioxus::prelude::*;
 
-use crate::{analytics, blocks::Tick, content::Lang};
+use ev_lib::uikit::{Button, Check, Input, Size};
 
-const CONTROL: &str = "w-full rounded-[9px] border border-rule bg-subtle px-4 py-[15px] text-[16px] text-ink placeholder:text-ink-soft focus:outline-none focus:ring-2 focus:ring-accent";
+use crate::{analytics, brand::CTA_FACE, content::Lang};
+
+/// The design's control: taller and roomier than the kit's default, on the card
+/// plane rather than transparent. Everything else — the border, the ring, the
+/// placeholder ink, the disabled state — is `Input`'s.
+const CONTROL: &str = "h-auto rounded-[9px] bg-card px-4 py-[15px] text-[16px] md:text-[16px] shadow-none";
 /// A submitted lead. `zip` and `mobile` are trimmed but not otherwise parsed:
 /// a lead we cannot fully validate is still a lead, and rejecting it loses a
 /// customer to protect a column type.
@@ -78,19 +83,20 @@ pub fn QuoteCard(lang: Lang) -> Element {
 			method: "post",
 			action: action(lang),
 			onsubmit: move |_| analytics::capture(analytics::QUOTE_SUBMITTED, &[("surface", "hero")]),
-			class: "flex w-full flex-col gap-5 rounded-[18px] bg-surface px-6 py-7 shadow-[0_20px_48px_0_rgba(0,13,31,0.34)] md:w-[480px] md:px-[34px] md:pb-[30px] md:pt-8",
+			// The card is white on the hero's navy: a light island inside a dark band.
+			class: "light flex w-full flex-col gap-5 rounded-[18px] bg-background text-ink px-6 py-7 shadow-[0_20px_48px_0_rgba(0,13,31,0.34)] md:w-[480px] md:px-[34px] md:pb-[30px] md:pt-8",
 			div { class: "flex flex-col gap-[7px]",
 				p { class: "font-display text-[24px] font-bold text-ink md:text-[30px]", "{t.quote_form.title}" }
 				p { class: "text-[15px] text-ink-soft", "{t.quote_form.lede}" }
 			}
 			Controls { lang, labelled: true }
-			button { r#type: "submit", class: "w-full rounded-[10px] bg-action py-[19px] font-display text-[18px] font-semibold text-on-action",
+			Button { r#type: "submit", size: Size::Xl, class: "w-full {CTA_FACE}",
 				"{t.quote_form.submit}"
 			}
 			p { class: "text-[13px] leading-[1.52] text-ink-soft", "{t.quote_reassurance()}" }
-			div { class: "h-px w-full bg-rule" }
+			div { class: "h-px w-full bg-border" }
 			div { class: "flex items-center gap-2.5",
-				Tick {}
+				Check {}
 				span { class: "text-[13px] font-medium text-ink-mid", "{t.quote_form.privacy}" }
 			}
 		}
@@ -108,14 +114,16 @@ pub fn QuoteFormInline(lang: Lang) -> Element {
 			onsubmit: move |_| analytics::capture(analytics::QUOTE_SUBMITTED, &[("surface", "closing")]),
 			class: "flex w-full flex-col gap-3 md:flex-row md:items-center",
 			Controls { lang }
-			button { r#type: "submit", class: "shrink-0 rounded-[10px] bg-inverse-deep px-[34px] py-[18px] font-display text-[18px] font-semibold text-on-inverse",
+			Button { r#type: "submit", size: Size::Xl, class: "dark shrink-0 bg-background text-ink {CTA_FACE}",
 				"{t.quote_form.submit}"
 			}
 		}
 	}
 }
-/// Figma `4:9`–`4:24`. One labelled control; the three fields differ only in
-/// what they contain.
+/// Figma `4:9`–`4:24`. One labelled control, wrapping its input rather than
+/// pointing at it: `uikit::Field` needs a `FormControl` to mint the id, and
+/// without one its label emits an empty `for`, which is worse than no label at
+/// all.
 #[component]
 fn Field(label: String, children: Element) -> Element {
 	rsx! {
@@ -135,19 +143,22 @@ fn Controls(lang: Lang, #[props(default = false)] labelled: bool) -> Element {
 		if labelled {
 			Field { label: f.job_label, JobSelect { lang } }
 			Field { label: f.zip_label,
-				input { class: CONTROL, r#type: "text", name: "zip", placeholder: f.zip_placeholder, required: true }
+				Input { class: CONTROL, r#type: "text", name: "zip", placeholder: f.zip_placeholder, required: true }
 			}
 			Field { label: f.mobile_label,
-				input { class: CONTROL, r#type: "tel", name: "mobile", placeholder: f.mobile_placeholder, required: true }
+				Input { class: CONTROL, r#type: "tel", name: "mobile", placeholder: f.mobile_placeholder, required: true }
 			}
 		} else {
 			JobSelect { lang }
-			input { class: CONTROL, r#type: "text", name: "zip", placeholder: f.zip_placeholder_short, required: true }
-			input { class: CONTROL, r#type: "tel", name: "mobile", placeholder: f.mobile_placeholder_short, required: true }
+			Input { class: CONTROL, r#type: "text", name: "zip", placeholder: f.zip_placeholder_short, required: true }
+			Input { class: CONTROL, r#type: "tel", name: "mobile", placeholder: f.mobile_placeholder_short, required: true }
 		}
 	}
 }
 
+/// A native `<select>`, not `uikit::Select`: that one is a `div`/`button`
+/// combobox, and this form has to submit before any wasm has loaded
+/// (docs/ARCHITECTURE.md, "The visitor is standing in water").
 #[component]
 fn JobSelect(lang: Lang) -> Element {
 	rsx! {

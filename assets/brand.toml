@@ -1,36 +1,91 @@
 # The brand's single source: the Figma variable collection of
-# `hn1D34By2eYTsakhzDWWkV`, verbatim. Read by `business_card/lib.typ` (typst
-# `toml()`) and by `aquafix/examples/gen_tokens.rs`, which emits
-# `aquafix/assets/tokens.css` from it.
+# `hn1D34By2eYTsakhzDWWkV`, in the `ev_lib::uikit` token vocabulary. Read by
+# `business_card/lib.typ` (typst `toml()`) and by `aquafix_assets/build.rs`,
+# which emits `aquafix/assets/tokens.css` from it.
 #
-# Add a colour here only if Figma has it; the mapping onto CSS custom properties
-# lives in gen_tokens, not here.
+# Two scopes, because the page alternates light and navy bands. Custom
+# properties inherit, so a `<Section polarity=…>` re-themes its subtree and the
+# same `bg-card text-ink` is right on both sides. Both scopes carry every name;
+# a hole would be a band with no colour for something.
+#
+# A surface takes its ink from its scope, so it has no pairing of its own. A
+# filled role does — copper is neither light nor dark, so nothing derives that
+# its label is near-black — and that is what `on-*` is.
+#
+# Accents are decorative and ordered by significance, quiet to loud (see
+# `ev_lib`'s docs/spec/accents.md). This design distinguishes three rungs, so
+# trace/debug/info share one quiet value.
+#
+# Values only, no layout: the geometry scalars live in `aquafix/input.css`.
 
-wordmark = ["AQUA", "FIX"] # the second half takes brand.accent
+wordmark = ["AQUA", "FIX"] # the second half takes primary
 
-[colors]
-bg-base = "#ffffff"
-bg-subtle = "#f6f8fa"
-bg-mist = "#edf1f5"
-bg-inverse = "#0a2540"
-bg-inverse-raised = "#12395c"
-bg-inverse-deep = "#051726"
-brand-primary = "#0a2540"
-brand-accent = "#c2703d"
-action-bg = "#e08a3c"
-action-text = "#051726"
-text-primary = "#051726"
-text-secondary = "#5a6b7c"
-text-tertiary = "#33475b"
-text-on-inverse = "#ffffff"
-text-on-inverse-muted = "#a9bdd1"
-border-default = "#dce3ea"
-border-inverse = "#1b3a57"
-status-success = "#1e9e6a"
-status-danger = "#d8362a"
+[colors.light]
+background = "#ffffff"
+card = "#f6f8fa"
+muted = "#edf1f5"
+popover = "#ffffff"
+hover = "#edf1f5"
+ink = "#051726"
+ink-mid = "#33475b"
+ink-soft = "#5a6b7c"
+border = "#dce3ea"
+input = "#dce3ea"
+ring = "#c2703d"
+brand = "#0a2540"
+primary = "#c2703d"
+on-primary = "#051726"
+secondary = "#edf1f5"
+on-secondary = "#051726"
+positive = "#1e9e6a"
+on-positive = "#ffffff"
+accent-trace = "#5a6b7c"
+on-accent-trace = "#ffffff"
+accent-debug = "#5a6b7c"
+on-accent-debug = "#ffffff"
+accent-info = "#5a6b7c"
+on-accent-info = "#ffffff"
+accent-warn = "#e08a3c"
+on-accent-warn = "#051726"
+accent-error = "#d8362a"
+on-accent-error = "#ffffff"
 
-# brand-accent at the watermark's opacity, pre-composited over bg-inverse.
-# Card-only: on the web the watermark is a real alpha fill.
+[colors.dark]
+background = "#051726"
+card = "#0a2540"
+muted = "#12395c"
+popover = "#12395c"
+hover = "#12395c"
+ink = "#ffffff"
+# The one value Figma has no variable for: navy never carried a third text
+# weight, and the ramp cannot have a hole.
+ink-mid = "#d4dee8"
+ink-soft = "#a9bdd1"
+border = "#1b3a57"
+input = "#1b3a57"
+ring = "#c2703d"
+brand = "#0a2540"
+primary = "#c2703d"
+on-primary = "#051726"
+secondary = "#12395c"
+on-secondary = "#ffffff"
+positive = "#1e9e6a"
+on-positive = "#ffffff"
+accent-trace = "#a9bdd1"
+on-accent-trace = "#051726"
+accent-debug = "#a9bdd1"
+on-accent-debug = "#051726"
+accent-info = "#a9bdd1"
+on-accent-info = "#051726"
+accent-warn = "#e08a3c"
+on-accent-warn = "#051726"
+accent-error = "#d8362a"
+on-accent-error = "#ffffff"
+
+# Paper has no alpha, so the card's watermark ships pre-composited: primary at
+# the watermark's opacity over the dark card. The web watermark is a real alpha
+# fill, so no token is emitted for it.
+[print]
 watermark = "#1a2c3f"
 
 [fonts]

@@ -1,10 +1,39 @@
 @import "tailwindcss";
 @import "./assets/tokens.css";
 
-/* Scan Dioxus RSX source for class names. There is no vendored class inventory:
- * every class literal on this site is written here (see docs/ARCHITECTURE.md on
- * why ev_lib::uikit is not taken). */
+/* Scan Dioxus RSX source for class names, plus the kit's own — `ev_lib` is a
+ * checkout Tailwind cannot reach, so `aquafix_assets` writes its inventory out
+ * next to this file. */
 @source "./src/**/*.rs";
+@source "./assets/uikit-classes.txt";
+
+/* Layout scalars the kit reads. `assets/` carries values, never layout, so
+ * these are here and not in the generated tokens.css. Geometry is the Figma
+ * frame's, at both breakpoints: 1440 desktop and 390 mobile. */
+:root {
+  --page-px: 1.25rem;   /* px-5 */
+  --page-max: none;     /* the design is full-bleed */
+  --band-py: 2.25rem;   /* py-9 */
+  --band-py-tight: 2rem;
+  --display-scale: 1;
+  --radius: 0.625rem;
+  /* the CTA's shape: the kit's Xl button is these three and nothing else */
+  --control-radius: 0.625rem;
+  --control-px: 1.375rem;
+  --control-py: 0.875rem;
+  --control-text: 0.9375rem;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --page-px: 7.5rem;  /* px-30 */
+    --band-py: 4rem;    /* py-16 */
+    --band-py-tight: 3.5rem;
+    --control-px: 2rem;
+    --control-py: 1.1875rem;
+    --control-text: 1.125rem;
+  }
+}
 
 @layer base {
   *, *::before, *::after {
@@ -17,7 +46,7 @@
   }
   body {
     margin: 0;
-    @apply bg-surface text-ink antialiased;
+    @apply bg-background text-ink antialiased;
     font-family: var(--font-text);
     font-size: 1rem;
   }

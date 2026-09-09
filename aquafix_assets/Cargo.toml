@@ -5,6 +5,9 @@ edition = "2024"
 description = "Build-time staging of the shared brand assets into the aquafix crate."
 
 [build-dependencies]
+# For CLASS_INVENTORY only — the kit's class literals, which Tailwind cannot
+# scan out of a crates.io checkout. Dioxus-free, so this stays a cheap build dep.
+ev_lib_classes.workspace = true
 serde.workspace = true
 toml.workspace = true
 

@@ -23,38 +23,40 @@ fn main() {
 	stage();
 }
 
-/// brand.toml colour key → the Tailwind colour name it is reachable as.
-///
-/// Not mechanical: stripping the Figma category prefix collides (`bg/inverse`
-/// and `border/inverse` both reduce to `inverse`) and Tailwind shares one
-/// colour namespace across `bg-` / `text-` / `border-`. So the names are chosen
-/// once, here, and the build fails if brand.toml and this list disagree.
-const NAMES: &[(&str, &str)] = &[
-	("bg-base", "surface"),
-	("bg-subtle", "subtle"),
-	("bg-mist", "mist"),
-	("bg-inverse", "inverse"),
-	("bg-inverse-raised", "inverse-raised"),
-	("bg-inverse-deep", "inverse-deep"),
-	("brand-primary", "brand"),
-	("brand-accent", "accent"),
-	("action-bg", "action"),
-	("action-text", "on-action"),
-	// darkest → lightest, which Figma's primary/secondary/tertiary does not say
-	("text-primary", "ink"),
-	("text-tertiary", "ink-mid"),
-	("text-secondary", "ink-soft"),
-	("text-on-inverse", "on-inverse"),
-	("text-on-inverse-muted", "on-inverse-muted"),
-	("border-default", "rule"),
-	("border-inverse", "rule-inverse"),
-	("status-success", "success"),
-	("status-danger", "danger"),
+/// Every colour token the kit's class tables reference. Both scopes must carry
+/// all of them: a hole is a band with no colour for something, and Tailwind
+/// answers an undefined token by emitting no rule at all — silently. So the
+/// contract is asserted here rather than discovered on the page.
+const TOKENS: &[&str] = &[
+	"background",
+	"card",
+	"popover",
+	"muted",
+	"hover",
+	"ink",
+	"ink-mid",
+	"ink-soft",
+	"border",
+	"input",
+	"ring",
+	"brand",
+	"primary",
+	"on-primary",
+	"secondary",
+	"on-secondary",
+	"positive",
+	"on-positive",
+	"accent-trace",
+	"on-accent-trace",
+	"accent-debug",
+	"on-accent-debug",
+	"accent-info",
+	"on-accent-info",
+	"accent-warn",
+	"on-accent-warn",
+	"accent-error",
+	"on-accent-error",
 ];
-
-/// Print-only: brand-accent pre-composited over bg-inverse, because paper has
-/// no alpha. The web watermark is a real alpha fill, so no token is emitted.
-const PRINT_ONLY: &[&str] = &["watermark"];
 
 /// The webfaces the site `@font-face`s. The `.ttf` twins stay behind — they are
 /// typst's, and shipping them to a browser would double the font payload.
@@ -86,6 +88,10 @@ fn stage() {
 	)
 	.expect("write tokens.css");
 
+	// Tailwind cannot see the kit's class strings: `ev_lib` is a checkout at no
+	// path a committed `@source` could reach. The crate carries them instead.
+	std::fs::write(out.join("uikit-classes.txt"), ev_lib_classes::CLASS_INVENTORY).expect("write uikit-classes.txt");
+
 	// Class literals live in the RSX, so the stylesheet is a function of the
 	// sources — rerun on both.
 	println!("cargo:rerun-if-changed={}", site.join("input.css").display());
@@ -101,36 +107,43 @@ fn stage() {
 fn tokens_css(brand: &str) -> String {
 	let brand: BrandToml = toml::from_str(brand).expect("brand.toml parses");
 
-	let unnamed: Vec<_> = brand
-		.colors
-		.keys()
-		.filter(|k| !PRINT_ONLY.contains(&k.as_str()) && !NAMES.iter().any(|(from, _)| from == k))
-		.collect();
-	assert!(unnamed.is_empty(), "brand.toml colours with no Tailwind name in NAMES: {unnamed:?}");
-
 	let mut theme = String::new();
-	let mut root = String::new();
-	for (key, name) in NAMES {
-		let value = brand.colors.get(*key).unwrap_or_else(|| panic!("NAMES references a colour brand.toml does not have: {key}"));
+	for name in TOKENS {
 		theme.push_str(&format!("  --color-{name}: var(--{name});\n"));
-		root.push_str(&format!("  --{name}: {value};\n"));
 	}
 
+	let scope = |values: &BTreeMap<String, String>| -> String {
+		let missing: Vec<_> = TOKENS.iter().filter(|t| !values.contains_key(**t)).collect();
+		assert!(missing.is_empty(), "brand.toml scope is missing kit tokens: {missing:?}");
+		let extra: Vec<_> = values.keys().filter(|k| !TOKENS.contains(&k.as_str())).collect();
+		assert!(extra.is_empty(), "brand.toml scope names colours the kit has no token for: {extra:?}");
+		TOKENS.iter().map(|t| format!("  --{t}: {};\n", values[*t])).collect()
+	};
+
 	format!(
-		"/* GENERATED from assets/brand.toml by aquafix/assets.rs. Do not edit.\n\
+		"/* GENERATED from assets/brand.toml by aquafix_assets/build.rs. Do not edit.\n\
 		 *\n\
-		 * `@theme inline` wires the values into Tailwind utilities; `:root` carries the\n\
-		 * raw custom properties, so an arbitrary `bg-[var(--inverse)]` also resolves. */\n\
+		 * `@theme inline` wires the values into Tailwind utilities; the scopes carry\n\
+		 * the raw custom properties, so a `<Section polarity=…>` re-themes its subtree\n\
+		 * and `bg-card text-ink` is correct on both sides. */\n\
 		 \n\
 		 @theme inline {{\n\
 		 {theme}\n\
 		 \x20 --font-display: \"{display}\", ui-sans-serif, system-ui, sans-serif;\n\
 		 \x20 --font-text: \"{text}\", ui-sans-serif, system-ui, sans-serif;\n\
+		 \x20 --font-sans: \"{text}\", ui-sans-serif, system-ui, sans-serif;\n\
 		 }}\n\
 		 \n\
-		 :root {{\n\
-		 {root}\
+		 :root,\n\
+		 .light {{\n\
+		 {light}\
+		 }}\n\
+		 \n\
+		 .dark {{\n\
+		 {dark}\
 		 }}\n",
+		light = scope(&brand.colors.light),
+		dark = scope(&brand.colors.dark),
 		display = brand.fonts.display,
 		text = brand.fonts.text,
 	)
@@ -138,8 +151,14 @@ fn tokens_css(brand: &str) -> String {
 
 #[derive(serde::Deserialize)]
 struct BrandToml {
-	colors: BTreeMap<String, String>,
+	colors: Scopes,
 	fonts: FontsToml,
+}
+
+#[derive(serde::Deserialize)]
+struct Scopes {
+	light: BTreeMap<String, String>,
+	dark: BTreeMap<String, String>,
 }
 
 #[derive(serde::Deserialize)]

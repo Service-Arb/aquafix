@@ -5,19 +5,24 @@ to answer an objection that would otherwise stop that action.
 
 ## The rules this crate obeys
 
-- **Copper is CTA-only.** `action/bg` (`bg-action`) appears on calls to action
-  and nowhere else, so the eye can always find the next step. `brand/accent`
-  (`text-accent`) is the eyebrow and price colour and is a *different* value on
-  purpose.
+- **Copper is the action.** `primary` is the call to action, the eyebrow and the
+  price. One value, authored to be legible as both a fill and as text — where it
+  fills, `on-primary` says what reads on it.
 - **Sections take typed data, and a `Lang`.** A `sections/*` function receives
   its slice of `content` and nothing else. There is no literal copy inside an
   `rsx!`. This is what makes a price row render *and* emit its `Offer` from one
   value. `lang` is required, never defaulted below a page: a section that
   forgets to thread it is a compile error, not an English patch inside a French
   page. Every internal `href` goes through `lang.href(...)`.
-- **Layout classes live only in `blocks.rs`.** Section padding, container width,
-  the eyebrow treatment and the display type scale appear in exactly one file.
-  A section that writes its own `py-` has broken the contract.
+- **Layout is a token, not a class.** Band rhythm is `--band-py`, the gutter
+  `--page-px`, the headline scale `--display-scale`, the CTA's shape
+  `--control-*`. They are written once in `input.css`; a section that writes its
+  own `py-` has broken the contract.
+- **Polarity is a scope, not a prop.** `<Section polarity=…>` puts `light` or
+  `dark` on the band, and custom properties inherit — so `text-ink`,
+  `text-ink-soft` and `border-border` are correct inside either, and nothing has
+  to be told which side it is on. A light island inside a dark band (the hero's
+  quote card) says `light` on itself.
 - **The no-JS form path is not optional.** The quote form is a real
   `<form method="post" action="/quote">`. It must keep working before the wasm
   loads, because that is when the visitor we care about most submits it.
@@ -28,8 +33,7 @@ to answer an objection that would otherwise stop that action.
 
 ```text
 content.rs   every fact once; every string once per Lang (EN / FR)
-blocks.rs    Section/Tone/SectionHead/Head/Prose/CtaButton/PhoneLink/Pill/StatRow/LangSwitch
-brand.rs     the mark, the wordmark, the @font-face block — all from assets/
+brand.rs     the mark, the wordmark, the @font-face block, the CTA face — from assets/
 sections/    one file per Figma frame, ≤120 lines
 pages.rs     the Route enum (each page at /x and /:lang/x) and the four compositions
 l10n.rs      which language a request gets (server-only)
@@ -43,10 +47,17 @@ analytics.rs PostHog capture, wrapped so no section writes a cfg
 
 ## Constraints from below
 
-`ev_lib` is not used. Its `uikit` is shadcn-shaped around the EV palette, and
-its `analytics` — right on shape — costs 236 KB of wasm because it POSTs through
-`reqwest`. Both decisions, with the numbers, are in `docs/ARCHITECTURE.md`.
+The layout vocabulary — `Section`, `SectionHead`, `Display`, `Prose`, `Stat`,
+`Check` — and the controls come from `ev_lib::uikit` on its `modern` token
+feature. `assets/brand.toml` fills the kit's names with this brand's values, in
+two scopes; nothing here overrides a kit class to get a colour.
 
-Where a native element does the job, it is used: `<details>` for the FAQ and the
-mobile drawer, a real `<table>` for the price list, a real `<form>` for the
-quote. Less to hydrate is both faster and less to test.
+`ev_lib::analytics` is not used: right on shape, but it POSTs through `reqwest`,
+which costs 236 KB of wasm. The number is in `docs/ARCHITECTURE.md`.
+
+Where a native element does the job, it wins over the kit: `<details>` for the
+FAQ and the mobile drawer, a native `<select>` in the quote form (the kit's is a
+`div` combobox, and this form submits before any wasm), a plain `<label>`
+wrapping its input (the kit's `Field` needs a `FormControl` to mint an id, and
+without one its label emits an empty `for`). Less to hydrate is both faster and
+less to test — and it is the invariant that outranks reuse.

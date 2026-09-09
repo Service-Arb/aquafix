@@ -4,7 +4,6 @@
 use dioxus::prelude::*;
 
 pub mod analytics;
-pub mod blocks;
 pub mod brand;
 pub mod content;
 pub mod ld;

@@ -8,7 +8,7 @@ All three render the same facts.
 ```mermaid
 flowchart LR
     subgraph shared["assets/ — the brand, once"]
-      B["brand.toml<br/>19 Figma colour variables<br/>+ the two families"]
+      B["brand.toml<br/>the kit's colour tokens × 2 scopes<br/>+ the two families"]
       M["mark.svg<br/>currentColor"]
       F["fonts/<br/>.ttf print · .woff2 web"]
     end
@@ -60,9 +60,12 @@ evidence in `docs/refs/sites/README.md`. Improving a headline without going back
 to that argument silently detaches the page from its reasoning. `FR` is a
 translation of that graded copy, not a second grading of it.
 
-**Copper is the action.** `action/bg` marks calls to action and nothing else, so
-the eye can always find the next step. `brand/accent` is a deliberately
-different value for eyebrows and prices.
+**Copper is the action.** `primary` marks the call to action, the eyebrow and
+the price. It used to be two values a shade apart — one that could only be a
+fill and one that could only be text. Authoring one copper legible as both is
+the resolution the split never reached, and it is why `on-primary` exists: a
+role that gets filled says what reads on it, because neither polarity derives
+that.
 
 ## Codemap
 
@@ -70,7 +73,7 @@ different value for eyebrows and prices.
 |---|---|
 | `assets/` | `brand.toml`, `mark.svg`, `fonts/`. The only place a brand value is written. |
 | `business_card/` | The typst card. Reads `assets/` with `--root ..`. Its Figma-parity test is the guard that the shared move did not change the print output. |
-| `aquafix/assets.rs` | Run from `build.rs`. Derives `aquafix/assets/` (gitignored) from `assets/`: stages the woff2s and emits `tokens.css`. Owns the Figma-name → Tailwind-name map and fails the build on an unmapped colour. |
+| `aquafix_assets/build.rs` | Run from `aquafix`'s `build.rs`. Derives `aquafix/assets/` (gitignored) from `assets/`: stages the woff2s, emits `tokens.css` and writes out the kit's class inventory for Tailwind to scan. Owns the list of tokens the kit needs, and fails the build if either scope has a hole. |
 | `aquafix/src/` | The site. Local conventions in `aquafix/src/README.md`. |
 | `aquafix/src/l10n.rs` | Server-only. Decides which language a request gets before the router sees it: `?lang=` mints the cookie, `/en/*` 301s to the unprefixed URL, an unprefixed entry with no cookie negotiates `Accept-Language`. English is unprefixed and canonical; French lives under `/fr`. |
 | `deploy/config.nix` | Prod `AppConfig`, evaluated to JSON at build time and passed as `--config`. |
@@ -84,9 +87,10 @@ other, and adding a third consumer costs one reader.
 
 **`content.rs` → `sections/`.** A section receives its slice and nothing else.
 It may not contain a literal string of copy, and it may not write a spacing or
-type-scale class — those live only in `blocks.rs`. The constraint is what keeps
-a global retuning to one file, and it is where an `Importance` metric would
-attach if a second site ever justified inventing one.
+type-scale class — the band rhythm, the gutter, the headline scale and the CTA's
+shape are tokens (`--band-py`, `--page-px`, `--display-scale`, `--control-*`),
+written once in `aquafix/input.css`. The constraint is what keeps a global
+retuning to one file.
 
 **`store.rs` is the commit point.** A lead is durable before the customer is
 told their price is coming. Notification failure logs at `error!` and changes
@@ -94,25 +98,34 @@ nothing; a store failure is a 500, never a redirect to `/thanks`.
 
 ## Cross-cutting
 
-**`ev_lib` is not a dependency**, and the two reasons are different.
+**`ev_lib::uikit` is the kit**, on its `modern` token feature. Its class tables
+name only roles — `bg-card`, `text-ink`, `border-border`, `bg-primary` — and
+`assets/brand.toml` fills those names with this brand's values, in two scopes.
+Nothing here overrides a kit class to get a colour, which is the property that
+makes taking the dependency cheaper than not.
 
-Its `uikit` is a real 63-component kit, but shadcn-shaped around the EV palette:
-`TABLE` is `"w-full caption-bottom text-sm"`, `CONTAINER_BASE` is a `max-width`
-wrapper, `Fonts` bundles Playfair. This design is full-bleed, token-bespoke and
-set in Archivo, so every component would have been overridden class by class —
-more code than the markup it replaces.
+Two things this design needed and the kit gained: a band whose *polarity is a
+scope class* rather than a prop threaded through every child, and control
+geometry behind tokens so a call to action is `Button { size: Xl }` and not a
+bespoke anchor. The site's whole layout vocabulary — `Section`, `SectionHead`,
+`Display`, `Prose`, `Stat`, `Check` — is the kit's.
 
-`analytics` was the opposite case on shape — pure-Rust PostHog, no JS SDK, no
-autocapture — and was adopted, then measured out. It POSTs through `reqwest`,
-which cost **236 KB of a 1.03 MB release wasm**: 1,059,047 B with it, 823,287 B
-with analytics removed entirely. The same five events over
+Tailwind cannot scan a crate it did not vendor, so `ev_lib_classes` carries its
+class literals as a string and the build script writes them out to `@source`.
+
+Where a native element does the job it still wins: `<details>` for the FAQ and
+the mobile drawer, a native `<select>` in the quote form, a `<label>` wrapping
+its input. The kit's `Select` is a `div` combobox and its `Field` mints ids from
+a `FormControl` — both are hydration-shaped, and this form has to submit before
+any wasm arrives. The invariant outranks the reuse.
+
+**`ev_lib::analytics` is not a dependency.** Right on shape — pure-Rust PostHog,
+no JS SDK, no autocapture — it was adopted, then measured out. It POSTs through
+`reqwest`, which cost **236 KB of a 1.03 MB release wasm**: 1,059,047 B with it,
+823,287 B with analytics removed entirely. The same five events over
 `navigator.sendBeacon` cost ~10 KB. On the one metric this site is built around
-that is not a defensible price, and the size budget is what surfaced it.
-
-The upstream ask that would change the first half: split `ev_lib_classes` so the
-class tables name *roles* a consumer's own `tokens.css` fills. Worth doing when
-a second non-EV Rust consumer exists. The second half wants a transport that is
-not a full HTTP client.
+that is not a defensible price, and the size budget is what surfaced it. What
+would change it is a transport that is not a full HTTP client.
 
 **Analytics records; it never decides what renders.** No A/B system: the copy is
 argued from evidence, and one landing page's traffic cannot power a test.

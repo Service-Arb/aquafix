@@ -44,7 +44,7 @@ fn main() {
 
 	/// The `?lang=` the French forms post to. Absent means the default, which is
 	/// the one case where a default is what the URL actually says.
-	#[derive(serde::Deserialize, Default)]
+	#[derive(Default, serde::Deserialize)]
 	struct LangQuery {
 		lang: Option<String>,
 	}

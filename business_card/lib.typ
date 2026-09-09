@@ -6,9 +6,14 @@
 
 // Shared with the site; compile with `--root ..` so these escape business_card/.
 #let brand = toml("../assets/brand.toml")
+// The card is one polarity per face, so it reads the two scopes directly; the
+// watermark is print-only, pre-composited because paper has no alpha.
 #let palette = {
-  let d = (:)
-  for (k, v) in brand.colors { d.insert(k, rgb(v)) }
+  let d = (light: (:), dark: (:))
+  for (scope, cols) in brand.colors {
+    for (k, v) in cols { d.at(scope).insert(k, rgb(v)) }
+  }
+  d.insert("watermark", rgb(brand.print.watermark))
   d
 }
 
@@ -103,7 +108,7 @@
     width: (card-w - 2 * bleed) * px,
     height: (card-h - 2 * bleed) * px,
     stroke: (
-      paint: palette.status-danger.transparentize(50%),
+      paint: palette.light.accent-error.transparentize(50%),
       thickness: px,
       dash: (array: (10 * px, 10 * px)),
     ),
@@ -115,7 +120,7 @@
 // the lock-up spans 59% of the trim width, so it is the largest object on the card
 #let front(c, lang, trim-guide: false) = {
   let t = c.langs.at(lang)
-  set page(fill: palette.bg-inverse)
+  set page(fill: palette.dark.card)
   _at(825, -60, _mark(palette.watermark, width: 606.2 * px, height: 700 * px))
   _at(
     bleed,
@@ -128,9 +133,9 @@
         stack(
           dir: ltr,
           spacing: 42.41 * px,
-          align(horizon, _mark(palette.brand-accent, width: 105.59 * px, height: 121.93 * px)),
-          align(horizon, _display(100.72, tracking: 1.5108, fill: palette.text-on-inverse)[
-            AQUA#text(fill: palette.brand-accent)[FIX]
+          align(horizon, _mark(palette.light.primary, width: 105.59 * px, height: 121.93 * px)),
+          align(horizon, _display(100.72, tracking: 1.5108, fill: palette.dark.ink)[
+            AQUA#text(fill: palette.light.primary)[FIX]
           ]),
         ),
       ),
@@ -141,7 +146,7 @@
     418.5,
     box(
       width: _trim-w * px,
-      align(center, _sans(20, weight: "medium", tracking: 3.6, fill: palette.brand-accent, t.promise)),
+      align(center, _sans(20, weight: "medium", tracking: 3.6, fill: palette.light.primary, t.promise)),
     ),
   )
   if trim-guide { _trim-guide }
@@ -158,17 +163,17 @@
   columns: (120 * px, auto),
   column-gutter: 16 * px,
   align: horizon,
-  _fits(120, label, _sans(14, weight: "medium", tracking: 1.96, fill: palette.text-secondary, label)), _fits(364, value, _sans(20, weight: "semibold", fill: palette.text-primary, value)),
+  _fits(120, label, _sans(14, weight: "medium", tracking: 1.96, fill: palette.light.ink-soft, label)), _fits(364, value, _sans(20, weight: "semibold", fill: palette.light.ink, value)),
 )
 
 #let back(c, lang, trim-guide: false) = {
   let t = c.langs.at(lang)
   let l = _labels.at(lang)
-  set page(fill: palette.bg-base)
-  _at(0, 0, rect(width: card-w * px, height: 14 * px, fill: palette.brand-accent))
-  _at(97.5, 101.5, _mark(palette.brand-accent, width: 83.136 * px, height: 96 * px))
-  _at(97.5, 240, _lh(1.05, 54, _display(54, fill: palette.text-primary, c.name)))
-  _at(97.5, 306, _sans(22, fill: palette.text-secondary, t.role))
+  set page(fill: palette.light.background)
+  _at(0, 0, rect(width: card-w * px, height: 14 * px, fill: palette.light.primary))
+  _at(97.5, 101.5, _mark(palette.light.primary, width: 83.136 * px, height: 96 * px))
+  _at(97.5, 240, _lh(1.05, 54, _display(54, fill: palette.light.ink, c.name)))
+  _at(97.5, 306, _sans(22, fill: palette.light.ink-soft, t.role))
   _at(
     97.5,
     372,
@@ -186,27 +191,27 @@
     240,
     block(
       width: 430 * px,
-      fill: palette.bg-subtle,
-      stroke: px + palette.border-default,
+      fill: palette.light.card,
+      stroke: px + palette.light.border,
       radius: 16 * px,
       inset: (x: 34 * px, top: 32 * px, bottom: 34 * px),
       stack(
         dir: ttb,
         spacing: 18 * px,
-        _sans(14, weight: "medium", tracking: 2.52, fill: palette.brand-accent, l.guarantee),
+        _sans(14, weight: "medium", tracking: 2.52, fill: palette.light.primary, l.guarantee),
         ..t.guarantees.map(g => grid(
           columns: (16 * px, 1fr),
           column-gutter: 14 * px,
-          _sans(18, weight: "semibold", fill: palette.status-success)[✓], _fits(332, g, _lh(1.4, 18, _sans(18, fill: palette.text-primary, g))),
+          _sans(18, weight: "semibold", fill: palette.light.positive)[✓], _fits(332, g, _lh(1.4, 18, _sans(18, fill: palette.light.ink, g))),
         )),
       ),
     ),
   )
-  _at(97.5, 546, rect(width: 930 * px, height: 2 * px, fill: palette.border-default))
+  _at(97.5, 546, rect(width: 930 * px, height: 2 * px, fill: palette.light.border))
   _at(
     97.5,
     572,
-    _sans(15, weight: "medium", tracking: 1.5, fill: palette.text-secondary, t.hours + "  ·  " + t.credentials),
+    _sans(15, weight: "medium", tracking: 1.5, fill: palette.light.ink-soft, t.hours + "  ·  " + t.credentials),
   )
   if trim-guide { _trim-guide }
 }

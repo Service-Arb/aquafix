@@ -8,33 +8,32 @@
 
 use dioxus::prelude::*;
 
-use crate::{
-	blocks::{Eyebrow, Head, Section, Tone},
-	content::Lang,
-};
+use ev_lib::uikit::{Card, Display, Eyebrow, Section, Surface};
+
+use crate::content::Lang;
 
 #[component]
 pub fn Reviews(lang: Lang) -> Element {
 	let t = lang.text();
 	let (eyebrow, title) = t.reviews_head;
 	rsx! {
-		Section { tone: Tone::Subtle, id: "reviews",
+		Section { surface: Surface::Card, id: "reviews",
 			div { class: "flex flex-col gap-4 md:gap-6",
 				div { class: "flex flex-col gap-2 md:gap-3.5",
 					Eyebrow { "{eyebrow}" }
-					Head { "{title}" }
+					Display { "{title}" }
 				}
 				div {
 					id: "elfsight-google-reviews",
 					// The widget replaces this subtree; the height is reserved so it
 					// does not shift the page in when it loads.
-					class: "flex flex-col gap-4 rounded-[14px] border-[1.5px] border-dashed border-accent px-5 pb-[18px] pt-4 md:px-6",
-					p { class: "text-[10.5px] font-medium tracking-[0.12em] text-accent", "{t.reviews_embed_note}" }
+					class: "flex flex-col gap-4 rounded-[14px] border-[1.5px] border-dashed border-primary px-5 pb-[18px] pt-4 md:px-6",
+					p { class: "text-[10.5px] font-medium tracking-[0.12em] text-primary", "{t.reviews_embed_note}" }
 					div { class: "flex flex-col gap-5 md:flex-row",
 						for review in t.reviews {
 							// The mobile frame shows only the four-star card.
-							div { class: "flex flex-1 flex-col gap-3.5 rounded-[12px] border border-rule bg-surface px-6 pb-6 pt-[22px] {mobile_visibility(review.stars)}",
-								p { class: "text-[17px] text-action",
+							Card { class: "flex-1 gap-3.5 rounded-[12px] bg-background px-6 pb-6 pt-[22px] {mobile_visibility(review.stars)}",
+								p { class: "text-[17px] text-primary",
 									{"★".repeat(review.stars as usize)}
 									{"☆".repeat(5 - review.stars as usize)}
 								}

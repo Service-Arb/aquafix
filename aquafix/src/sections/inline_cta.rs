@@ -2,15 +2,20 @@
 
 use dioxus::prelude::*;
 
-use crate::content::Lang;
+use ev_lib::uikit::{Button, Section, Size, Surface};
+
+use crate::{brand::CTA_FACE, content::Lang};
 
 #[component]
 pub fn InlineCta(lang: Lang) -> Element {
 	let (line, button) = lang.text().inline_cta;
 	rsx! {
-		div { class: "flex flex-col gap-4 bg-action px-5 py-8 md:flex-row md:items-center md:gap-5 md:px-30 md:pb-11 md:pt-10",
-			p { class: "flex-1 font-display text-[20px] md:text-[24px] font-bold text-on-action", "{line}" }
-			a { href: lang.href("/#quote"), class: "shrink-0 rounded-[9px] bg-inverse-deep px-7 py-4 text-center font-display text-[16px] font-semibold text-on-inverse",
+		Section { surface: Surface::Primary, tight: true, class: "flex flex-col gap-4 md:flex-row md:items-center md:gap-5",
+			p { class: "flex-1 font-display text-[20px] md:text-[24px] font-bold text-on-primary", "{line}" }
+			Button {
+				href: lang.href("/#quote"),
+				size: Size::Xl,
+				class: "dark shrink-0 bg-background text-ink {CTA_FACE}",
 				"{button}"
 			}
 		}

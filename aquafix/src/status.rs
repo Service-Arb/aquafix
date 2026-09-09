@@ -7,10 +7,12 @@
 
 use dioxus::prelude::*;
 
+use ev_lib::uikit::{Button, ButtonVariant, Check, Size};
+
 use crate::{
-	blocks::{Cta, CtaButton, LangSwitch, Tick},
-	brand::{Lockup, Mark},
+	brand::{CTA_FACE, Lockup, Mark},
 	content::{Lang, SITE, StatusCopy},
+	sections::LangSwitch,
 };
 
 #[component]
@@ -20,48 +22,54 @@ pub fn StatusScreen(copy: ReadSignal<StatusCopy>, lang: Lang, path: &'static str
 	commit(copy.code);
 	let (lead, accent) = copy.headline;
 	rsx! {
-		div { lang: lang.tag(), class: "relative flex min-h-screen flex-col bg-inverse-deep",
+		div { lang: lang.tag(), class: "dark relative flex min-h-screen flex-col bg-background",
 			// The design's glow. A radial gradient, not an asset — one less request.
 			div { class: "pointer-events-none absolute inset-x-0 top-24 h-[760px] bg-[radial-gradient(ellipse_at_center,rgba(194,112,61,0.16),transparent_65%)]" }
-			header { class: "relative flex items-center border-b border-rule-inverse px-5 py-4 md:px-12 md:py-[22px]",
+			header { class: "relative flex items-center border-b border-border px-5 py-4 md:px-12 md:py-[22px]",
 				a { href: lang.href("/"),
-					Lockup { mark: "h-[30px] w-[26px] text-accent", word: "text-[23px] text-on-inverse" }
+					Lockup { mark: "h-[30px] w-[26px] text-primary", word: "text-[23px] text-ink" }
 				}
 				div { class: "flex-1" }
-				nav { class: "hidden md:flex items-center gap-7 text-[14px] font-medium text-on-inverse-muted",
+				nav { class: "hidden md:flex items-center gap-7 text-[14px] font-medium text-ink-soft",
 					for (label , href) in t.nav.iter().copied() {
 						a { href: lang.href(href), "{label}" }
 					}
 				}
 				div { class: "flex-1 hidden md:block" }
-				LangSwitch { lang, path, class: "mr-5 text-[13px] font-medium text-on-inverse-muted" }
-				a { href: SITE.tel_href(), class: "font-display text-[16px] md:text-[20px] font-bold text-action", "{SITE.phone}" }
+				LangSwitch { lang, path, class: "mr-5 text-[13px] font-medium text-ink-soft" }
+				a { href: SITE.tel_href(), class: "font-display text-[16px] md:text-[20px] font-bold text-primary", "{SITE.phone}" }
 			}
 			main { class: "relative flex flex-1 flex-col items-center gap-5 px-5 py-12 text-center md:gap-6 md:py-[110px]",
-				Mark { class: "h-[54px] w-[47px] text-accent" }
-				p { class: "text-[11px] md:text-[12px] font-medium tracking-[0.22em] text-accent", "{copy.eyebrow}" }
-				p { class: "font-display font-num text-[88px] md:text-[150px] font-bold leading-none tracking-[-0.02em] text-on-inverse",
+				Mark { class: "h-[54px] w-[47px] text-primary" }
+				p { class: "text-[11px] md:text-[12px] font-medium tracking-[0.22em] text-primary", "{copy.eyebrow}" }
+				p { class: "font-display font-num text-[88px] md:text-[150px] font-bold leading-none tracking-[-0.02em] text-ink",
 					"{copy.code}"
 				}
-				p { class: "font-display text-[26px] md:text-[40px] font-bold leading-[1.25] text-on-inverse",
+				p { class: "font-display text-[26px] md:text-[40px] font-bold leading-[1.25] text-ink",
 					"{lead}"
-					span { class: "text-accent", "{accent}" }
+					span { class: "text-primary", "{accent}" }
 				}
-				p { class: "max-w-[41rem] text-[15px] md:text-[17px] leading-[1.6] text-on-inverse-muted", "{copy.body}" }
+				p { class: "max-w-[41rem] text-[15px] md:text-[17px] leading-[1.6] text-ink-soft", "{copy.body}" }
 				div { class: "flex flex-col gap-3.5 sm:flex-row",
-					CtaButton { kind: Cta::Primary, href: copy.primary.href(lang), "{copy.primary.label(t)}" }
-					CtaButton { kind: Cta::Outline, href: copy.secondary.href(lang), "{copy.secondary.label(t)}" }
+					Button { href: copy.primary.href(lang), size: Size::Xl, class: CTA_FACE, "{copy.primary.label(t)}" }
+					Button {
+						href: copy.secondary.href(lang),
+						size: Size::Xl,
+						variant: ButtonVariant::Outline,
+						class: CTA_FACE,
+						"{copy.secondary.label(t)}"
+					}
 				}
 				div { class: "flex flex-col items-center gap-3 text-[14px] sm:flex-row sm:gap-[26px]",
 					for term in t.status_strip {
 						span { class: "flex items-center gap-2",
-							Tick {}
-							span { class: "font-medium text-on-inverse-muted", "{term}" }
+							Check {}
+							span { class: "font-medium text-ink-soft", "{term}" }
 						}
 					}
 				}
 			}
-			footer { class: "relative flex flex-col gap-3 border-t border-rule-inverse px-5 py-6 text-[11.5px] tracking-[0.08em] text-on-inverse-muted md:flex-row md:items-center md:px-12 md:py-7",
+			footer { class: "relative flex flex-col gap-3 border-t border-border px-5 py-6 text-[11.5px] tracking-[0.08em] text-ink-soft md:flex-row md:items-center md:px-12 md:py-7",
 				p { "{SITE.copyright.to_uppercase()} · OREGON CCB {SITE.ccb} · LICENCE {SITE.licence}" }
 				div { class: "flex-1" }
 				div { class: "flex gap-[26px]",

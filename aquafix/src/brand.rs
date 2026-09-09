@@ -3,6 +3,11 @@
 
 use dioxus::prelude::*;
 
+/// The display face on a call to action. `cn!` merges `font-*` as one group, so
+/// a `font-display font-semibold` override loses the family to the weight — the
+/// weight goes on as a property instead.
+pub const CTA_FACE: &str = "font-display [font-weight:600]";
+
 /// Inlined, not `<img src>`: the mark is ~300 bytes and its fill is
 /// `currentColor`, which an external image cannot inherit.
 const MARK: &str = include_str!("../../assets/mark.svg");
@@ -24,7 +29,7 @@ pub fn Wordmark(class: String) -> Element {
 	rsx! {
 		span { class: "font-display font-bold tracking-[0.015em] {class}",
 			"AQUA"
-			span { class: "text-accent", "FIX" }
+			span { class: "text-primary", "FIX" }
 		}
 	}
 }
