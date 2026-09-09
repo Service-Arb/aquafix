@@ -58,8 +58,7 @@ pub enum Route {
 pub fn HomePage(#[props(default = Lang::En)] lang: Lang) -> Element {
 	rsx! {
 		seo::Head { page: lang.page("/"), lang }
-		sections::EmergencyBar { lang }
-		Shell { lang, path: "/",
+		Shell { lang, path: "/", banner: true,
 			sections::Hero { lang }
 			sections::ProofBar { lang }
 			sections::Prices { lang }
@@ -146,12 +145,23 @@ pub fn NotFound(segments: Vec<String>) -> Element {
 	}
 }
 /// Header → sections → footer, the frame every content page shares.
+///
+/// `main` inherits the stack with `contents` — a wrapper that laid out would
+/// take the landmark out of the column.
 #[component]
-fn Shell(lang: Lang, path: &'static str, children: Element) -> Element {
+fn Shell(lang: Lang, path: &'static str, #[props(default = false)] banner: bool, children: Element) -> Element {
 	rsx! {
-		div { lang: lang.tag(),
-			sections::Header { lang, path }
-			main { {children} }
+		div { lang: lang.tag(), class: "page-stack",
+			// Banner and header are one item in the column, not two: the gap is
+			// the distance between *sections*, and these two are the page top
+			// together.
+			div { class: "flex flex-col gap-3",
+				if banner {
+					sections::EmergencyBar { lang }
+				}
+				sections::Header { lang, path }
+			}
+			main { class: "contents", {children} }
 			sections::Footer { lang }
 		}
 	}

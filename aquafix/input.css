@@ -7,31 +7,91 @@
 @source "./src/**/*.rs";
 @source "./assets/uikit-classes.txt";
 
+/* `md:` is not a tablet breakpoint here — it is the seam between the two frames
+ * the design actually draws, 390 and 1440. So it sits at the width where the
+ * desktop one fits: 1200 of content plus the minimum gutter. Below it the 390
+ * composition runs, fluid; there is no third layout to fall into, and at
+ * Tailwind's 768 the desktop header ran out of room and overlapped itself. */
+@theme {
+  --breakpoint-md: 80rem;
+}
+
 /* Layout scalars the kit reads. `assets/` carries values, never layout, so
  * these are here and not in the generated tokens.css. Geometry is the Figma
- * frame's, at both breakpoints: 1440 desktop and 390 mobile. */
+ * frame's, at both breakpoints: 1440 desktop and 390 mobile.
+ *
+ * The page is a white field and a section is a panel on it; nothing paints to
+ * the viewport edge. The proportion is hyros.com's, measured at nine widths
+ * (docs/refs/sites/hyros/NOTES.md). `--panel-max` is 1296 rather than the Figma
+ * frame's 1200 so that `--page-px` of panel padding lands the content back on
+ * x=120, w=1200 at 1440.
+ *
+ * Corners are a ladder — panel 30, card 20, tile 14 — because a 12px corner
+ * nested straight inside a 30px one reads as an accident rather than a level. */
 :root {
-  --page-px: 1.25rem;   /* px-5 */
-  --page-max: none;     /* the design is full-bleed */
-  --band-py: 2.25rem;   /* py-9 */
-  --band-py-tight: 2rem;
+  --page-gutter: 1rem;
+  --panel-gap: 1rem;
+  --panel-max: 81rem;   /* 1296 */
+  --panel-radius: 18px;
+  --page-px: 1.25rem;   /* px-5, the panel's own padding */
+  --page-max: var(--panel-max);
+  --band-py: 2rem;
+  --band-py-tight: 1.75rem;
   --display-scale: 1;
-  --radius: 0.625rem;
-  /* the CTA's shape: the kit's Xl button is these three and nothing else */
-  --control-radius: 0.625rem;
+  --radius: 20px;
+  /* the tile step, and the CTA's shape: the kit's Xl button is these three */
+  --control-radius: 14px;
   --control-px: 1.375rem;
   --control-py: 0.875rem;
   --control-text: 0.9375rem;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 40rem) {
   :root {
-    --page-px: 7.5rem;  /* px-30 */
-    --band-py: 4rem;    /* py-16 */
-    --band-py-tight: 3.5rem;
+    --page-gutter: 38px;
+    --panel-gap: 2rem;
+    --panel-radius: 26px;
+    --page-px: 2rem;
+    --band-py: 2.75rem;
+    --band-py-tight: 2.25rem;
+  }
+}
+
+@media (min-width: 80rem) {
+  :root {
+    --panel-gap: 4rem;
+    --panel-radius: 30px;
+    --page-px: 3rem;
+    --band-py: 3.5rem;
+    --band-py-tight: 3rem;
     --control-px: 2rem;
     --control-py: 1.1875rem;
     --control-text: 1.125rem;
+  }
+}
+
+@layer components {
+  /* The stack is one flex column for the whole page, header and footer
+   * included: the air between two panels is a `gap`, so no panel has to know
+   * what sits above it. */
+  .page-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--panel-gap);
+    padding: var(--page-gutter);
+  }
+  /* Every band is a panel. The kit stamps `data-slot` on its own; the header
+   * and the footer are plain landmarks and say so themselves. The sticky call
+   * bar is deliberately not here — it is viewport chrome, not a panel. */
+  .panel,
+  [data-slot="section"] {
+    width: 100%;
+    max-width: var(--panel-max);
+    margin-inline: auto;
+    border-radius: var(--panel-radius);
+  }
+  .panel {
+    padding-inline: var(--page-px);
   }
 }
 

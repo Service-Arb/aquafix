@@ -6,7 +6,6 @@
 //! restacking, which keeps one markup tree.
 
 use dioxus::prelude::*;
-
 use ev_lib::uikit::{Check, Section, SectionHead, Surface, Table, TableBody, TableCell, TableHead, TableHeader, TableRow};
 
 use crate::content::Lang;
@@ -20,7 +19,7 @@ pub fn Prices(lang: Lang) -> Element {
 		Section { surface: Surface::Card, id: "prices",
 			div { class: "flex flex-col gap-5 md:gap-7",
 				SectionHead { eyebrow, title, lede }
-				div { class: "overflow-hidden rounded-[14px] border border-border bg-background",
+				div { class: "overflow-hidden rounded-[var(--radius)] border border-border bg-background",
 					Table { class: "border-collapse text-left",
 						TableHeader {
 							TableRow { class: "bg-muted text-[10.5px] md:text-[11.5px] font-medium tracking-[0.14em] text-ink-soft",

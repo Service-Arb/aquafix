@@ -86,11 +86,11 @@ natively; the site reads it through a build script. Neither knows about the
 other, and adding a third consumer costs one reader.
 
 **`content.rs` → `sections/`.** A section receives its slice and nothing else.
-It may not contain a literal string of copy, and it may not write a spacing or
-type-scale class — the band rhythm, the gutter, the headline scale and the CTA's
-shape are tokens (`--band-py`, `--page-px`, `--display-scale`, `--control-*`),
-written once in `aquafix/input.css`. The constraint is what keeps a global
-retuning to one file.
+It may not contain a literal string of copy, and it may not write a spacing, a
+corner or a type-scale class — the band rhythm, the gutter, the headline scale,
+the CTA's shape and the panel a section is drawn as are tokens (`--band-py`,
+`--page-px`, `--display-scale`, `--control-*`, `--panel-*`), written once in
+`aquafix/input.css`. The constraint is what keeps a global retuning to one file.
 
 **`store.rs` is the commit point.** A lead is durable before the customer is
 told their price is coming. Notification failure logs at `error!` and changes

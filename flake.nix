@@ -158,13 +158,24 @@
             repo="$(git rev-parse --show-toplevel)"
             # The file is commented; the budget is the last line.
             budget="$(tail -1 "$repo/aquafix/tests/wasm_budget.txt" | tr -dc '0-9')"
-            wasm="$(find "$repo/target/dx/aquafix/release/web/public" -name '*_bg*.wasm' 2>/dev/null | head -1)"
+            # Both build paths are real — `nix build .#dx` lands in the store
+            # behind `result`, a local `dx build --release` in `target/`. Take
+            # the newest of everything either produced: picking the first match
+            # let a stale artifact answer for a tree it was not built from.
+            dirs=()
+            for d in "$repo/result/bin/public" "$repo/target/dx/aquafix/release/web/public"; do
+              [ -d "$d" ] && dirs+=("$d")
+            done
+            wasm=""
+            if [ ''${#dirs[@]} -gt 0 ]; then
+              wasm="$(find -L "''${dirs[@]}" -name '*_bg*.wasm' -printf '%T@ %p\n' | sort -rn | head -1 | cut -d' ' -f2-)"
+            fi
             if [ -z "$wasm" ]; then
               echo "✘ no release wasm — run 'nix build .#dx' first" >&2
               exit 1
             fi
             actual="$(stat -c %s "$wasm")"
-            printf '  wasm %s KB / budget %s KB\n' "$((actual / 1024))" "$((budget / 1024))"
+            printf '  wasm %s KB / budget %s KB  (%s)\n' "$((actual / 1024))" "$((budget / 1024))" "''${wasm#"$repo"/}"
             if [ "$actual" -gt "$budget" ]; then
               echo "✘ over budget. Raising aquafix/tests/wasm_budget.txt is a deliberate commit, with a reason." >&2
               exit 1

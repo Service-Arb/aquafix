@@ -49,23 +49,6 @@ pub fn Head(page: ReadSignal<&'static Page>, lang: Lang) -> Element {
 	}
 }
 
-/// The `x-default` alternate, which is the English URL.
-///
-/// `document::Link` deduplicates by `href|rel`, and this shares both with the
-/// `en` alternate, so it would be silently dropped. Writing it through the head
-/// API one level down is the only difference; the `create_head_component` gate
-/// is the same one `Link` honours so hydration does not insert it twice.
-#[component]
-fn XDefault(href: String) -> Element {
-	use_hook(|| {
-		let document = dioxus::document::document();
-		if document.create_head_component() {
-			document.create_link(document::LinkProps::builder().rel("alternate".to_string()).hreflang("x-default".to_string()).href(href).build());
-		}
-	});
-	VNode::empty()
-}
-
 /// The head for a page that must never be indexed.
 #[component]
 pub fn NoIndexHead(title: &'static str) -> Element {
@@ -74,7 +57,6 @@ pub fn NoIndexHead(title: &'static str) -> Element {
 		document::Meta { name: "robots", content: "noindex,nofollow" }
 	}
 }
-
 /// Allow everything, and name the AI crawlers explicitly — several treat a bare
 /// wildcard as ambiguous and an explicit `Allow` as consent.
 pub fn robots_txt() -> String {
@@ -85,7 +67,6 @@ pub fn robots_txt() -> String {
 		SITE.origin()
 	)
 }
-
 /// One `<url>` per (page × language), each carrying the full alternate set.
 ///
 /// No `<lastmod>`: a build timestamp that moves on every deploy without the
@@ -109,7 +90,21 @@ pub fn sitemap_xml() -> String {
 			)
 		})
 		.collect();
-	format!(
-		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:xhtml=\"http://www.w3.org/1999/xhtml\">\n{urls}</urlset>\n"
-	)
+	format!("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:xhtml=\"http://www.w3.org/1999/xhtml\">\n{urls}</urlset>\n")
+}
+/// The `x-default` alternate, which is the English URL.
+///
+/// `document::Link` deduplicates by `href|rel`, and this shares both with the
+/// `en` alternate, so it would be silently dropped. Writing it through the head
+/// API one level down is the only difference; the `create_head_component` gate
+/// is the same one `Link` honours so hydration does not insert it twice.
+#[component]
+fn XDefault(href: String) -> Element {
+	use_hook(|| {
+		let document = dioxus::document::document();
+		if document.create_head_component() {
+			document.create_link(document::LinkProps::builder().rel("alternate".to_string()).hreflang("x-default".to_string()).href(href).build());
+		}
+	});
+	VNode::empty()
 }

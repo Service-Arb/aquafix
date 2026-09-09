@@ -3,20 +3,19 @@
 //! to test.
 
 use dioxus::prelude::*;
-
 use ev_lib::uikit::{Button, Size};
 
 use crate::{
 	brand::{CTA_FACE, Lockup},
-	content::{Lang, LANGS, SITE},
+	content::{LANGS, Lang, SITE},
 };
 
 #[component]
 pub fn Header(lang: Lang, path: &'static str) -> Element {
 	let t = lang.text();
 	rsx! {
-		header { class: "border-b border-border bg-background",
-			div { class: "flex items-center px-[var(--page-px)] py-2.5 md:py-[18px]",
+		header { class: "panel flex items-center bg-background py-3 md:py-5",
+			div { class: "flex w-full items-center",
 				a { href: lang.href("/"), class: "shrink-0",
 					Lockup { mark: "h-[26px] w-[22.5px] md:h-8 md:w-[27.7px] text-primary", word: "text-[20px] md:text-[25px] text-brand" }
 				}

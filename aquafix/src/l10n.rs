@@ -57,11 +57,7 @@ pub async fn negotiate_language(request: Request, next: Next) -> Response {
 	if lang == Lang::En && cookie_lang(&request).is_none() {
 		let preferred = negotiate(request.headers().get(header::ACCEPT_LANGUAGE).and_then(|v| v.to_str().ok()).unwrap_or_default());
 		if preferred != Lang::En {
-			return (
-				StatusCode::FOUND,
-				[(header::LOCATION, preferred.href(path)), (header::VARY, "Accept-Language".to_string())],
-			)
-				.into_response();
+			return (StatusCode::FOUND, [(header::LOCATION, preferred.href(path)), (header::VARY, "Accept-Language".to_string())]).into_response();
 		}
 	}
 
@@ -70,6 +66,27 @@ pub async fn negotiate_language(request: Request, next: Next) -> Response {
 	response
 }
 
+/// The highest-`q` tag whose base subtag we serve. `en` when nothing matches,
+/// which is also what a header-less crawler gets.
+pub fn negotiate(header: &str) -> Lang {
+	let mut ranked: Vec<(f32, &str)> = header
+		.split(',')
+		.filter_map(|entry| {
+			let mut parts = entry.split(';');
+			let tag = parts.next()?.trim();
+			let q = parts.find_map(|p| p.trim().strip_prefix("q=")).map_or(1.0, |v| v.parse().unwrap_or(0.0));
+			(q > 0.0 && !tag.is_empty()).then_some((q, tag))
+		})
+		.collect();
+	ranked.sort_by(|a, b| b.0.total_cmp(&a.0));
+	ranked
+		.iter()
+		.find_map(|(_, tag)| {
+			let base = tag.split('-').next().unwrap_or(tag);
+			LANGS.iter().copied().find(|l| l.tag() == base)
+		})
+		.unwrap_or_default()
+}
 /// `/fr/prices` → `("/prices", Fr)`, `/prices` → `("/prices", En)`, and `None`
 /// for anything that is not one of our pages. `/en/...` resolves too — it is
 /// not a route, but it has to be caught here to be redirected.
@@ -98,30 +115,6 @@ fn cookie_lang(request: &Request) -> Option<Lang> {
 	let jar = request.headers().get(header::COOKIE)?.to_str().ok()?;
 	let value = jar.split(';').map(str::trim).find_map(|c| c.strip_prefix("lang="))?;
 	LANGS.iter().copied().find(|l| l.tag() == value)
-}
-
-/// The highest-`q` tag whose base subtag we serve. `en` when nothing matches,
-/// which is also what a header-less crawler gets.
-pub fn negotiate(header: &str) -> Lang {
-	let mut ranked: Vec<(f32, &str)> = header
-		.split(',')
-		.filter_map(|entry| {
-			let mut parts = entry.split(';');
-			let tag = parts.next()?.trim();
-			let q = parts
-				.find_map(|p| p.trim().strip_prefix("q="))
-				.map_or(1.0, |v| v.parse().unwrap_or(0.0));
-			(q > 0.0 && !tag.is_empty()).then_some((q, tag))
-		})
-		.collect();
-	ranked.sort_by(|a, b| b.0.total_cmp(&a.0));
-	ranked
-		.iter()
-		.find_map(|(_, tag)| {
-			let base = tag.split('-').next().unwrap_or(tag);
-			LANGS.iter().copied().find(|l| l.tag() == base)
-		})
-		.unwrap_or_default()
 }
 
 #[cfg(test)]

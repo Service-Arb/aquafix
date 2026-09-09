@@ -38,197 +38,7 @@ pub const RATING: (f64, u32) = (4.9, 612);
 
 // ── language ─────────────────────────────────────────────────────────────────
 
-/// English is the default and its URLs carry no prefix; French is served under
-/// `/fr`. Slugs stay English in both — `Page.path` is the one key `page()`, the
-/// sitemap, `ld::breadcrumbs` and the route table all share.
-#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
-pub enum Lang {
-	#[default]
-	En,
-	Fr,
-}
-
 pub const LANGS: &[Lang] = &[Lang::En, Lang::Fr];
-
-impl Lang {
-	pub fn text(self) -> &'static Text {
-		match self {
-			Lang::En => &EN,
-			Lang::Fr => &FR,
-		}
-	}
-
-	/// `""` for the default language — the canonical URL carries no prefix.
-	pub fn prefix(self) -> &'static str {
-		match self {
-			Lang::En => "",
-			Lang::Fr => "/fr",
-		}
-	}
-
-	/// `hreflang`, `lang=`, the `?lang=` query value and the cookie value.
-	pub fn tag(self) -> &'static str {
-		match self {
-			Lang::En => "en",
-			Lang::Fr => "fr",
-		}
-	}
-
-	pub fn og_locale(self) -> &'static str {
-		match self {
-			Lang::En => "en_US",
-			Lang::Fr => "fr_FR",
-		}
-	}
-
-	/// `"/prices"` → `"/fr/prices"`, `"/"` → `"/fr"`, `"/#quote"` → `"/fr#quote"`.
-	/// A bare fragment (`"#quote"`) is same-page and is returned untouched.
-	pub fn href(self, path: &str) -> String {
-		let prefix = self.prefix();
-		if prefix.is_empty() {
-			return path.to_string();
-		}
-		match path.strip_prefix('/') {
-			Some(rest) if rest.is_empty() || rest.starts_with('#') => format!("{prefix}{rest}"),
-			Some(_) => format!("{prefix}{path}"),
-			None => path.to_string(),
-		}
-	}
-
-	pub fn page(self, path: &str) -> &'static Page {
-		self.text()
-			.pages
-			.iter()
-			.find(|p| p.path == path)
-			.unwrap_or_else(|| panic!("no Page for {path} in {self:?}; every Route arm must have one"))
-	}
-}
-
-/// Only the prefixed languages parse. `/en/prices` is not a route — the
-/// middleware 301s it to the unprefixed URL, which is the canonical one.
-impl std::str::FromStr for Lang {
-	type Err = &'static str;
-
-	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		match s {
-			"fr" => Ok(Lang::Fr),
-			_ => Err("not a prefixed language"),
-		}
-	}
-}
-
-impl std::fmt::Display for Lang {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		f.write_str(self.tag())
-	}
-}
-
-/// Every string that differs between languages. Two typed consts rather than a
-/// catalogue: a field added to one and not the other is a compile error, so
-/// there is no missing-key fallback and no drift audit.
-pub struct Text {
-	pub pages: &'static [Page],
-	/// Header and footer navigation. Label plus the route it points at.
-	pub nav: &'static [(&'static str, &'static str)],
-	pub promise: &'static str,
-	pub emergency_line: &'static str,
-	pub emergency_hours: &'static str,
-	pub booking_hours: &'static str,
-	pub hero_eyebrow: &'static str,
-	/// The three risk reversals, in the order the evidence ranks them.
-	pub hero_ticks: &'static [&'static str],
-	/// `(figure, label)` — the microproof strip under the hero CTA row.
-	pub hero_microproof: &'static [(&'static str, &'static str)],
-	pub header_phone_label: &'static str,
-	pub quote_form: QuoteForm,
-	/// `(value, label)` for the job `<select>`. The value is what `/quote`
-	/// stores, so it is a stable slug, not the label, and it is the same slug in
-	/// every language.
-	pub jobs: &'static [(&'static str, &'static str)],
-	pub proof: &'static [ProofStat],
-	pub prices: &'static [PriceRow],
-	pub price_head: (&'static str, &'static str, &'static str),
-	pub price_columns: (&'static str, &'static str, &'static str),
-	/// The differentiator: no reference site publishes this. See docs/refs/sites.
-	pub price_note: &'static str,
-	pub price_note_short: &'static str,
-	pub guarantee_head: (&'static str, &'static str),
-	pub pillars: &'static [Pillar],
-	pub reviews_head: (&'static str, &'static str),
-	/// The visual target the Elfsight embed replaces at runtime. A four-star
-	/// review is here on purpose: a perfect wall reads as filtered.
-	pub reviews: &'static [Review],
-	pub reviews_embed_note: &'static str,
-	pub closing: Closing,
-	pub inline_cta: (&'static str, &'static str),
-	/// The one CTA label, so a copy change cannot land on some buttons and not
-	/// others. `cta_short` is the same action where the arrow does not fit.
-	pub cta: &'static str,
-	pub cta_short: &'static str,
-	pub services_head: (&'static str, &'static str, &'static str),
-	pub services: &'static [Service],
-	/// Read by [`Service::from_display`], which prefixes a formatted `usd`.
-	pub services_from: &'static str,
-	pub services_quoted: &'static str,
-	pub faq_head: (&'static str, &'static str),
-	pub faqs: &'static [Faq],
-	pub objections_head: (&'static str, &'static str, &'static str),
-	pub objections: &'static [Objection],
-	pub steps_head: (&'static str, &'static str),
-	pub steps: &'static [Step],
-	pub crew_head: (&'static str, &'static str, &'static str),
-	pub crew: &'static [Crew],
-	pub area_head: (&'static str, &'static str, &'static str),
-	/// Rendered as chips and read by `ld` as `areaServed`.
-	pub areas: &'static [&'static str],
-	pub footer_columns: (&'static str, &'static str, &'static str, &'static str),
-	/// Footer link columns: `(label, href)`.
-	pub footer_services: &'static [(&'static str, &'static str)],
-	pub footer_areas: &'static [&'static str],
-	pub footer_company: &'static [(&'static str, &'static str)],
-	pub footer_facts: &'static [&'static str],
-	pub footer_legal: &'static [&'static str],
-	/// The status pages carry a shorter legal row than the site footer.
-	pub status_legal: &'static [&'static str],
-	/// The strip under every status page — the same three terms as the hero
-	/// ticks, compressed. A visitor who hit a 404 still gets the offer.
-	pub status_strip: &'static [&'static str],
-	pub not_found: StatusCopy,
-	pub forbidden: StatusCopy,
-	pub server_error: StatusCopy,
-	pub thanks: StatusCopy,
-	pub back_home: &'static str,
-	pub sign_in: &'static str,
-	pub try_again: &'static str,
-	// Prose that names the phone number is split around it rather than written
-	// out: `SITE.phone` is the only place the number lives, and these read it.
-	pub call_label: (&'static str, &'static str),
-	pub guarantee_cta_aside: (&'static str, &'static str),
-	pub closing_aside: (&'static str, &'static str),
-}
-
-impl Text {
-	pub fn call_label(&self) -> String {
-		self.around_phone(self.call_label)
-	}
-
-	pub fn guarantee_cta_aside(&self) -> String {
-		self.around_phone(self.guarantee_cta_aside)
-	}
-
-	pub fn closing_aside(&self) -> String {
-		self.around_phone(self.closing_aside)
-	}
-
-	pub fn quote_reassurance(&self) -> String {
-		self.around_phone(self.quote_form.reassurance)
-	}
-
-	fn around_phone(&self, (before, after): (&str, &str)) -> String {
-		format!("{before}{}{after}", SITE.phone)
-	}
-}
-
 pub const EN: Text = Text {
 	pages: &[
 		Page {
@@ -267,6 +77,7 @@ pub const EN: Text = Text {
 	nav: &[("Prices", "/prices"), ("Guarantee", "/guarantee"), ("Reviews", "/#reviews"), ("About", "/about")],
 	promise: "FIXED PRICE. FIXED TODAY.",
 	emergency_line: "Burst pipe, no hot water, or a leak you can hear? We answer the phone 24/7 —",
+	emergency_line_short: "Emergency? We pick up 24/7",
 	emergency_hours: "Emergencies — 24 hours, 7 days",
 	booking_hours: "Bookings — 7am to 9pm daily",
 	hero_eyebrow: "LICENSED #PL-40219   ·   $2M INSURED   ·   4,100 JOBS SINCE 2011",
@@ -381,8 +192,7 @@ pub const EN: Text = Text {
 		"Real flat rates from our last 500 jobs. Your price is signed on your doorstep before we start, and it does not move.",
 	),
 	price_columns: ("JOB", "FLAT PRICE FROM", "TYPICAL TIME ON SITE"),
-	price_note:
-		"Call-out is $89 and is credited in full against any work you approve. Nights, weekends and public holidays add $60. That is the entire price list — there is nothing else.",
+	price_note: "Call-out is $89 and is credited in full against any work you approve. Nights, weekends and public holidays add $60. That is the entire price list — there is nothing else.",
 	price_note_short: "Call-out $89, credited in full against approved work. Nights and weekends add $60.",
 	guarantee_head: ("THE AQUAFIX GUARANTEE", "Fixed right, or we come back free."),
 	pillars: &[
@@ -688,7 +498,6 @@ pub const EN: Text = Text {
 	guarantee_cta_aside: ("or call ", " — a human picks up, 24 hours a day"),
 	closing_aside: ("Or call ", " — 24 hours, answered by a human in Portland. Average pickup: 11 seconds."),
 };
-
 pub const FR: Text = Text {
 	pages: &[
 		Page {
@@ -727,6 +536,7 @@ pub const FR: Text = Text {
 	nav: &[("Prix", "/prices"), ("Garantie", "/guarantee"), ("Avis", "/#reviews"), ("À propos", "/about")],
 	promise: "PRIX FIXE. RÉPARÉ AUJOURD’HUI.",
 	emergency_line: "Tuyau éclaté, plus d’eau chaude, ou une fuite que vous entendez ? Nous répondons 24h/24, 7j/7 —",
+	emergency_line_short: "Une urgence ? On répond 24h/24",
 	emergency_hours: "Urgences — 24 heures sur 24, 7 jours sur 7",
 	booking_hours: "Réservations — de 7h à 21h, tous les jours",
 	hero_eyebrow: "LICENCE #PL-40219   ·   ASSURÉ 2 M$   ·   4 100 INTERVENTIONS DEPUIS 2011",
@@ -844,8 +654,7 @@ pub const FR: Text = Text {
 		"De vrais tarifs fixes issus de nos 500 dernières interventions. Votre prix est signé sur votre pas de porte avant que nous commencions, et il ne bouge pas.",
 	),
 	price_columns: ("INTERVENTION", "PRIX FIXE À PARTIR DE", "DURÉE TYPIQUE SUR PLACE"),
-	price_note:
-		"Le déplacement est de 89 $ et il est intégralement déduit de tout travail que vous approuvez. Les nuits, week-ends et jours fériés ajoutent 60 $. Voilà toute la liste des prix — il n’y a rien d’autre.",
+	price_note: "Le déplacement est de 89 $ et il est intégralement déduit de tout travail que vous approuvez. Les nuits, week-ends et jours fériés ajoutent 60 $. Voilà toute la liste des prix — il n’y a rien d’autre.",
 	price_note_short: "Déplacement 89 $, intégralement déduit des travaux approuvés. Nuits et week-ends : 60 $ de plus.",
 	guarantee_head: ("LA GARANTIE AQUAFIX", "Bien réparé, ou nous revenons gratuitement."),
 	pillars: &[
@@ -896,10 +705,7 @@ pub const FR: Text = Text {
 		lede: "Obtenez le prix fixe. Si le chiffre ne vous plaît pas, vous aurez perdu quatre-vingt-dix secondes et payé absolument rien.",
 		lede_short: "Obtenez le prix fixe. Le chiffre ne vous plaît pas ? Vous avez perdu quatre-vingt-dix secondes.",
 	},
-	inline_cta: (
-		"Prêt pour un chiffre ? Obtenez votre prix fixe en quatre-vingt-dix secondes.",
-		"Obtenir mon prix fixe  →",
-	),
+	inline_cta: ("Prêt pour un chiffre ? Obtenez votre prix fixe en quatre-vingt-dix secondes.", "Obtenir mon prix fixe  →"),
 	cta: "Obtenir mon prix fixe  →",
 	cta_short: "Obtenir mon prix fixe",
 	services_head: (
@@ -1152,11 +958,197 @@ pub const FR: Text = Text {
 	try_again: "Réessayer",
 	call_label: ("Appeler le ", ""),
 	guarantee_cta_aside: ("ou appelez le ", " — un humain décroche, 24 heures sur 24"),
-	closing_aside: (
-		"Ou appelez le ",
-		" — 24 heures sur 24, un humain à Portland répond. Décrochage moyen : 11 secondes.",
-	),
+	closing_aside: ("Ou appelez le ", " — 24 heures sur 24, un humain à Portland répond. Décrochage moyen : 11 secondes."),
 };
+/// English is the default and its URLs carry no prefix; French is served under
+/// `/fr`. Slugs stay English in both — `Page.path` is the one key `page()`, the
+/// sitemap, `ld::breadcrumbs` and the route table all share.
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
+pub enum Lang {
+	#[default]
+	En,
+	Fr,
+}
+impl Lang {
+	pub fn text(self) -> &'static Text {
+		match self {
+			Lang::En => &EN,
+			Lang::Fr => &FR,
+		}
+	}
+
+	/// `""` for the default language — the canonical URL carries no prefix.
+	pub fn prefix(self) -> &'static str {
+		match self {
+			Lang::En => "",
+			Lang::Fr => "/fr",
+		}
+	}
+
+	/// `hreflang`, `lang=`, the `?lang=` query value and the cookie value.
+	pub fn tag(self) -> &'static str {
+		match self {
+			Lang::En => "en",
+			Lang::Fr => "fr",
+		}
+	}
+
+	pub fn og_locale(self) -> &'static str {
+		match self {
+			Lang::En => "en_US",
+			Lang::Fr => "fr_FR",
+		}
+	}
+
+	/// `"/prices"` → `"/fr/prices"`, `"/"` → `"/fr"`, `"/#quote"` → `"/fr#quote"`.
+	/// A bare fragment (`"#quote"`) is same-page and is returned untouched.
+	pub fn href(self, path: &str) -> String {
+		let prefix = self.prefix();
+		if prefix.is_empty() {
+			return path.to_string();
+		}
+		match path.strip_prefix('/') {
+			Some(rest) if rest.is_empty() || rest.starts_with('#') => format!("{prefix}{rest}"),
+			Some(_) => format!("{prefix}{path}"),
+			None => path.to_string(),
+		}
+	}
+
+	pub fn page(self, path: &str) -> &'static Page {
+		self.text()
+			.pages
+			.iter()
+			.find(|p| p.path == path)
+			.unwrap_or_else(|| panic!("no Page for {path} in {self:?}; every Route arm must have one"))
+	}
+}
+
+/// Only the prefixed languages parse. `/en/prices` is not a route — the
+/// middleware 301s it to the unprefixed URL, which is the canonical one.
+impl std::str::FromStr for Lang {
+	type Err = &'static str;
+
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		match s {
+			"fr" => Ok(Lang::Fr),
+			_ => Err("not a prefixed language"),
+		}
+	}
+}
+
+impl std::fmt::Display for Lang {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		f.write_str(self.tag())
+	}
+}
+
+/// Every string that differs between languages. Two typed consts rather than a
+/// catalogue: a field added to one and not the other is a compile error, so
+/// there is no missing-key fallback and no drift audit.
+pub struct Text {
+	pub pages: &'static [Page],
+	/// Header and footer navigation. Label plus the route it points at.
+	pub nav: &'static [(&'static str, &'static str)],
+	pub promise: &'static str,
+	pub emergency_line: &'static str,
+	/// Figma `26:9` — the 390 frame states the same offer in the width it has.
+	pub emergency_line_short: &'static str,
+	pub emergency_hours: &'static str,
+	pub booking_hours: &'static str,
+	pub hero_eyebrow: &'static str,
+	/// The three risk reversals, in the order the evidence ranks them.
+	pub hero_ticks: &'static [&'static str],
+	/// `(figure, label)` — the microproof strip under the hero CTA row.
+	pub hero_microproof: &'static [(&'static str, &'static str)],
+	pub header_phone_label: &'static str,
+	pub quote_form: QuoteForm,
+	/// `(value, label)` for the job `<select>`. The value is what `/quote`
+	/// stores, so it is a stable slug, not the label, and it is the same slug in
+	/// every language.
+	pub jobs: &'static [(&'static str, &'static str)],
+	pub proof: &'static [ProofStat],
+	pub prices: &'static [PriceRow],
+	pub price_head: (&'static str, &'static str, &'static str),
+	pub price_columns: (&'static str, &'static str, &'static str),
+	/// The differentiator: no reference site publishes this. See docs/refs/sites.
+	pub price_note: &'static str,
+	pub price_note_short: &'static str,
+	pub guarantee_head: (&'static str, &'static str),
+	pub pillars: &'static [Pillar],
+	pub reviews_head: (&'static str, &'static str),
+	/// The visual target the Elfsight embed replaces at runtime. A four-star
+	/// review is here on purpose: a perfect wall reads as filtered.
+	pub reviews: &'static [Review],
+	pub reviews_embed_note: &'static str,
+	pub closing: Closing,
+	pub inline_cta: (&'static str, &'static str),
+	/// The one CTA label, so a copy change cannot land on some buttons and not
+	/// others. `cta_short` is the same action where the arrow does not fit.
+	pub cta: &'static str,
+	pub cta_short: &'static str,
+	pub services_head: (&'static str, &'static str, &'static str),
+	pub services: &'static [Service],
+	/// Read by [`Service::from_display`], which prefixes a formatted `usd`.
+	pub services_from: &'static str,
+	pub services_quoted: &'static str,
+	pub faq_head: (&'static str, &'static str),
+	pub faqs: &'static [Faq],
+	pub objections_head: (&'static str, &'static str, &'static str),
+	pub objections: &'static [Objection],
+	pub steps_head: (&'static str, &'static str),
+	pub steps: &'static [Step],
+	pub crew_head: (&'static str, &'static str, &'static str),
+	pub crew: &'static [Crew],
+	pub area_head: (&'static str, &'static str, &'static str),
+	/// Rendered as chips and read by `ld` as `areaServed`.
+	pub areas: &'static [&'static str],
+	pub footer_columns: (&'static str, &'static str, &'static str, &'static str),
+	/// Footer link columns: `(label, href)`.
+	pub footer_services: &'static [(&'static str, &'static str)],
+	pub footer_areas: &'static [&'static str],
+	pub footer_company: &'static [(&'static str, &'static str)],
+	pub footer_facts: &'static [&'static str],
+	pub footer_legal: &'static [&'static str],
+	/// The status pages carry a shorter legal row than the site footer.
+	pub status_legal: &'static [&'static str],
+	/// The strip under every status page — the same three terms as the hero
+	/// ticks, compressed. A visitor who hit a 404 still gets the offer.
+	pub status_strip: &'static [&'static str],
+	pub not_found: StatusCopy,
+	pub forbidden: StatusCopy,
+	pub server_error: StatusCopy,
+	pub thanks: StatusCopy,
+	pub back_home: &'static str,
+	pub sign_in: &'static str,
+	pub try_again: &'static str,
+	// Prose that names the phone number is split around it rather than written
+	// out: `SITE.phone` is the only place the number lives, and these read it.
+	pub call_label: (&'static str, &'static str),
+	pub guarantee_cta_aside: (&'static str, &'static str),
+	pub closing_aside: (&'static str, &'static str),
+}
+
+impl Text {
+	pub fn call_label(&self) -> String {
+		self.around_phone(self.call_label)
+	}
+
+	pub fn guarantee_cta_aside(&self) -> String {
+		self.around_phone(self.guarantee_cta_aside)
+	}
+
+	pub fn closing_aside(&self) -> String {
+		self.around_phone(self.closing_aside)
+	}
+
+	pub fn quote_reassurance(&self) -> String {
+		self.around_phone(self.quote_form.reassurance)
+	}
+
+	fn around_phone(&self, (before, after): (&str, &str)) -> String {
+		format!("{before}{}{after}", SITE.phone)
+	}
+}
 
 /// The business. One value; the business card renders from the same facts.
 pub struct Site {
