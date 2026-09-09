@@ -21,19 +21,23 @@
  * frame's, at both breakpoints: 1440 desktop and 390 mobile.
  *
  * The page is a white field and a section is a panel on it; nothing paints to
- * the viewport edge. The proportion is hyros.com's, measured at nine widths
- * (docs/refs/sites/hyros/NOTES.md). `--panel-max` is 1296 rather than the Figma
- * frame's 1200 so that `--page-px` of panel padding lands the content back on
- * x=120, w=1200 at 1440.
+ * the viewport edge. The desktop numbers are hyros.com's, measured at nine
+ * widths and taken exactly (docs/refs/sites/hyros/NOTES.md): a panel is
+ * `min(1220, 100vw - 2*--page-gutter)`. That is a 1124 content column rather
+ * than the Figma frame's 1200 — the reference won where the two disagreed.
+ *
+ * Below the seam the numbers are ours, tuned to put the quote form's submit
+ * button above the fold on a 360-wide phone.
  *
  * Corners are a ladder — panel 30, card 20, tile 14 — because a 12px corner
  * nested straight inside a 30px one reads as an accident rather than a level. */
 :root {
-  --page-gutter: 1rem;
-  --panel-gap: 1rem;
-  --panel-max: 81rem;   /* 1296 */
+  --page-gutter: 0.75rem;
+  --page-gutter-y: 0.625rem;
+  --panel-gap: 0.75rem;
+  --panel-max: 76.25rem;   /* 1220 */
   --panel-radius: 18px;
-  --page-px: 1.25rem;   /* px-5, the panel's own padding */
+  --page-px: 1rem;         /* the panel's own padding */
   --page-max: var(--panel-max);
   --band-py: 2rem;
   --band-py-tight: 1.75rem;
@@ -49,6 +53,7 @@
 @media (min-width: 40rem) {
   :root {
     --page-gutter: 38px;
+    --page-gutter-y: 38px;
     --panel-gap: 2rem;
     --panel-radius: 26px;
     --page-px: 2rem;
@@ -59,6 +64,7 @@
 
 @media (min-width: 80rem) {
   :root {
+    --page-gutter-y: 2.5rem;
     --panel-gap: 4rem;
     --panel-radius: 30px;
     --page-px: 3rem;
@@ -78,7 +84,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--panel-gap);
-    padding: var(--page-gutter);
+    padding: var(--page-gutter-y) var(--page-gutter);
   }
   /* Every band is a panel. The kit stamps `data-slot` on its own; the header
    * and the footer are plain landmarks and say so themselves. The sticky call

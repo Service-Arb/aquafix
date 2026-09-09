@@ -24,7 +24,7 @@ use crate::{analytics, brand::CTA_FACE, content::Lang};
 /// The design's control: taller and roomier than the kit's default, on the card
 /// plane rather than transparent. Everything else — the border, the ring, the
 /// placeholder ink, the disabled state — is `Input`'s.
-const CONTROL: &str = "h-auto rounded-[var(--control-radius)] bg-card px-4 py-[15px] text-[16px] md:text-[16px] shadow-none";
+const CONTROL: &str = "h-auto rounded-[var(--control-radius)] bg-card px-4 py-2.5 text-[16px] md:py-[15px] md:text-[16px] shadow-none";
 /// A submitted lead. `zip` and `mobile` are trimmed but not otherwise parsed:
 /// a lead we cannot fully validate is still a lead, and rejecting it loses a
 /// customer to protect a column type.
@@ -74,11 +74,8 @@ pub fn QuoteCard(lang: Lang) -> Element {
 			action: action(lang),
 			onsubmit: move |_| analytics::capture(analytics::QUOTE_SUBMITTED, &[("surface", "hero")]),
 			// The card is white on the hero's navy: a light island inside a dark band.
-			class: "light flex w-full flex-col gap-5 rounded-[var(--radius)] bg-background text-ink px-6 py-7 shadow-[0_20px_48px_0_rgba(0,13,31,0.34)] md:w-[480px] md:px-[34px] md:pb-[30px] md:pt-8",
-			div { class: "flex flex-col gap-[7px]",
-				p { class: "font-display text-[24px] font-bold text-ink md:text-[30px]", "{t.quote_form.title}" }
-				p { class: "text-[15px] text-ink-soft", "{t.quote_form.lede}" }
-			}
+			class: "light flex w-full flex-col gap-3 rounded-[var(--radius)] bg-background text-ink px-5 py-3.5 shadow-[0_20px_48px_0_rgba(0,13,31,0.34)] md:w-[480px] md:shrink-0 md:gap-5 md:px-[34px] md:pb-[30px] md:pt-8",
+			p { class: "font-display text-[22px] font-bold text-ink md:text-[30px]", "{t.quote_form.title}" }
 			Controls { lang, labelled: true }
 			Button { r#type: "submit", size: Size::Xl, class: "w-full {CTA_FACE}",
 				"{t.quote_form.submit}"
@@ -126,7 +123,7 @@ fn action(lang: Lang) -> String {
 #[component]
 fn Field(label: String, children: Element) -> Element {
 	rsx! {
-		label { class: "flex w-full flex-col gap-2",
+		label { class: "flex w-full flex-col gap-1.5 md:gap-2",
 			span { class: "text-[12.5px] font-medium tracking-[0.06em] text-ink-mid", "{label}" }
 			{children}
 		}

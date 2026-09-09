@@ -38,9 +38,13 @@ never. There is no hero illustration doing decorative work.
   its own measure (h1 900, body 560), which is why a wide panel never produces a
   wide line.
 
-  Ours caps at 1296 rather than 1220 so that 48px of panel padding lands the
-  content on the Figma column exactly (`x=120, w=1200` at 1440) — the drawn
-  layout is unmoved, it has a panel around it. `--panel-*` in `aquafix/input.css`.
+  Taken exactly, so the table above is also ours: a panel is
+  `min(1220, 100vw - 76)`. That gives a 1124 content column rather than the
+  Figma frame's 1200 — where the reference and the frame disagreed on desktop
+  width, the reference won. Below the `md` seam the numbers are ours, not
+  Hyros': the panel there is tuned to put the quote form's submit button above
+  the fold on a 360-wide phone, which costs horizontal room Hyros does not need
+  to spend. `--panel-*` and `--page-gutter*` in `aquafix/input.css`.
 
 ## Rejected
 

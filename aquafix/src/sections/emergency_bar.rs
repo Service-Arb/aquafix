@@ -12,7 +12,7 @@ use crate::content::{Lang, SITE};
 pub fn EmergencyBar(lang: Lang) -> Element {
 	let t = lang.text();
 	rsx! {
-		div { class: "dark mx-auto flex w-fit max-w-full items-center gap-2 rounded-full bg-background px-3.5 py-2 text-[13px] md:gap-3 md:px-6 md:py-2.5 md:text-[14px]",
+		div { class: "dark mx-auto flex w-fit max-w-full items-center gap-2 rounded-full bg-background px-3.5 py-1 text-[13px] md:gap-3 md:px-6 md:py-2.5 md:text-[14px]",
 			span { class: "size-[9px] shrink-0 rounded-full bg-accent-error" }
 			p { class: "truncate text-ink-soft",
 				span { class: "md:hidden", "{t.emergency_line_short}" }
