@@ -21,10 +21,11 @@ unused_features = "allow"
 [workspace.dependencies]
 aquafix_assets = { path = "aquafix_assets" }
 # The uikit. `modern` says which token vocabulary this repo's tokens.css speaks;
-# `default-features = false` is what turns the kit's `legacy` default off.
-# The path is the unreleased 0.10 — drop it once ev_lib 0.10 is on crates.io.
-ev_lib = { version = "^0.10", path = "/home/v/s/ev_invest/lib/rust", default-features = false, features = ["uikit", "modern"] }
-ev_lib_classes = { version = "^0.3", path = "/home/v/s/ev_invest/lib/rust/classes" }
+# `default-features = false` is what turns off the kit's `legacy` default, which
+# exists for the EV consumers still on the pre-0.10 utility names.
+ev_lib = { version = "^0.10", default-features = false, features = ["uikit", "modern"] }
+# For CLASS_INVENTORY in aquafix_assets' build script — see there.
+ev_lib_classes = "^0.3"
 clap = { version = "^4.5.4", features = ["derive"] }
 color-eyre = "^0.6.5"
 v_utils = { version = "^2.15.0", features = ["io", "macros", "cli"] }

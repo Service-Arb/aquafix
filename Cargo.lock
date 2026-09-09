@@ -1846,6 +1846,8 @@ dependencies = [
 [[package]]
 name = "ev_lib"
 version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4845908db95c720a01bc90b4cf2df27c0a145c2b1781417531466169e8f1301f"
 dependencies = [
  "dioxus",
  "ev_lib_classes",
@@ -1858,6 +1860,8 @@ dependencies = [
 [[package]]
 name = "ev_lib_classes"
 version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f87207bdc250fe132a173915ef11f7674e81f2519fae7414cac3c6b9dc15b7d4"
 dependencies = [
  "strum",
  "tailwind_fuse",
