@@ -14,7 +14,7 @@ use crate::{
 pub fn Header(lang: Lang, path: &'static str) -> Element {
 	let t = lang.text();
 	rsx! {
-		header { class: "{PANEL} flex items-center py-3 md:py-5",
+		header { class: "{PANEL} flex items-center py-1.5 md:py-5",
 			div { class: "flex w-full items-center",
 				a { href: lang.href("/"), class: "shrink-0",
 					Lockup {

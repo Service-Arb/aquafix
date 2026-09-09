@@ -51,7 +51,7 @@ pub fn Footer(lang: Lang) -> Element {
 					Column { heading: col_contact,
 						a {
 							href: SITE.tel_href(),
-							class: "font-display text-[22px] font-bold text-action",
+							class: "whitespace-nowrap font-display text-[22px] font-bold text-action",
 							"{SITE.phone}"
 						}
 						p { "{t.emergency_hours}" }

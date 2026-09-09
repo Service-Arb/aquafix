@@ -26,7 +26,7 @@ use crate::{
 
 /// The radius is not in here: `class: CONTROL` is a raw attribute, not a
 /// format string, so a `{TILE}` written here would ship as a literal class.
-const CONTROL: &str = "w-full border border-rule bg-subtle px-4 py-[15px] text-[16px] text-ink placeholder:text-ink-soft focus:outline-none focus:ring-2 focus:ring-accent";
+const CONTROL: &str = "w-full border border-rule bg-subtle px-4 py-2.5 text-[16px] md:py-[15px] text-ink placeholder:text-ink-soft focus:outline-none focus:ring-2 focus:ring-accent";
 /// A submitted lead. `zip` and `mobile` are trimmed but not otherwise parsed:
 /// a lead we cannot fully validate is still a lead, and rejecting it loses a
 /// customer to protect a column type.
@@ -84,17 +84,12 @@ pub fn QuoteCard(lang: Lang) -> Element {
 			method: "post",
 			action: action(lang),
 			onsubmit: move |_| analytics::capture(analytics::QUOTE_SUBMITTED, &[("surface", "hero")]),
-			class: "flex w-full flex-col gap-5 {CARD} bg-surface px-6 py-7 shadow-[0_20px_48px_0_rgba(0,13,31,0.34)] md:w-[480px] md:px-[34px] md:pb-[30px] md:pt-8",
-			div { class: "flex flex-col gap-[7px]",
-				p { class: "font-display text-[24px] font-bold text-ink md:text-[30px]",
-					"{t.quote_form.title}"
-				}
-				p { class: "text-[15px] text-ink-soft", "{t.quote_form.lede}" }
-			}
+			class: "flex w-full flex-col gap-3 {CARD} bg-surface px-5 py-3.5 shadow-[0_20px_48px_0_rgba(0,13,31,0.34)] md:w-[480px] md:shrink-0 md:gap-5 md:px-[34px] md:pb-[30px] md:pt-8",
+			p { class: "font-display text-[22px] font-bold text-ink md:text-[30px]", "{t.quote_form.title}" }
 			Controls { lang, labelled: true }
 			button {
 				r#type: "submit",
-				class: "w-full rounded-full bg-action py-[19px] font-display text-[18px] font-semibold text-on-action",
+				class: "w-full rounded-full bg-action py-4 font-display text-[18px] font-semibold text-on-action md:py-[19px]",
 				"{t.quote_form.submit}"
 			}
 			p { class: "text-[13px] leading-[1.52] text-ink-soft", "{t.quote_reassurance()}" }
@@ -131,7 +126,7 @@ pub fn QuoteFormInline(lang: Lang) -> Element {
 #[component]
 fn Field(label: String, children: Element) -> Element {
 	rsx! {
-		label { class: "flex w-full flex-col gap-2",
+		label { class: "flex w-full flex-col gap-1.5 md:gap-2",
 			span { class: "text-[12.5px] font-medium tracking-[0.06em] text-ink-mid",
 				"{label}"
 			}

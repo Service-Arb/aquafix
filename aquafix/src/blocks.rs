@@ -13,9 +13,9 @@
 //! it and the next one. `hyros.com` is the reference for the proportion,
 //! measured at nine widths (`docs/refs/sites/hyros/NOTES.md`).
 //!
-//! The panel caps at 1296 rather than the Figma frame's 1200 so that 48px of
-//! panel padding puts the content back on `x=120, w=1200` at 1440. The Figma
-//! column has not moved; it has a panel drawn around it.
+//! The desktop numbers are `hyros.com`'s, taken exactly: cap 1220, page gutter
+//! 38, panel padding 48, radius 30. That is a 1124 content column rather than
+//! the Figma frame's 1200 — the reference won where the two disagreed.
 
 use dioxus::prelude::*;
 
@@ -24,13 +24,13 @@ use crate::content::{LANGS, Lang, SITE};
 /// The white field a page is stacked on: its gutter, and the air between
 /// panels. The gap lives here rather than as padding inside each panel, which
 /// is what lets a panel stop where its colour stops.
-pub const STACK: &str = "flex flex-col gap-4 bg-surface px-4 py-4 sm:gap-8 sm:px-[38px] sm:py-[38px] md:gap-16 md:py-10";
+pub const STACK: &str = "flex flex-col gap-3 bg-surface px-3 py-2.5 sm:gap-8 sm:px-[38px] sm:py-[38px] md:gap-16 md:py-10";
 
-/// A panel's box, without its colour — the width, the radius and the inset that
-/// puts a painted section's content back on the Figma column. An unpainted
+/// A panel's box, without its colour — width, radius and inset. An unpainted
 /// section takes it too, so its head sits on the same vertical as a painted
-/// one's.
-pub const PANEL: &str = "mx-auto w-full max-w-[1296px] rounded-[18px] px-5 sm:rounded-[26px] sm:px-8 md:rounded-[30px] md:px-12";
+/// one's. `min(1220, 100vw - 76)`, which is `hyros.com` at every width it was
+/// measured at.
+pub const PANEL: &str = "mx-auto w-full max-w-[1220px] rounded-[18px] px-4 sm:rounded-[26px] sm:px-8 md:rounded-[30px] md:px-12";
 
 /// The two steps in from [`PANEL`]'s corner: a card sits on a panel, a tile or
 /// a control sits on a card. The ladder is 30 → 20 → 14; a 14px corner nested

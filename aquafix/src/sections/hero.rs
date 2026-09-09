@@ -17,29 +17,33 @@ pub fn Hero(lang: Lang) -> Element {
 	let t = lang.text();
 	let p = lang.page("/");
 	rsx! {
-		div { class: "{PANEL} relative overflow-hidden bg-inverse-deep py-9 sm:py-12 md:py-16",
+		div { class: "{PANEL} relative overflow-hidden bg-inverse-deep py-5 sm:py-12 md:py-16",
 			Mark { class: "pointer-events-none absolute -left-24 -top-16 h-[520px] w-[450px] text-accent opacity-[0.06] md:-left-45 md:-top-30 md:h-[760px] md:w-[658px]" }
-			div { class: "relative flex flex-col gap-8 md:flex-row md:items-start md:gap-9",
+			div { class: "relative flex flex-col gap-4 md:flex-row md:items-start md:gap-9",
 				// Figma's 656 is the basis, not the width: the card is fixed, so the
 				// copy takes whatever the column has left rather than leaving a void
 				// beside it on anything wider than the 1440 frame.
-				div { class: "flex w-full flex-col gap-4 md:grow md:shrink md:basis-[656px] md:gap-[18px]",
+				div { class: "flex w-full flex-col gap-3 md:grow md:shrink md:basis-[656px] md:gap-[18px]",
 					p { class: "text-[10px] md:text-[11.5px] font-medium tracking-[0.14em] text-accent",
-						"{t.hero_eyebrow}"
+						span { class: "md:hidden", "{t.hero_eyebrow_short}" }
+						span { class: "hidden md:inline", "{t.hero_eyebrow}" }
 					}
 					// Below the seam the panel is as wide as the viewport allows and
 					// nothing else is bounding the line; the column does it above.
-					h1 { class: "max-w-[34rem] font-display font-bold text-[30px] md:max-w-none md:text-[46px] leading-[1.08] tracking-[-0.01em] text-on-inverse",
+					h1 { class: "max-w-[34rem] font-display font-bold text-[25px] md:max-w-none md:text-[46px] leading-[1.08] tracking-[-0.01em] text-on-inverse",
 						"{p.h1}"
 					}
 					p { class: "hidden md:block text-[17px] leading-[1.58] text-on-inverse-muted",
 						"{p.lede}"
 					}
-					div { class: "flex flex-col gap-3 text-[14px] md:text-[16px]",
-						for tick in t.hero_ticks {
+					div { class: "flex flex-col gap-2 text-[14px] md:gap-3 md:text-[16px]",
+						for (short , tick) in t.hero_ticks_short.iter().zip(t.hero_ticks) {
 							div { class: "flex items-center gap-3",
 								Tick {}
-								span { class: "font-medium text-on-inverse", "{tick}" }
+								span { class: "font-medium text-on-inverse",
+									span { class: "md:hidden", "{short}" }
+									span { class: "hidden md:inline", "{tick}" }
+								}
 							}
 						}
 					}
@@ -52,7 +56,7 @@ pub fn Hero(lang: Lang) -> Element {
 							"{SITE.phone}"
 						}
 					}
-					div { class: "flex flex-wrap items-center gap-x-4 gap-y-2 text-[13px] md:text-[14px] text-on-inverse",
+					div { class: "hidden flex-wrap items-center gap-x-4 gap-y-2 text-[13px] md:flex md:text-[14px] text-on-inverse",
 						for (i, (figure, label)) in t.hero_microproof.iter().enumerate() {
 							if i > 0 {
 								span { class: "text-rule-inverse", "|" }

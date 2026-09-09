@@ -137,8 +137,13 @@ pub struct Text {
 	pub emergency_hours: &'static str,
 	pub booking_hours: &'static str,
 	pub hero_eyebrow: &'static str,
+	/// Figma `26:24` — the 390 frame drops the job count to keep this one line.
+	pub hero_eyebrow_short: &'static str,
 	/// The three risk reversals, in the order the evidence ranks them.
 	pub hero_ticks: &'static [&'static str],
+	/// Figma `26:26` — the 390 frame states the same three terms in the width
+	/// it has, one line each. Same length and order as [`Text::hero_ticks`].
+	pub hero_ticks_short: &'static [&'static str],
 	/// `(figure, label)` — the microproof strip under the hero CTA row.
 	pub hero_microproof: &'static [(&'static str, &'static str)],
 	pub header_phone_label: &'static str,
@@ -273,16 +278,17 @@ pub const EN: Text = Text {
 	emergency_hours: "Emergencies — 24 hours, 7 days",
 	booking_hours: "Bookings — 7am to 9pm daily",
 	hero_eyebrow: "LICENSED #PL-40219   ·   $2M INSURED   ·   4,100 JOBS SINCE 2011",
+	hero_eyebrow_short: "LICENSED #PL-40219  ·  $2M INSURED",
 	hero_ticks: &[
 		"Flat rate in writing — the number never moves",
 		"2-hour arrival window, or the call-out is free",
 		"12-month workmanship warranty, parts included",
 	],
+	hero_ticks_short: &["Flat rate in writing — it never moves", "2-hour window, or the call-out is free", "12-month workmanship warranty"],
 	hero_microproof: &[("★★★★★  4.9", "612 Google reviews"), ("43 min", "average arrival"), ("96%", "fixed same day")],
 	header_phone_label: "24/7 · ANSWERED BY A HUMAN",
 	quote_form: QuoteForm {
 		title: "Get your flat price",
-		lede: "90 seconds. No obligation, no call-out fee.",
 		submit: "Send me my price  →",
 		privacy: "Your number is used to send the quote. Nothing else, ever.",
 		reassurance: ("We text your price band back within 10 minutes, 7am–9pm. Emergency right now? Call ", " — we pick up 24/7."),
@@ -734,16 +740,17 @@ pub const FR: Text = Text {
 	emergency_hours: "Urgences — 24 heures sur 24, 7 jours sur 7",
 	booking_hours: "Réservations — de 7h à 21h, tous les jours",
 	hero_eyebrow: "LICENCE #PL-40219   ·   ASSURÉ 2 M$   ·   4 100 INTERVENTIONS DEPUIS 2011",
+	hero_eyebrow_short: "LICENCE #PL-40219  ·  ASSURÉ 2 M$",
 	hero_ticks: &[
 		"Tarif fixe par écrit — le chiffre ne bouge jamais",
 		"Fenêtre d’arrivée de 2 heures, ou le déplacement est offert",
 		"Garantie de main-d’œuvre 12 mois, pièces comprises",
 	],
+	hero_ticks_short: &["Tarif fixe par écrit — il ne bouge pas", "Fenêtre de 2 h, ou le déplacement est offert", "Garantie main-d’œuvre 12 mois"],
 	hero_microproof: &[("★★★★★  4,9", "612 avis Google"), ("43 min", "arrivée moyenne"), ("96 %", "réparé le jour même")],
 	header_phone_label: "24/7 · UN HUMAIN RÉPOND",
 	quote_form: QuoteForm {
 		title: "Obtenez votre prix fixe",
-		lede: "90 secondes. Sans engagement, sans frais de déplacement.",
 		submit: "Envoyez-moi mon prix  →",
 		privacy: "Votre numéro sert à envoyer le devis. Rien d’autre, jamais.",
 		reassurance: (
@@ -1229,7 +1236,6 @@ pub struct Page {
 
 pub struct QuoteForm {
 	pub title: &'static str,
-	pub lede: &'static str,
 	pub submit: &'static str,
 	pub privacy: &'static str,
 	/// Split around `SITE.phone`; read through [`Text::quote_reassurance`].
