@@ -20,20 +20,19 @@ unused_features = "allow"
 
 [workspace.dependencies]
 aquafix_assets = { path = "aquafix_assets" }
+clap = { version = "^4.5.4", features = ["derive"] }
+color-eyre = "^0.6.5"
+
+# fullstack stack — versions tracked against real_estate_allocation, which
+# verified this exact set against dx 0.7.
+dioxus = { version = "^0.7" }
+dioxus-ssr = "0.7"
 # The uikit. `modern` says which token vocabulary this repo's tokens.css speaks;
 # `default-features = false` is what turns off the kit's `legacy` default, which
 # exists for the EV consumers still on the pre-0.10 utility names.
 ev_lib = { version = "^0.10", default-features = false, features = ["uikit", "modern"] }
 # For CLASS_INVENTORY in aquafix_assets' build script — see there.
 ev_lib_classes = "^0.3"
-clap = { version = "^4.5.4", features = ["derive"] }
-color-eyre = "^0.6.5"
-v_utils = { version = "^2.15.0", features = ["io", "macros", "cli"] }
-
-# fullstack stack — versions tracked against real_estate_allocation, which
-# verified this exact set against dx 0.7.
-dioxus = { version = "^0.7" }
-dioxus-ssr = "0.7"
 getrandom = { version = "^0.4", features = ["wasm_js"] }
 insta = "^1"
 serde = { version = "^1", features = ["derive"] }
@@ -44,5 +43,6 @@ thiserror = "^2.0"
 tokio = { version = "^1", features = ["full"] }
 toml = "0.9"
 tracing = "^0.1"
+v_utils = { version = "^2.15.0", features = ["io", "macros", "cli"] }
 wasm-bindgen = "=0.2.125" #NB: don't bump carelessly, - must match the nix `wasm-bindgen-cli`
 web-sys = "0.3"
