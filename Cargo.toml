@@ -30,9 +30,9 @@ dioxus-ssr = "0.7"
 # The uikit. `modern` says which token vocabulary this repo's tokens.css speaks;
 # `default-features = false` is what turns off the kit's `legacy` default, which
 # exists for the EV consumers still on the pre-0.10 utility names.
-ev_lib = { version = "^0.10", default-features = false, features = ["uikit", "modern"] }
+ev_lib = { version = "^0.11", default-features = false, features = ["uikit", "modern"] }
 # For CLASS_INVENTORY in aquafix_assets' build script — see there.
-ev_lib_classes = "^0.3"
+ev_lib_classes = "^0.4"
 getrandom = { version = "^0.4", features = ["wasm_js"] }
 insta = "^1"
 serde = { version = "^1", features = ["derive"] }
