@@ -68,6 +68,13 @@
   width: 100%; max-width: var(--panel-max); margin-inline: auto;
   border-radius: var(--corner-band);
 }
+/* The band's 120px inset is measured against the full frame. Inside a 1220 panel
+ * it leaves 980, which runs the header lockup into the nav and folds the footer's
+ * four columns; `88c30cc` paired the panel with this rung and the plan's block
+ * dropped it. Must sit after the `:root` query — same specificity, later wins. */
+@media (min-width: 768px) {
+  .field { --page-px: 3rem; }
+}
 
 @layer base {
   *, *::before, *::after {
