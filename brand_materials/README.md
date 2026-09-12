@@ -2,15 +2,15 @@
 
 Everything Aquafix prints, as a Typst port of the [Figma design](https://www.figma.com/design/IcOjAnEPBHnQbMWemVZtgE/Aquafix-%E2%80%94-Brand).
 
-| material | page | for |
-|---|---|---|
-| `card` | 2 × 3.75×2.25in — a 3.5×2in card plus 0.125in bleed on every side | a print shop |
-| `sheet` | 1 × A4 landscape, no bleed | the office printer: a door, a van, a meter cupboard |
+| material | page | cut | for |
+|---|---|---|---|
+| `card` | 2 × 3.75×2.25in — a 3.5×2in card plus 0.125in bleed on every side | one polarity per face | a print shop |
+| `sheet` | 1 × A4 landscape, no bleed | `light` · `dark` | the office printer: a door, a van, a meter cupboard |
 
 ```sh
-nix build .#brand-materials    # $out/<lang>-{card,sheet}.pdf + <lang>.vcf
+nix build .#brand-materials    # $out/<lang>-{card,sheet.light,sheet.dark}.pdf + <lang>.vcf
 typst compile --root .. --ignore-system-fonts --font-path ../assets/fonts \
-  --input material=sheet __main__.typ sheet.pdf
+  --input material=sheet --input polarity=dark __main__.typ sheet.pdf
 ./tests/figma_parity.sh
 ```
 
@@ -28,9 +28,10 @@ the printed card and the scanned one cannot disagree.
 `lib.typ` exposes exactly two things a caller touches.
 
 ```
-                            ┌──▶ card:  front — lock-up + promise
-  card(…) ──▶ validated ──▶ render(…) ──┤       back  — everything else
-              data          material    └──▶ sheet: lock-up + trade + promise
+                                         ┌──▶ card:  front — lock-up + promise
+  card(…) ──▶ validated ──▶ render(…) ───┤           back  — everything else
+              data          material     └──▶ sheet: lock-up + trade + promise
+                            polarity              × light · dark
 ```
 
 `card()` takes the copy and rejects anything blank, a `langs` set without `en`,
@@ -59,13 +60,19 @@ largest object on the card — the measured reference set is in
 [`docs/refs/cards/`](../docs/refs/cards/README.md).
 
 The sheet carries no contact details. It is read from a corridor, so it says who
-this is, what trade, and the promise, with the lock-up over 80% of the paper. It
-is the light scope while the card's front is navy: an office printer leaves a
-white margin whether the design wants one or not.
+this is, what trade, and the promise, with the lock-up over 80% of the paper.
+
+Both its cuts are one layout: every colour it draws is its scope's, so `light`
+and `dark` differ only in which scope `sheet()` reads. Two things do not come
+from a scope — the surface, which is paper in `light` and the card front's navy
+in `dark`, and the watermark, which is `dark` only because `print.watermark` is
+pre-composited over that navy and paper has no alpha. `light` is what an office
+printer wants; `dark` is the card's front at A4.
 
 `--input lang=fr` picks the language, `en` if unset; `--input material=sheet`
-picks the material, `card` if unset. `--input trim-guide=true` adds the dashed
-cut line to the card; leave it off for print.
+picks the material, `card` if unset; `--input polarity=dark` picks the cut,
+`light` if unset. `--input trim-guide=true` adds the dashed cut line to the card;
+leave it off for print.
 
 Everything else is internal: the geometry, transcribed 1:1 from the Figma frames
 in its own unit (`px`, a 300dpi pixel), and the palette and mark, which come from
@@ -74,11 +81,11 @@ an edit to `assets/brand.toml`, and the parity test will say so.
 
 ## Parity test
 
-`tests/__screenshots__/figma-{front,back,sheet}.png` are 300dpi exports of the
-Figma frames — the baseline cannot be regenerated locally, it comes from Figma.
-`tests/figma_parity.sh` renders every page and counts pixels that survive a blur,
-which drops the antialiasing fringe that two different rasterisers always
-disagree on. Failures print the expected / actual / diff paths.
+`tests/__screenshots__/figma-{front,back,sheet-light,sheet-dark}.png` are 300dpi
+exports of the Figma frames — the baseline cannot be regenerated locally, it comes
+from Figma. `tests/figma_parity.sh` renders every cut and counts pixels that
+survive a blur, which drops the antialiasing fringe that two different rasterisers
+always disagree on. Failures print the expected / actual / diff paths.
 
 Only `en` has Figma frames. Every other language is checked by rendering it: the
 boxes it lands in are fixed, so `lib.typ` asserts each string fits instead of

@@ -194,7 +194,7 @@
               nix run .#size           wasm budget check (after `nix build .#dx`)
               nix build .#dx           release server + public/
               nix build .#${pname}-container   OCI image
-              nix build .#brand-materials  print -> result/<lang>-{card,sheet}.pdf + <lang>.vcf
+              nix build .#brand-materials  print -> result/<lang>-{card,sheet.light,sheet.dark}.pdf + <lang>.vcf
             EOF
           '';
         };
@@ -263,7 +263,8 @@
 
         # Print-ready: the card with bleed on and trim guide off, the A4 sheet as it
         # leaves an office printer. One set per language, the card's next to the
-        # vCard carrying the same contact facts.
+        # vCard carrying the same contact facts. The card is one polarity per face,
+        # so it has no cut in its name; the sheet picks a surface and says which.
         brandMaterials =
           let
             src = pkgs.lib.fileset.toSource {
@@ -273,15 +274,20 @@
                 (pkgs.lib.fileset.difference ./brand_materials ./brand_materials/tests)
               ];
             };
+            cuts = [
+              { material = "card"; polarity = "light"; name = "card"; }
+              { material = "sheet"; polarity = "light"; name = "sheet.light"; }
+              { material = "sheet"; polarity = "dark"; name = "sheet.dark"; }
+            ];
           in
           pkgs.runCommand "aquafix-brand-materials" { nativeBuildInputs = [ pkgs.typst ]; } ''
             mkdir -p $out
             ${pkgs.lib.concatMapStrings (lang: ''
-              ${pkgs.lib.concatMapStrings (material: ''
+              ${pkgs.lib.concatMapStrings (cut: ''
                 typst compile --root ${src} --ignore-system-fonts --font-path ${src}/assets/fonts \
-                  --input lang=${lang} --input material=${material} \
-                  ${src}/brand_materials/__main__.typ $out/${lang}-${material}.pdf
-              '') [ "card" "sheet" ]}
+                  --input lang=${lang} --input material=${cut.material} --input polarity=${cut.polarity} \
+                  ${src}/brand_materials/__main__.typ $out/${lang}-${cut.name}.pdf
+              '') cuts}
               sed 's/$/\r/' ${pkgs.writeText "${lang}.vcf" (vcard lang)} > $out/${lang}.vcf
             '') (builtins.attrNames cardCopy.langs)}
           '';

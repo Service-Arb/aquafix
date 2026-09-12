@@ -217,23 +217,30 @@
   if trim-guide { _trim-guide }
 }
 
-// A4, landscape, no bleed — it prints on whatever is in the office, and an
-// office printer leaves a white margin whether the design wants one or not.
-// That is also why the sheet is the light scope while the card front is navy.
-#let sheet(c, lang) = {
+// A4, landscape, no bleed — it prints on whatever is in the office. Every colour
+// is the scope's, so the two cuts are one layout: light is paper, and dark is the
+// card's front at A4, down to the surface and the watermark.
+#let sheet(c, lang, polarity) = {
   let t = c.langs.at(lang)
+  let s = palette.at(polarity)
   let k = 4.5 // the lock-up spans 80% of the sheet, the one object read from a corridor
-  set page(paper: "a4", flipped: true, margin: 0pt, fill: palette.light.background)
+  set page(
+    paper: "a4",
+    flipped: true,
+    margin: 0pt,
+    fill: if polarity == "dark" { s.card } else { s.background },
+  )
+  if polarity == "dark" { _at(2236, -220, _mark(palette.watermark, width: 2227.2 * px, height: 2571.8 * px)) }
   place(center + horizon, block(width: 100%, {
-    align(center, _lockup(k, palette.light.ink))
+    align(center, _lockup(k, s.ink))
     v(150 * px)
     align(center, box(width: 2900 * px, grid(
       columns: (1fr, auto, 1fr),
       column-gutter: 80 * px,
       align: horizon,
-      line(length: 100%, stroke: 4 * px + palette.light.ink-soft),
+      line(length: 100%, stroke: 4 * px + s.ink-soft),
       // leaves each rule at least 200px, below which the row stops reading as a lock-up
-      _fits(2340, t.trade, _sans(24 * k, weight: "semibold", tracking: 2.6 * k, fill: palette.light.ink-mid, t.trade)), line(length: 100%, stroke: 4 * px + palette.light.ink-soft),
+      _fits(2340, t.trade, _sans(24 * k, weight: "semibold", tracking: 2.6 * k, fill: s.ink-mid, t.trade)), line(length: 100%, stroke: 4 * px + s.ink-soft),
     )))
     v(120 * px)
     align(center, _sans(20 * k, weight: "medium", tracking: 3.6 * k, fill: palette.light.primary, t.promise))
@@ -241,15 +248,21 @@
 }
 
 #let _materials = ("card", "sheet")
+#let _polarities = ("light", "dark")
 
-#let render(c, lang: "en", material: "card", trim-guide: false) = {
+#let render(c, lang: "en", material: "card", polarity: "light", trim-guide: false) = {
   assert(lang in c.langs, message: lang + " has no copy here, available: " + repr(c.langs.keys()))
   assert(material in _materials, message: material + " is not a material, available: " + repr(_materials))
+  assert(polarity in _polarities, message: polarity + " is not a polarity, available: " + repr(_polarities))
   assert(not trim-guide or material == "card", message: "only the card is printed with bleed, so only it has a trim")
+  assert(
+    polarity == "light" or material == "sheet",
+    message: "the card is one polarity per face, so only the sheet is cut both ways",
+  )
   set text(top-edge: "ascender", bottom-edge: "descender")
   set par(leading: 0pt, spacing: 0pt)
   if material == "sheet" {
-    sheet(c, lang)
+    sheet(c, lang, polarity)
   } else {
     set page(width: card-w * px, height: card-h * px, margin: 0pt)
     front(c, lang, trim-guide: trim-guide)

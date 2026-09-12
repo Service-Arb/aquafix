@@ -19,16 +19,22 @@ tolerance=0.001
 rm -rf "$out"
 mkdir -p "$out"
 # `--root ..`: lib.typ reads the shared brand.toml and mark.svg from ../assets/.
-compile() { # <lang> <material> <destination pattern>
+compile() { # <lang> <material> <polarity> <destination pattern>
 	typst compile --root .. --ignore-system-fonts --font-path ../assets/fonts \
-		--input "lang=$1" --input "material=$2" --input "trim-guide=$([ "$2" = card ] && echo true || echo false)" \
-		--ppi 300 --format png __main__.typ "$3"
+		--input "lang=$1" --input "material=$2" --input "polarity=$3" \
+		--input "trim-guide=$([ "$2" = card ] && echo true || echo false)" \
+		--ppi 300 --format png __main__.typ "$4"
 }
-compile en card "$out/card-{p}.png"
-compile en sheet "$out/sheet-{p}.png"
+
+# Every cut the design has: the card is one polarity per face, the sheet is cut both ways.
+cuts=("card light" "sheet light" "sheet dark")
+for cut in "${cuts[@]}"; do
+	# shellcheck disable=SC2086  # the cut is two words, and they are two arguments
+	compile en $cut "$out/${cut// /-}-{p}.png"
+done
 
 status=0
-for spec in card-1:front:1.5 card-2:back:1.5 sheet-1:sheet:6.75; do
+for spec in card-light-1:front:1.5 card-light-2:back:1.5 sheet-light-1:sheet-light:6.75 sheet-dark-1:sheet-dark:6.75; do
 	IFS=: read -r src name blur <<<"$spec"
 	expected=$out/$name-expected.png
 	actual=$out/$name-actual.png
@@ -50,12 +56,13 @@ done
 # Only en has Figma frames. The rest are checked for fitting the fixed boxes, which
 # is where a translation breaks — lib.typ asserts on every box it cannot grow.
 for lang in fr; do
-	for material in card sheet; do
-		if compile "$lang" "$material" "$out/$lang-$material-{p}.png"; then
-			printf '  ✓ %s %s fits the layout\n' "$lang" "$material"
+	for cut in "${cuts[@]}"; do
+		# shellcheck disable=SC2086  # the cut is two words, and they are two arguments
+		if compile "$lang" $cut "$out/$lang-${cut// /-}-{p}.png"; then
+			printf '  ✓ %s %s fits the layout\n' "$lang" "$cut"
 		else
 			status=1
-			printf '  ✗ %s %s does not fit the layout\n' "$lang" "$material"
+			printf '  ✗ %s %s does not fit the layout\n' "$lang" "$cut"
 		fi
 	done
 done
