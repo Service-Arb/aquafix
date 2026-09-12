@@ -52,6 +52,9 @@
         # Single source for the `dx serve` bind, the container's exposed port and
         # the devShell env. Matches `config::AppConfig::socket_addr`'s default.
         sitePort = "59081";
+        # The second composition gets its own port so both can be open side by
+        # side — which is the only way the bands-vs-field question gets settled.
+        fieldPort = "59082";
 
         # Pinned to the workspace's `wasm-bindgen` (`=0.2.125`): nixpkgs ships a
         # different minor and a CLI/crate schema skew is a hard error at bindgen
@@ -82,6 +85,20 @@
           runtimeInputs = with pkgs; [ rust dioxus-cli tailwindcss_4 git ];
           text = ''
             repo="$(git rev-parse --show-toplevel)"
+
+            # `compose::selected()` reads this at compile time; the names are
+            # `compose::ALL`. A port each, so two servers coexist.
+            composition="''${1:-bands}"
+            case "$composition" in
+              bands) port=${sitePort} ;;
+              field) port=${fieldPort} ;;
+              *) echo "✘ unknown composition '$composition' — bands | field (see compose::ALL)" >&2; exit 1 ;;
+            esac
+            export AQUAFIX_COMPOSITION="$composition"
+            # cargo does not track `option_env!` as a rebuild input, so one shared
+            # target dir would serve whichever composition happened to build last.
+            export CARGO_TARGET_DIR="$repo/target/compose-$composition"
+
             cd "$repo/aquafix"
 
             # build.rs derives every generated asset, tailwind.css included, so
@@ -93,8 +110,9 @@
             cd "$repo"
             # Reap a server orphaned by a previous run: dx does not always
             # propagate SIGINT to its spawned child, which then holds the port.
-            pkill -f 'target/dx/aquafix/.*/server-' 2>/dev/null || true
-            echo "  ▶ serving on http://127.0.0.1:${sitePort}"
+            # Scoped to this composition — the other one's server is not ours.
+            pkill -f "compose-$composition/dx/aquafix/.*/server-" 2>/dev/null || true
+            echo "  ▶ $composition on http://127.0.0.1:$port"
             # RUSTFLAGS *replaces* `[target.*].rustflags`, it does not merge — so
             # this keeps the correctness cfgs and drops the two flags dx cannot
             # tolerate: `-fuse-ld=mold` (dx intercepts linking with its own shim)
@@ -104,7 +122,7 @@
             # No `exec`: keep this shell as the parent so the trap reaps tailwind.
             # `--interactive false` is deliberately absent — TUI mode setsids, and
             # that detachment is what lets dx survive fish's ctrl-c.
-            nix develop "$repo" --command dx serve --package aquafix --port ${sitePort}
+            nix develop "$repo" --command dx serve --package aquafix --port "$port"
           '';
         };
 
@@ -188,6 +206,7 @@
           text = ''
             cat <<'EOF'
               nix run .#dev            tailwind --watch + dx serve on ${sitePort}
+              nix run .#dev -- field   the same, field composition, on ${fieldPort}
               nix run .#test           cargo test (insta) + playwright     [pre-push hook]
               nix run .#accept-test    accept baselines; `-- <name>` for a subset
               nix run .#figma-parity   blur-diff against the Figma export  [advisory]

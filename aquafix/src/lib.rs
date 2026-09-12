@@ -5,6 +5,7 @@ use dioxus::prelude::*;
 
 pub mod analytics;
 pub mod brand;
+pub mod compose;
 pub mod content;
 pub mod ld;
 pub mod pages;

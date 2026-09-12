@@ -4,8 +4,9 @@
 //! visitor is told their price is coming, and a notification failure after it
 //! must never turn a durable lead into a lost one.
 
-use sqlx::{Row, sqlite::SqlitePoolOptions};
 use std::path::Path;
+
+use sqlx::{Row, sqlite::SqlitePoolOptions};
 
 use crate::quote::Lead;
 

@@ -3,7 +3,6 @@
 //! of the document instead of the page guessing that height back.
 
 use dioxus::prelude::*;
-
 use ev_lib::uikit::{Button, ButtonVariant, Size};
 
 use crate::{

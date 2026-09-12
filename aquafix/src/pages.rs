@@ -13,7 +13,7 @@
 
 use dioxus::prelude::*;
 
-use crate::{content::Lang, sections, seo, status::StatusScreen};
+use crate::{compose, content::Lang, sections, seo, status::StatusScreen};
 
 #[derive(Clone, Debug, PartialEq, Routable)]
 pub enum Route {
@@ -149,7 +149,7 @@ pub fn NotFound(segments: Vec<String>) -> Element {
 #[component]
 fn Shell(lang: Lang, path: &'static str, children: Element) -> Element {
 	rsx! {
-		div { lang: lang.tag(),
+		div { lang: lang.tag(), class: compose::selected().root,
 			sections::Header { lang, path }
 			main { {children} }
 			sections::Footer { lang }

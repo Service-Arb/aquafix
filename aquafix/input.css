@@ -51,6 +51,24 @@
   }
 }
 
+/* The field composition (`compose::FIELD`): nothing paints to the viewport edge,
+ * every band is a panel with air around it. Geometry is `88c30cc`'s, measured off
+ * hyros.com at nine widths (docs/refs/sites/hyros/NOTES.md). Selected at build
+ * time, so the canonical page carries no class and none of these rules. */
+.field {
+  --corner-band: 30px; --corner-card: 20px; --corner-tile: 14px;
+  --page-gutter: 38px; --panel-gap: 2rem; --panel-max: 76.25rem;
+  display: flex; flex-direction: column;
+  gap: var(--panel-gap); padding: var(--page-gutter);
+}
+/* the sections are inside `main`; the gap is between them, not around it */
+.field > main { display: contents; }
+.field [data-slot="section"],
+.field > header, .field > footer {
+  width: 100%; max-width: var(--panel-max); margin-inline: auto;
+  border-radius: var(--corner-band);
+}
+
 @layer base {
   *, *::before, *::after {
     box-sizing: border-box;

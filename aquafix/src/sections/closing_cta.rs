@@ -5,7 +5,6 @@
 //! a second chance, it is a scroll cost.
 
 use dioxus::prelude::*;
-
 use ev_lib::uikit::{Button, Display, Eyebrow, Section, Size, Surface};
 
 use crate::{

@@ -1,7 +1,6 @@
 //! Figma `28:23` / `28:104` / `28:185` — one parameterised head, not three.
 
 use dioxus::prelude::*;
-
 use ev_lib::uikit::{Display, Eyebrow, Polarity, Section};
 
 use crate::content::Page;

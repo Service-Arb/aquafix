@@ -2,7 +2,6 @@
 //! nothing, so the radius is published and everything past it is turned down.
 
 use dioxus::prelude::*;
-
 use ev_lib::uikit::{Badge, BadgeVariant, Display, Eyebrow, Section};
 
 use crate::content::Lang;

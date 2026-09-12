@@ -6,7 +6,6 @@
 //! guarantee strip, which is the hero's three terms compressed.
 
 use dioxus::prelude::*;
-
 use ev_lib::uikit::{Button, ButtonVariant, Check, Size};
 
 use crate::{

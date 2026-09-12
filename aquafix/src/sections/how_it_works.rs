@@ -1,7 +1,6 @@
 //! Figma `7:4`.
 
 use dioxus::prelude::*;
-
 use ev_lib::uikit::{Display, Eyebrow, Section};
 
 use crate::content::Lang;

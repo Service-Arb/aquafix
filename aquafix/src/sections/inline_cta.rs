@@ -1,7 +1,6 @@
 //! Figma `28:27` / `28:108` / `28:189` — the sub-pages' one action, shared.
 
 use dioxus::prelude::*;
-
 use ev_lib::uikit::{Button, Section, Size, Surface};
 
 use crate::{brand::CTA_FACE, content::Lang};
