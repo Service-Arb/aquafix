@@ -13,11 +13,9 @@ pub fn Services(lang: Lang) -> Element {
 		Section { surface: Surface::Card, tight: true,
 			div { class: "flex flex-col gap-6 md:gap-11",
 				SectionHead { eyebrow, title, lede }
-				// Subgrid, so a two-line job name does not push its price and body
-				// below the neighbouring cards' — the row reads as one table.
-				div { class: "grid gap-5 sm:grid-cols-2 md:grid-cols-4 md:grid-rows-[auto_auto_auto]",
+				div { class: "grid gap-5 sm:grid-cols-2 lg:grid-cols-4",
 					for service in t.services {
-						div { class: "flex flex-col gap-3 rounded-[var(--radius)] border border-border bg-background px-6 pb-[26px] pt-6 md:row-span-3 md:grid md:grid-rows-subgrid",
+						div { class: "flex flex-col gap-3 rounded-[12px] border border-border bg-background px-6 pb-[26px] pt-6",
 							p { class: "font-display text-[19px] font-bold leading-[1.3] text-ink", "{service.name}" }
 							p { class: "font-display font-num text-[17px] font-bold text-primary", "{service.from_display(t)}" }
 							p { class: "text-[14.5px] leading-[1.6] text-ink-soft", "{service.body}" }

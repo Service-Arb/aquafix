@@ -18,7 +18,7 @@ pub fn Faq(lang: Lang) -> Element {
 					Eyebrow { "{eyebrow}" }
 					Display { "{title}" }
 				}
-				div { class: "overflow-hidden rounded-[var(--radius)] border border-border bg-background",
+				div { class: "overflow-hidden rounded-[14px] border border-border bg-background",
 					for (i , faq) in t.faqs.iter().enumerate() {
 						details {
 							class: "border-b border-border last:border-b-0",

@@ -13,7 +13,7 @@ pub fn Footer(lang: Lang) -> Element {
 	let t = lang.text();
 	let (col_services, col_areas, col_company, col_contact) = t.footer_columns;
 	rsx! {
-		footer { id: "footer", class: "panel dark bg-background pt-9 sm:pt-12 md:pt-14",
+		footer { id: "footer", class: "dark bg-background px-[var(--page-px)] pt-9 md:pt-14",
 			div { class: "flex flex-col gap-8 md:flex-row md:gap-12",
 				div { class: "flex flex-col gap-4 md:w-80 md:gap-[18px]",
 					Lockup { mark: "h-[30px] w-[26px] text-primary", word: "text-[23px] text-ink" }
@@ -41,7 +41,7 @@ pub fn Footer(lang: Lang) -> Element {
 						}
 					}
 					Column { heading: col_contact,
-						a { href: SITE.tel_href(), class: "whitespace-nowrap font-display text-[22px] font-bold text-primary", "{SITE.phone}" }
+						a { href: SITE.tel_href(), class: "font-display text-[22px] font-bold text-primary", "{SITE.phone}" }
 						p { "{t.emergency_hours}" }
 						p { "{t.booking_hours}" }
 						a { href: "mailto:{SITE.email()}", "{SITE.email()}" }

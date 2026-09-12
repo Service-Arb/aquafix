@@ -26,12 +26,12 @@ pub fn Reviews(lang: Lang) -> Element {
 					id: "elfsight-google-reviews",
 					// The widget replaces this subtree; the height is reserved so it
 					// does not shift the page in when it loads.
-					class: "flex flex-col gap-4 rounded-[var(--radius)] border-[1.5px] border-dashed border-primary px-5 pb-[18px] pt-4 md:px-6",
+					class: "flex flex-col gap-4 rounded-[14px] border-[1.5px] border-dashed border-primary px-5 pb-[18px] pt-4 md:px-6",
 					p { class: "text-[10.5px] font-medium tracking-[0.12em] text-primary", "{t.reviews_embed_note}" }
 					div { class: "flex flex-col gap-5 md:flex-row",
 						for review in t.reviews {
 							// The mobile frame shows only the four-star card.
-							Card { class: "flex-1 gap-3.5 rounded-[var(--control-radius)] bg-background px-6 pb-6 pt-[22px] {mobile_visibility(review.stars)}",
+							Card { class: "flex-1 gap-3.5 rounded-[12px] bg-background px-6 pb-6 pt-[22px] {mobile_visibility(review.stars)}",
 								p { class: "text-[17px] text-primary",
 									{"★".repeat(review.stars as usize)}
 									{"☆".repeat(5 - review.stars as usize)}
