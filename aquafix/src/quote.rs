@@ -24,7 +24,7 @@ use crate::{analytics, brand::CTA_FACE, content::Lang};
 /// The design's control: taller and roomier than the kit's default, on the card
 /// plane rather than transparent. Everything else — the border, the ring, the
 /// placeholder ink, the disabled state — is `Input`'s.
-const CONTROL: &str = "h-auto rounded-[9px] bg-card px-4 py-[15px] text-[16px] md:text-[16px] shadow-none";
+const CONTROL: &str = "h-auto rounded-[var(--corner-control)] bg-card px-4 py-[15px] text-[16px] md:text-[16px] shadow-none";
 /// A submitted lead. `zip` and `mobile` are trimmed but not otherwise parsed:
 /// a lead we cannot fully validate is still a lead, and rejecting it loses a
 /// customer to protect a column type.
@@ -74,7 +74,7 @@ pub fn QuoteCard(lang: Lang) -> Element {
 			action: action(lang),
 			onsubmit: move |_| analytics::capture(analytics::QUOTE_SUBMITTED, &[("surface", "hero")]),
 			// The card is white on the hero's navy: a light island inside a dark band.
-			class: "light flex w-full flex-col gap-5 rounded-[18px] bg-background text-ink px-6 py-7 shadow-[0_20px_48px_0_rgba(0,13,31,0.34)] md:w-[480px] md:px-[34px] md:pb-[30px] md:pt-8",
+			class: "light flex w-full flex-col gap-5 rounded-[var(--corner-float)] bg-background text-ink px-6 py-7 shadow-[0_20px_48px_0_rgba(0,13,31,0.34)] md:w-[480px] md:px-[34px] md:pb-[30px] md:pt-8",
 			div { class: "flex flex-col gap-[7px]",
 				p { class: "font-display text-[24px] font-bold text-ink md:text-[30px]", "{t.quote_form.title}" }
 				p { class: "text-[15px] text-ink-soft", "{t.quote_form.lede}" }

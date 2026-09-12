@@ -23,6 +23,15 @@
   --band-py: 2.25rem;   /* py-9 */
   --band-py-tight: 2rem;
   --display-scale: 1;
+  /* The corner ladder, outermost first. Section files reference these rather
+   * than a pixel literal, so a composition can move a rung without touching
+   * them; `--radius` and `--control-radius` below are the kit's own, read by
+   * its classes. */
+  --corner-band: 0;
+  --corner-card: 14px;
+  --corner-tile: 12px;
+  --corner-float: 18px;
+  --corner-control: 9px;
   --radius: 0.625rem;
   /* the CTA's shape: the kit's Xl button is these three and nothing else */
   --control-radius: 0.625rem;

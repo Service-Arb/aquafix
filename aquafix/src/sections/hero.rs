@@ -63,7 +63,7 @@ pub fn Hero(lang: Lang) -> Element {
 				img {
 					src: PHOTO,
 					alt: "{t.hero_photo_alt}",
-					class: "hidden min-w-0 flex-1 rounded-[18px] object-cover object-[58%_38%] 3xl:block",
+					class: "hidden min-w-0 flex-1 rounded-[var(--corner-float)] object-cover object-[58%_38%] 3xl:block",
 				}
 			}
 		}

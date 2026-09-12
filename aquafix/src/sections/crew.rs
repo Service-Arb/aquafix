@@ -17,7 +17,7 @@ pub fn Crew(lang: Lang) -> Element {
 					for member in t.crew {
 						div {
 							id: "crew-{member.initials}",
-							class: "flex flex-col gap-4 rounded-[14px] border border-border bg-card px-6 py-[26px]",
+							class: "flex flex-col gap-4 rounded-[var(--corner-card)] border border-border bg-card px-6 py-[26px]",
 							div { class: "flex size-[66px] items-center justify-center rounded-full bg-brand font-display text-[22px] font-bold text-primary",
 								"{member.initials}"
 							}
