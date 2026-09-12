@@ -4,7 +4,7 @@
 #let card-w = 1125
 #let card-h = 675
 
-// Shared with the site; compile with `--root ..` so these escape business_card/.
+// Shared with the site; compile with `--root ..` so these escape brand_materials/.
 #let brand = toml("../assets/brand.toml")
 // The card is one polarity per face, so it reads the two scopes directly; the
 // watermark is print-only, pre-composited because paper has no alpha.
@@ -58,7 +58,18 @@
   fr: (direct: "DIRECT", email: "COURRIEL", web: "SITE", serving: "SECTEUR", guarantee: "NOTRE GARANTIE"),
 )
 
-#let _copy-fields = ("role", "hours", "promise", "credentials", "serving", "guarantees")
+#let _copy-fields = ("role", "hours", "promise", "trade", "credentials", "serving", "guarantees")
+
+// The lock-up is the one object both materials render, at whatever scale the
+// medium gives it; `k` multiplies the geometry the Figma card frame fixed.
+#let _lockup(k, ink) = stack(
+  dir: ltr,
+  spacing: 42.41 * k * px,
+  align(horizon, _mark(palette.light.primary, width: 105.59 * k * px, height: 121.93 * k * px)),
+  align(horizon, _display(100.72 * k, tracking: 1.5108 * k, fill: ink)[
+    #brand.wordmark.first()#text(fill: palette.light.primary, brand.wordmark.last())
+  ]),
+)
 
 // -- external interface -------------------------------------------------------
 
@@ -128,17 +139,7 @@
     box(
       width: _trim-w * px,
       height: 121.93 * px,
-      align(
-        center + horizon,
-        stack(
-          dir: ltr,
-          spacing: 42.41 * px,
-          align(horizon, _mark(palette.light.primary, width: 105.59 * px, height: 121.93 * px)),
-          align(horizon, _display(100.72, tracking: 1.5108, fill: palette.dark.ink)[
-            AQUA#text(fill: palette.light.primary)[FIX]
-          ]),
-        ),
-      ),
+      align(center + horizon, _lockup(1, palette.dark.ink)),
     ),
   )
   _at(
@@ -216,12 +217,43 @@
   if trim-guide { _trim-guide }
 }
 
-#let render(c, lang: "en", trim-guide: false) = {
-  assert(lang in c.langs, message: lang + " has no copy on this card, available: " + repr(c.langs.keys()))
-  set page(width: card-w * px, height: card-h * px, margin: 0pt)
+// A4, landscape, no bleed — it prints on whatever is in the office, and an
+// office printer leaves a white margin whether the design wants one or not.
+// That is also why the sheet is the light scope while the card front is navy.
+#let sheet(c, lang) = {
+  let t = c.langs.at(lang)
+  let k = 4.5 // the lock-up spans 80% of the sheet, the one object read from a corridor
+  set page(paper: "a4", flipped: true, margin: 0pt, fill: palette.light.background)
+  place(center + horizon, block(width: 100%, {
+    align(center, _lockup(k, palette.light.ink))
+    v(150 * px)
+    align(center, box(width: 2900 * px, grid(
+      columns: (1fr, auto, 1fr),
+      column-gutter: 80 * px,
+      align: horizon,
+      line(length: 100%, stroke: 4 * px + palette.light.ink-soft),
+      // leaves each rule at least 200px, below which the row stops reading as a lock-up
+      _fits(2340, t.trade, _sans(24 * k, weight: "semibold", tracking: 2.6 * k, fill: palette.light.ink-mid, t.trade)), line(length: 100%, stroke: 4 * px + palette.light.ink-soft),
+    )))
+    v(120 * px)
+    align(center, _sans(20 * k, weight: "medium", tracking: 3.6 * k, fill: palette.light.primary, t.promise))
+  }))
+}
+
+#let _materials = ("card", "sheet")
+
+#let render(c, lang: "en", material: "card", trim-guide: false) = {
+  assert(lang in c.langs, message: lang + " has no copy here, available: " + repr(c.langs.keys()))
+  assert(material in _materials, message: material + " is not a material, available: " + repr(_materials))
+  assert(not trim-guide or material == "card", message: "only the card is printed with bleed, so only it has a trim")
   set text(top-edge: "ascender", bottom-edge: "descender")
   set par(leading: 0pt, spacing: 0pt)
-  front(c, lang, trim-guide: trim-guide)
-  pagebreak()
-  back(c, lang, trim-guide: trim-guide)
+  if material == "sheet" {
+    sheet(c, lang)
+  } else {
+    set page(width: card-w * px, height: card-h * px, margin: 0pt)
+    front(c, lang, trim-guide: trim-guide)
+    pagebreak()
+    back(c, lang, trim-guide: trim-guide)
+  }
 }

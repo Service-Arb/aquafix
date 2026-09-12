@@ -1,6 +1,7 @@
-# The card's copy, keyed exactly as `business_card/lib.typ`'s `card()` takes it.
-# Read by `business_card/__main__.typ` (typst `toml()`) and by `flake.nix`, which
-# emits the vCards from the same fields.
+# The printed copy, keyed exactly as `brand_materials/lib.typ`'s `card()` takes it.
+# Read by `brand_materials/__main__.typ` (typst `toml()`) and by `flake.nix`, which
+# emits the vCards from the same fields. Every material draws from this one table;
+# the card is the material that needs all of it.
 #
 # Global keys are one person's and read the same in every language; a `langs`
 # entry is what a reader parses, so it is translated. Adding a language needs a
@@ -15,6 +16,7 @@ site = "aquafix.top"
 role = "Master Plumber · Owner"
 hours = "24 HOURS · 7 DAYS"
 promise = "FIXED PRICE. FIXED TODAY."
+trade = "PLUMBING DONE RIGHT"
 credentials = "LICENCE #PL-40219  ·  $2M INSURED"
 serving = "Portland metro · 30 mile radius"
 guarantees = [
@@ -27,6 +29,7 @@ guarantees = [
 role = "Maître plombier · Propriétaire"
 hours = "24 HEURES · 7 JOURS"
 promise = "PRIX FIXE. RÉPARÉ AUJOURD’HUI."
+trade = "PLOMBERIE BIEN FAITE"
 credentials = "LICENCE #PL-40219  ·  ASSURÉ 2 M$"
 serving = "Grand Portland · rayon de 50 km"
 guarantees = [

@@ -12,8 +12,8 @@ flowchart LR
       M["mark.svg<br/>currentColor"]
       F["fonts/<br/>.ttf print · .woff2 web"]
     end
-    subgraph card["business_card/ — typst"]
-      C["lib.typ → __main__.typ"]
+    subgraph card["brand_materials/ — typst"]
+      C["lib.typ → __main__.typ<br/>card · sheet"]
     end
     subgraph site["aquafix/ — dioxus fullstack"]
       T["assets.rs (build.rs)<br/>→ tokens.css + woff2"]
@@ -72,7 +72,7 @@ that.
 | where | owns |
 |---|---|
 | `assets/` | `brand.toml`, `mark.svg`, `fonts/`. The only place a brand value is written. |
-| `business_card/` | The typst card. Reads `assets/` with `--root ..`. Its Figma-parity test is the guard that the shared move did not change the print output. |
+| `brand_materials/` | Everything printed: the card, and the A4 sheet that marks a door. Reads `assets/` with `--root ..`. Its Figma-parity test is the guard that the shared move did not change the print output. |
 | `aquafix_assets/build.rs` | Run from `aquafix`'s `build.rs`. Derives `aquafix/assets/` (gitignored) from `assets/`: stages the woff2s, emits `tokens.css` and writes out the kit's class inventory for Tailwind to scan. Owns the list of tokens the kit needs, and fails the build if either scope has a hole. |
 | `aquafix/src/` | The site. Local conventions in `aquafix/src/README.md`. |
 | `aquafix/src/l10n.rs` | Server-only. Decides which language a request gets before the router sees it: `?lang=` mints the cookie, `/en/*` 301s to the unprefixed URL, an unprefixed entry with no cookie negotiates `Accept-Language`. English is unprefixed and canonical; French lives under `/fr`. |
@@ -86,11 +86,11 @@ natively; the site reads it through a build script. Neither knows about the
 other, and adding a third consumer costs one reader.
 
 **`content.rs` → `sections/`.** A section receives its slice and nothing else.
-It may not contain a literal string of copy, and it may not write a spacing, a
-corner or a type-scale class — the band rhythm, the gutter, the headline scale,
-the CTA's shape and the panel a section is drawn as are tokens (`--band-py`,
-`--page-px`, `--display-scale`, `--control-*`, `--panel-*`), written once in
-`aquafix/input.css`. The constraint is what keeps a global retuning to one file.
+It may not contain a literal string of copy, and it may not write a spacing or
+type-scale class — the band rhythm, the gutter, the headline scale and the CTA's
+shape are tokens (`--band-py`, `--page-px`, `--display-scale`, `--control-*`),
+written once in `aquafix/input.css`. The constraint is what keeps a global
+retuning to one file.
 
 **`store.rs` is the commit point.** A lead is durable before the customer is
 told their price is coming. Notification failure logs at `error!` and changes

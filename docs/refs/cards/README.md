@@ -170,7 +170,7 @@ Both are recorded here so they don't get re-searched.
   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ 67% Sotheby's Int'l Realty front
 ```
 
-Measured off `business_card/lib.typ`:
+Measured off `brand_materials/lib.typ`:
 
 | Element (front) | Type size | vs. wordmark |
 |---|---|---|

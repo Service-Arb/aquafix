@@ -1,6 +1,6 @@
 # The brand's single source: the Figma variable collection of
 # `hn1D34By2eYTsakhzDWWkV`, in the `ev_lib::uikit` token vocabulary. Read by
-# `business_card/lib.typ` (typst `toml()`) and by `aquafix_assets/build.rs`,
+# `brand_materials/lib.typ` (typst `toml()`) and by `aquafix_assets/build.rs`,
 # which emits `aquafix/assets/tokens.css` from it.
 #
 # Two scopes, because the page alternates light and navy bands. Custom

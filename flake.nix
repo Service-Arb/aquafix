@@ -146,7 +146,7 @@
           runtimeInputs = with pkgs; [ git typst imagemagick ];
           text = ''
             repo="$(git rev-parse --show-toplevel)"
-            cd "$repo/business_card" && ./tests/figma_parity.sh
+            cd "$repo/brand_materials" && ./tests/figma_parity.sh
           '';
         };
 
@@ -194,7 +194,7 @@
               nix run .#size           wasm budget check (after `nix build .#dx`)
               nix build .#dx           release server + public/
               nix build .#${pname}-container   OCI image
-              nix build .#card         business card -> result/<lang>.{pdf,vcf}
+              nix build .#brand-materials  print -> result/<lang>-{card,sheet}.pdf + <lang>.vcf
             EOF
           '';
         };
@@ -261,23 +261,27 @@
           filter = path: _type: baseNameOf path != ".cargo";
         };
 
-        # Print-ready: bleed on, trim guide off. Both pages, one file per language,
-        # each next to the vCard carrying the same contact facts.
-        cardPdf =
+        # Print-ready: the card with bleed on and trim guide off, the A4 sheet as it
+        # leaves an office printer. One set per language, the card's next to the
+        # vCard carrying the same contact facts.
+        brandMaterials =
           let
             src = pkgs.lib.fileset.toSource {
               root = ./.;
               fileset = pkgs.lib.fileset.unions [
                 ./assets
-                (pkgs.lib.fileset.difference ./business_card ./business_card/tests)
+                (pkgs.lib.fileset.difference ./brand_materials ./brand_materials/tests)
               ];
             };
           in
-          pkgs.runCommand "aquafix-card" { nativeBuildInputs = [ pkgs.typst ]; } ''
+          pkgs.runCommand "aquafix-brand-materials" { nativeBuildInputs = [ pkgs.typst ]; } ''
             mkdir -p $out
             ${pkgs.lib.concatMapStrings (lang: ''
-              typst compile --root ${src} --ignore-system-fonts --font-path ${src}/assets/fonts \
-                --input lang=${lang} ${src}/business_card/__main__.typ $out/${lang}.pdf
+              ${pkgs.lib.concatMapStrings (material: ''
+                typst compile --root ${src} --ignore-system-fonts --font-path ${src}/assets/fonts \
+                  --input lang=${lang} --input material=${material} \
+                  ${src}/brand_materials/__main__.typ $out/${lang}-${material}.pdf
+              '') [ "card" "sheet" ]}
               sed 's/$/\r/' ${pkgs.writeText "${lang}.vcf" (vcard lang)} > $out/${lang}.vcf
             '') (builtins.attrNames cardCopy.langs)}
           '';
@@ -387,7 +391,7 @@
           default = siteBin;
           bin = siteBin;
           dx = siteDxBuild;
-          card = cardPdf;
+          brand-materials = brandMaterials;
         } // containerStd.packages;
 
         containers = containerStd.containers;
@@ -418,7 +422,7 @@
               # which is what resolves `@playwright/test` from playwright.config.ts.
               playwright-test
               sqlite # inspecting the lead store
-              # business_card/
+              # brand_materials/
               typst
               imagemagick
             ] ++ pre-commit-check.enabledPackages ++ combined.enabledPackages;

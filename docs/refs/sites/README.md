@@ -45,18 +45,14 @@ Convergence across independent competitors is the best signal available here.
 |---|---|---|---|
 | [`hyros/`](hyros/) | B2B ad-attribution SaaS. The density benchmark. | "Tracking **$5B+ in ad spend** for Tony Robbins, Alex Hormozi, Whop & 5,000+ more". Headline: "Get **15%+ more customers** from the same ad spend. **Or you don't pay.**" | A (named clients, checkable) / B ($5B claim) |
 
-**What Aquafix takes:** the *shape*, and the page geometry. Promise → guarantee → proof, in
-the first screen, with no decoration between them. Hyros puts the risk reversal **inside
-the headline** rather than in a trust badge further down. Our H1 does the same: *"…at a
-price we agree before we start"* is the guarantee, not a separate section. The panel
-system — white page, nothing bleeding to the viewport edge, a capped rounded panel per
-section with air between — is measured off the live site and recorded in
-[`hyros/NOTES.md`](hyros/NOTES.md).
+**What Aquafix takes:** the *shape*, not the styling. Promise → guarantee → proof, in the
+first screen, with no decoration between them. Hyros puts the risk reversal **inside the
+headline** rather than in a trust badge further down. Our H1 does the same: *"…at a price
+we agree before we start"* is the guarantee, not a separate section.
 
 **What we reject:** Hyros' loose, airy above-fold. That works for a considered B2B
 purchase. A homeowner standing in water needs the phone number and a price, immediately —
-so our hero is denser and the form is in it, not behind a click. The geometry and the
-density are separate decisions: taking the first did not cost us the second.
+so our hero is denser and the form is in it, not behind a click.
 
 ---
 
