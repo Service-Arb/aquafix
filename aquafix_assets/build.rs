@@ -58,6 +58,11 @@ const TOKENS: &[&str] = &[
 	"on-accent-error",
 ];
 
+/// Photography the site ships. Staged rather than read, so `asset!()` fingerprints
+/// and re-encodes it; the repo-root copy stays the master the print material can
+/// also draw from.
+const PHOTOS: &[&str] = &["hero.jpg"];
+
 /// The webfaces the site `@font-face`s. The `.ttf` twins stay behind — they are
 /// typst's, and shipping them to a browser would double the font payload.
 const FACES: &[&str] = &[
@@ -80,6 +85,11 @@ fn stage() {
 	std::fs::create_dir_all(out.join("fonts")).expect("create aquafix/assets/fonts");
 	for face in FACES {
 		std::fs::copy(shared.join("fonts").join(face), out.join("fonts").join(face)).unwrap_or_else(|e| panic!("stage {face}: {e}"));
+	}
+
+	std::fs::create_dir_all(out.join("photos")).expect("create aquafix/assets/photos");
+	for photo in PHOTOS {
+		std::fs::copy(shared.join("photos").join(photo), out.join("photos").join(photo)).unwrap_or_else(|e| panic!("stage {photo}: {e}"));
 	}
 
 	std::fs::write(

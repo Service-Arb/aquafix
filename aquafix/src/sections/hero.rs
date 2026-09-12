@@ -12,6 +12,8 @@ use crate::{
 	quote::QuoteCard,
 };
 
+const PHOTO: Asset = asset!("/assets/photos/hero.jpg");
+
 #[component]
 pub fn Hero(lang: Lang) -> Element {
 	let t = lang.text();
@@ -19,7 +21,7 @@ pub fn Hero(lang: Lang) -> Element {
 	rsx! {
 		Section { polarity: Polarity::Dark, class: "relative overflow-hidden",
 			Mark { class: "pointer-events-none absolute -left-24 -top-16 h-[520px] w-[450px] text-primary opacity-[0.06] md:-left-45 md:-top-30 md:h-[760px] md:w-[658px]" }
-			div { class: "relative flex flex-col gap-8 md:flex-row md:items-start md:gap-9",
+			div { class: "relative flex flex-col gap-8 md:flex-row md:items-stretch md:gap-9",
 				div { class: "flex w-full flex-col gap-4 md:w-[656px] md:gap-[18px]",
 					p { class: "text-[10px] md:text-[11.5px] font-medium tracking-[0.14em] text-primary", "{t.hero_eyebrow}" }
 					h1 { class: "font-display font-bold text-[30px] md:text-[46px] leading-[1.08] tracking-[-0.01em] text-ink",
@@ -55,6 +57,14 @@ pub fn Hero(lang: Lang) -> Element {
 					}
 				}
 				QuoteCard { lang }
+				// The third column exists only where the first two have already been
+				// drawn at their Figma widths and the band is still wider; it takes
+				// the remainder rather than a width of its own.
+				img {
+					src: PHOTO,
+					alt: "{t.hero_photo_alt}",
+					class: "hidden min-w-0 flex-1 rounded-[18px] object-cover object-[58%_38%] 3xl:block",
+				}
 			}
 		}
 	}

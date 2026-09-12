@@ -7,6 +7,13 @@
 @source "./src/**/*.rs";
 @source "./assets/uikit-classes.txt";
 
+/* The width at which the drawn hero — 656 copy, 480 card — has a third column
+ * left over worth putting a photograph in. Below it the 1440 frame runs as
+ * drawn; it is not a device size. */
+@theme {
+  --breakpoint-3xl: 110rem;
+}
+
 /* Layout scalars the kit reads. `assets/` carries values, never layout, so
  * these are here and not in the generated tokens.css. Geometry is the Figma
  * frame's, at both breakpoints: 1440 desktop and 390 mobile. */

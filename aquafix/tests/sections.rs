@@ -20,6 +20,9 @@ fn render(app: fn() -> Element) -> String {
 	dioxus_ssr::render(&dom)
 }
 
+/// `asset!()` resolves to an absolute path outside a bundled build, so a
+/// rendered `src` carries the checkout's location. The snapshot keeps the
+/// asset-relative tail, which is the part a structural test is asserting.
 macro_rules! snapshot {
 	($name:ident, $body:expr) => {
 		#[test]
@@ -27,7 +30,9 @@ macro_rules! snapshot {
 			fn app() -> Element {
 				$body
 			}
-			insta::assert_snapshot!(render(app));
+			insta::with_settings!({filters => vec![(r#"src="[^"]*/assets/"#, r#"src="/assets/"#)]}, {
+				insta::assert_snapshot!(render(app));
+			});
 		}
 	};
 }

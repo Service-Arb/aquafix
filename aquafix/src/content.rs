@@ -86,6 +86,7 @@ pub const EN: Text = Text {
 		"12-month workmanship warranty, parts included",
 	],
 	hero_microproof: &[("★★★★★  4.9", "612 Google reviews"), ("43 min", "average arrival"), ("96%", "fixed same day")],
+	hero_photo_alt: "An Aquafix plumber fitting a manifold on a hot-water system.",
 	header_phone_label: "24/7 · ANSWERED BY A HUMAN",
 	quote_form: QuoteForm {
 		title: "Get your flat price",
@@ -544,6 +545,7 @@ pub const FR: Text = Text {
 		"Garantie de main-d’œuvre 12 mois, pièces comprises",
 	],
 	hero_microproof: &[("★★★★★  4,9", "612 avis Google"), ("43 min", "arrivée moyenne"), ("96 %", "réparé le jour même")],
+	hero_photo_alt: "Un plombier Aquafix installe un collecteur sur un système d’eau chaude.",
 	header_phone_label: "24/7 · UN HUMAIN RÉPOND",
 	quote_form: QuoteForm {
 		title: "Obtenez votre prix fixe",
@@ -1056,6 +1058,9 @@ pub struct Text {
 	pub hero_ticks: &'static [&'static str],
 	/// `(figure, label)` — the microproof strip under the hero CTA row.
 	pub hero_microproof: &'static [(&'static str, &'static str)],
+	/// The hero photo is decorative to a sighted visitor but load-bearing to a
+	/// screen reader: it is the only place the page shows a licensed plumber.
+	pub hero_photo_alt: &'static str,
 	pub header_phone_label: &'static str,
 	pub quote_form: QuoteForm,
 	/// `(value, label)` for the job `<select>`. The value is what `/quote`
