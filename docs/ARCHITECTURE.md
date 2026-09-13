@@ -79,6 +79,26 @@ that.
 | `deploy/config.nix` | Prod `AppConfig`, evaluated to JSON at build time and passed as `--config`. |
 | `flake.nix` | `dev` / `test` / `accept-test` / `figma-parity` / `size`, the release build and the container. `tmp/site_dev_plans/nix.md` records what each non-obvious line prevents. |
 
+## The design files
+
+Three Figma files, one page per thing. The direction is one-way: the page is the
+source, the repo is the port. Changing a material starts in the frame.
+
+| Figma page | ports to |
+|---|---|
+| [Brand](https://www.figma.com/design/IcOjAnEPBHnQbMWemVZtgE) · Brand Foundations | `assets/brand.toml`'s swatches, and the type ramp both the site and the print draw from |
+| ⋯ · Logo | `assets/mark.svg`, and the lock-up's clear space and minimum sizes |
+| ⋯ · Business Card | `brand_materials` `card`, both faces |
+| ⋯ · Sheet | `brand_materials` `sheet`, both cuts |
+| [Site](https://www.figma.com/design/hn1D34By2eYTsakhzDWWkV) · variables `aqua/core`, `aqua/semantic` | `assets/brand.toml`'s two scopes — the values, as against the swatch page's names |
+| ⋯ · Site | `aquafix/src/sections/`, at the two designed breakpoints |
+| ⋯ · Components | the `Mark /` instances the other pages place; the site's own vocabulary is `ev_lib::uikit`'s, not drawn here |
+| [business_card_refs](https://www.figma.com/design/x7rCDMFviutxIJmbMHntuv) · Refs | `docs/refs/cards/` — the graded set, reproduced side by side so the measurement is checkable |
+
+Only the card and the sheet have a test behind them. Their frames are exported at
+300dpi into `brand_materials/tests/__screenshots__/`, which is the one baseline
+this repo cannot regenerate — it comes from Figma or it does not exist.
+
 ## Boundaries
 
 **`assets/` → everything.** Values only, no layout. Typst reads the TOML

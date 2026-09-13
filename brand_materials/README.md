@@ -31,7 +31,8 @@ the printed card and the scanned one cannot disagree.
                                          ┌──▶ card:  front — lock-up + promise
   card(…) ──▶ validated ──▶ render(…) ───┤           back  — everything else
               data          material     └──▶ sheet: lock-up + trade + promise
-                            polarity              × light · dark
+                            polarity                  + phone · site
+                                                  × light · dark
 ```
 
 `card()` takes the copy and rejects anything blank, a `langs` set without `en`,
@@ -59,8 +60,10 @@ on the back. The lock-up spans 59% of the trim width, which is what keeps it the
 largest object on the card — the measured reference set is in
 [`docs/refs/cards/`](../docs/refs/cards/README.md).
 
-The sheet carries no contact details. It is read from a corridor, so it says who
-this is, what trade, and the promise, with the lock-up over 80% of the paper.
+The sheet is read from a corridor and off a door: who this is, what trade, the
+promise, then the number to call. The lock-up spans 80% of the paper and the
+phone is the next largest thing on it, in the scope's ink — copper is already
+spent on the promise line. The site sits quiet underneath.
 
 Both its cuts are one layout: every colour it draws is its scope's, so `light`
 and `dark` differ only in which scope `sheet()` reads. Two things do not come

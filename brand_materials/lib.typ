@@ -244,6 +244,11 @@
     )))
     v(120 * px)
     align(center, _sans(20 * k, weight: "medium", tracking: 3.6 * k, fill: palette.light.primary, t.promise))
+    // twice the rhythm above it, which is what separates the identity from the action
+    v(260 * px)
+    align(center, _fits(2900, c.phone, _display(40 * k, tracking: 0.8 * k, fill: s.ink, c.phone)))
+    v(40 * px)
+    align(center, _sans(16 * k, weight: "medium", tracking: 1.6 * k, fill: s.ink-soft, c.site))
   }))
 }
 
