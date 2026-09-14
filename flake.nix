@@ -213,7 +213,7 @@
               nix run .#size           wasm budget check (after `nix build .#dx`)
               nix build .#dx           release server + public/
               nix build .#${pname}-container   OCI image
-              nix build .#brand-materials  print -> result/<lang>-{card,sheet.light,sheet.dark}.pdf + <lang>.vcf
+              nix build .#brand-materials  print -> result/<lang>-{card,sheet.{light,dark}[.explicit]}.pdf + <lang>.vcf
             EOF
           '';
         };
@@ -294,9 +294,11 @@
               ];
             };
             cuts = [
-              { material = "card"; polarity = "light"; name = "card"; }
-              { material = "sheet"; polarity = "light"; name = "sheet.light"; }
-              { material = "sheet"; polarity = "dark"; name = "sheet.dark"; }
+              { material = "card"; polarity = "light"; explicit = false; name = "card"; }
+              { material = "sheet"; polarity = "light"; explicit = false; name = "sheet.light"; }
+              { material = "sheet"; polarity = "dark"; explicit = false; name = "sheet.dark"; }
+              { material = "sheet"; polarity = "light"; explicit = true; name = "sheet.light.explicit"; }
+              { material = "sheet"; polarity = "dark"; explicit = true; name = "sheet.dark.explicit"; }
             ];
           in
           pkgs.runCommand "aquafix-brand-materials" { nativeBuildInputs = [ pkgs.typst ]; } ''
@@ -305,6 +307,7 @@
               ${pkgs.lib.concatMapStrings (cut: ''
                 typst compile --root ${src} --ignore-system-fonts --font-path ${src}/assets/fonts \
                   --input lang=${lang} --input material=${cut.material} --input polarity=${cut.polarity} \
+                  --input explicit=${pkgs.lib.boolToString cut.explicit} \
                   ${src}/brand_materials/__main__.typ $out/${lang}-${cut.name}.pdf
               '') cuts}
               sed 's/$/\r/' ${pkgs.writeText "${lang}.vcf" (vcard lang)} > $out/${lang}.vcf

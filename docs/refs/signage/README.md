@@ -47,7 +47,6 @@ At 300dpi, `cap in = px × ratio ÷ 300`.
 | `trade` | 108 | 0.26 | **2.0 m** |
 | `promise` | 90 | 0.22 | **1.7 m** |
 | `site` | 90 | 0.22 | **1.7 m** |
-| `territory` | 76 | 0.18 | **1.4 m** |
 
 Three distances, and each line is in one of them: the lock-up is read from the corridor,
 the number from across the room, everything else standing at the door. A line that lands
@@ -59,8 +58,11 @@ between two of them is the one that looks unbalanced.
   standing-read distance and becomes the only line on the sheet you have to step up to.
 - `phone` at 200px stays under the wordmark's width, which is the card's property too
   ([`../cards/`](../cards/README.md)) — the lock-up is the largest object on the artefact.
-- `territory` is chrome. It is the one line specified below the door distance, because it
-  is read once to confirm you have the right trade and the right city, not in an emergency.
+- The row under the lock-up is the one line whose string is not fixed, so it is the one
+  line that solves for its own size rather than being drawn at one. `explicit` fills it
+  with a longer string and it lands at 0.80 of the trade's size in `en`, 0.74 in `fr` —
+  1.6m and 1.5m, still a standing read. The floor is 0.6, which is where the row stops
+  being worth the paper and the string is the thing to shorten.
 
 ## Sources
 

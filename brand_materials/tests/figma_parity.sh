@@ -19,10 +19,11 @@ tolerance=0.001
 rm -rf "$out"
 mkdir -p "$out"
 # `--root ..`: lib.typ reads the shared brand.toml and mark.svg from ../assets/.
-compile() { # <lang> <material> <polarity> <destination pattern>
+compile() { # <lang> <material> <polarity> <destination pattern> [explicit]
 	typst compile --root .. --ignore-system-fonts --font-path ../assets/fonts \
 		--input "lang=$1" --input "material=$2" --input "polarity=$3" \
 		--input "trim-guide=$([ "$2" = card ] && echo true || echo false)" \
+		--input "explicit=${5:-false}" \
 		--ppi 300 --format png __main__.typ "$4"
 }
 
@@ -65,6 +66,18 @@ for lang in fr; do
 			printf '  ✗ %s %s does not fit the layout\n' "$lang" "$cut"
 		fi
 	done
+done
+
+# The explicit row solves for its own size, so it cannot overflow — it can only shrink
+# past the point of being worth printing, which is the floor lib.typ asserts. Every
+# language is checked, en included: shrinking is silent and has no Figma frame to diff.
+for lang in en fr; do
+	if compile "$lang" sheet light "$out/$lang-explicit-{p}.png" true; then
+		printf '  ✓ %s sheet --explicit holds its size floor\n' "$lang"
+	else
+		status=1
+		printf '  ✗ %s sheet --explicit shrinks past the floor\n' "$lang"
+	fi
 done
 
 if typst compile --root .. --ignore-system-fonts --font-path ../assets/fonts --format png \

@@ -6,4 +6,5 @@
   material: sys.inputs.at("material", default: "card"),
   polarity: sys.inputs.at("polarity", default: "light"),
   trim-guide: sys.inputs.at("trim-guide", default: "false") == "true",
+  explicit: sys.inputs.at("explicit", default: "false") == "true",
 )

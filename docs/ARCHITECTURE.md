@@ -89,7 +89,7 @@ source, the repo is the port. Changing a material starts in the frame.
 | [Brand](https://www.figma.com/design/IcOjAnEPBHnQbMWemVZtgE) · Brand Foundations | `assets/brand.toml`'s swatches, and the type ramp both the site and the print draw from |
 | ⋯ · Logo | `assets/mark.svg`, and the lock-up's clear space and minimum sizes |
 | ⋯ · Business Card | `brand_materials` `card`, both faces |
-| ⋯ · Sheet | `brand_materials` `sheet`, both cuts |
+| ⋯ · Sheet | `brand_materials` `sheet`, both polarities. Its `explicit` cut has no frame — the row's size is solved, so a frame would hold a hand-copy of a computed number |
 | [Site](https://www.figma.com/design/hn1D34By2eYTsakhzDWWkV) · variables `aqua/core`, `aqua/semantic` | `assets/brand.toml`'s two scopes — the values, as against the swatch page's names |
 | ⋯ · Site | `aquafix/src/sections/`, at the two designed breakpoints |
 | ⋯ · Components | the `Mark /` instances the other pages place; the site's own vocabulary is `ev_lib::uikit`'s, not drawn here |

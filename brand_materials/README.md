@@ -5,10 +5,10 @@ Everything Aquafix prints, as a Typst port of the [Figma design](https://www.fig
 | material | page | cut | for |
 |---|---|---|---|
 | `card` | 2 × 3.75×2.25in — a 3.5×2in card plus 0.125in bleed on every side | one polarity per face | a print shop |
-| `sheet` | 1 × A4 landscape, no bleed | `light` · `dark` | the office printer: a door, a van, a meter cupboard |
+| `sheet` | 1 × A4 landscape, no bleed | `light` · `dark`, each × `explicit` | the office printer: a door, a van, a meter cupboard |
 
 ```sh
-nix build .#brand-materials    # $out/<lang>-{card,sheet.light,sheet.dark}.pdf + <lang>.vcf
+nix build .#brand-materials    # $out/<lang>-{card,sheet.{light,dark}[.explicit]}.pdf + <lang>.vcf
 typst compile --root .. --ignore-system-fonts --font-path ../assets/fonts \
   --input material=sheet --input polarity=dark __main__.typ sheet.pdf
 ./tests/figma_parity.sh
@@ -30,9 +30,9 @@ the printed card and the scanned one cannot disagree.
 ```
                                          ┌──▶ card:  front — lock-up + promise
   card(…) ──▶ validated ──▶ render(…) ───┤           back  — everything else
-              data          material     └──▶ sheet: lock-up + trade + promise
-                            polarity                  + phone · site + territory
-                                                  × light · dark
+              data          material     └──▶ sheet: lock-up + promise + phone · site
+                            polarity                  + trade | territory
+                            explicit                × light · dark
 ```
 
 `card()` takes the copy and rejects anything blank, a `langs` set without `en`,
@@ -66,10 +66,16 @@ them — the lock-up from the corridor at 7.9m, the number from across the room 
 [`docs/refs/signage/`](../docs/refs/signage/README.md); a line that lands between
 two distances is the one that reads as unbalanced.
 
-Two rule rows bracket the page and are drawn by the same `rule-row`: the trade at
-the top, the trade qualification and the city at the bottom. Between them sit the
-promise, then the number in the scope's ink — copper is already spent on the
-promise — with the domain directly under it at the promise's size.
+Under the lock-up is one row between two rules, and it carries the trade. Below
+that the promise, then the number in the scope's ink — copper is already spent on
+the promise — with the domain directly under it at the promise's size.
+
+`explicit` swaps what lands in that row: the trade for the trade qualification
+and the city, for the door where a claim is worth less than a statement of what
+you are and where. The row is the only thing that changes, so the swap costs no
+geometry — `_to-width` hands the row whatever size fits between the rules, which
+is why a longer string does not need a design and does not overflow. It asserts
+rather than shrink past the point where the row is worth printing.
 
 Both its cuts are one layout: every colour it draws is its scope's, so `light`
 and `dark` differ only in which scope `sheet()` reads. Two things do not come
@@ -81,7 +87,7 @@ printer wants; `dark` is the card's front at A4.
 `--input lang=fr` picks the language, `en` if unset; `--input material=sheet`
 picks the material, `card` if unset; `--input polarity=dark` picks the cut,
 `light` if unset. `--input trim-guide=true` adds the dashed cut line to the card;
-leave it off for print.
+leave it off for print. `--input explicit=true` is the sheet's other row.
 
 Everything else is internal: the geometry, transcribed 1:1 from the Figma frames
 in its own unit (`px`, a 300dpi pixel), and the palette and mark, which come from

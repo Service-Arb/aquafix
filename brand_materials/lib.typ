@@ -169,6 +169,20 @@
   body
 }
 
+// Where the box is the design and the string is what varies, the type solves for its
+// own size instead of asserting: `draw` is called at a size, and the answer is the
+// largest size that measures within `width`. Advances and tracking both scale with
+// size, so the width is linear in it and the second call lands exactly. `floor` is
+// where shrinking stops buying legibility and the string is the thing that is wrong.
+#let _to-width(width, size, draw, floor: 0.6) = context {
+  let scale = calc.min(1.0, width * px / measure(draw(size)).width)
+  assert(
+    scale >= floor,
+    message: "fitting " + str(width) + "px needs " + str(calc.round(scale * 100)) + "% of the design's size",
+  )
+  draw(size * scale)
+}
+
 #let _contact-row(label, value) = grid(
   columns: (120 * px, auto),
   column-gutter: 16 * px,
@@ -229,7 +243,7 @@
 // A4, landscape, no bleed — it prints on whatever is in the office. Every colour
 // is the scope's, so the two cuts are one layout: light is paper, and dark is the
 // card's front at A4, down to the surface and the watermark.
-#let sheet(c, lang, polarity) = {
+#let sheet(c, lang, polarity, explicit) = {
   let t = c.langs.at(lang)
   let s = palette.at(polarity)
   let k = 4.5 // the lock-up spans 80% of the sheet, the one object read from a corridor
@@ -240,40 +254,39 @@
     fill: if polarity == "dark" { s.card } else { s.background },
   )
   if polarity == "dark" { _at(2236, -220, _mark(palette.watermark, width: 2227.2 * px, height: 2571.8 * px)) }
-  // the two rows that bracket the page, drawn the same so they read as a pair
-  let rule-row(size, tracking, body) = align(center, box(width: 2900 * px, grid(
-    columns: (1fr, auto, 1fr),
-    column-gutter: 80 * px,
-    align: horizon,
-    line(length: 100%, stroke: 4 * px + s.ink-soft),
-    // leaves each rule at least 200px, below which the row stops reading as a lock-up
-    _fits(2340, body, _sans(size, weight: "semibold", tracking: tracking, fill: s.ink-mid, body)), line(length: 100%, stroke: 4 * px + s.ink-soft),
-  )))
+  let row = if explicit { t.territory } else { t.trade }
   place(center + horizon, block(width: 100%, {
     align(center, _lockup(k, s.ink))
     v(150 * px)
-    rule-row(24 * k, 2.6 * k, t.trade)
+    align(center, box(width: 2900 * px, grid(
+      columns: (1fr, auto, 1fr),
+      column-gutter: 80 * px,
+      align: horizon,
+      line(length: 100%, stroke: 4 * px + s.ink-soft),
+      // the rules are what a longer row is paid for out of, down to 200px each,
+      // below which it stops reading as a lock-up
+      _to-width(2340, 24 * k, sz => _sans(sz, weight: "semibold", tracking: sz * 2.6 / 24, fill: s.ink-mid, row)), line(length: 100%, stroke: 4 * px + s.ink-soft),
+    )))
     v(120 * px)
     align(center, _sans(20 * k, weight: "medium", tracking: 3.6 * k, fill: palette.light.primary, t.promise))
     v(220 * px)
-    // the number and the domain are one block: 3.5m and 1.7m of legible distance
-    // against the promise's 1.7m — docs/refs/signage/README.md has the arithmetic
+    // the number does not solve for its size: it is drawn to a reading distance, so
+    // a longer one has to say so — docs/refs/signage/README.md
     align(center, _fits(2340, c.phone, _display(200, tracking: 4, fill: s.ink, c.phone)))
     v(36 * px)
     align(center, _sans(20 * k, weight: "medium", tracking: 2 * k, fill: s.ink-soft, c.site))
-    v(110 * px)
-    rule-row(76, 8.2, t.territory)
   }))
 }
 
 #let _materials = ("card", "sheet")
 #let _polarities = ("light", "dark")
 
-#let render(c, lang: "en", material: "card", polarity: "light", trim-guide: false) = {
+#let render(c, lang: "en", material: "card", polarity: "light", trim-guide: false, explicit: false) = {
   assert(lang in c.langs, message: lang + " has no copy here, available: " + repr(c.langs.keys()))
   assert(material in _materials, message: material + " is not a material, available: " + repr(_materials))
   assert(polarity in _polarities, message: polarity + " is not a polarity, available: " + repr(_polarities))
   assert(not trim-guide or material == "card", message: "only the card is printed with bleed, so only it has a trim")
+  assert(not explicit or material == "sheet", message: "only the sheet has the row that `explicit` swaps")
   assert(
     polarity == "light" or material == "sheet",
     message: "the card is one polarity per face, so only the sheet is cut both ways",
@@ -281,7 +294,7 @@
   set text(top-edge: "ascender", bottom-edge: "descender")
   set par(leading: 0pt, spacing: 0pt)
   if material == "sheet" {
-    sheet(c, lang, polarity)
+    sheet(c, lang, polarity, explicit)
   } else {
     set page(width: card-w * px, height: card-h * px, margin: 0pt)
     front(c, lang, trim-guide: trim-guide)
