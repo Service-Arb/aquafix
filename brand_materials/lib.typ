@@ -58,7 +58,16 @@
   fr: (direct: "DIRECT", email: "COURRIEL", web: "SITE", serving: "SECTEUR", guarantee: "NOTRE GARANTIE"),
 )
 
-#let _copy-fields = ("role", "hours", "promise", "trade", "credentials", "serving", "guarantees")
+#let _copy-fields = (
+  "role",
+  "hours",
+  "promise",
+  "trade",
+  "territory",
+  "credentials",
+  "serving",
+  "guarantees",
+)
 
 // The lock-up is the one object both materials render, at whatever scale the
 // medium gives it; `k` multiplies the geometry the Figma card frame fixed.
@@ -231,24 +240,29 @@
     fill: if polarity == "dark" { s.card } else { s.background },
   )
   if polarity == "dark" { _at(2236, -220, _mark(palette.watermark, width: 2227.2 * px, height: 2571.8 * px)) }
+  // the two rows that bracket the page, drawn the same so they read as a pair
+  let rule-row(size, tracking, body) = align(center, box(width: 2900 * px, grid(
+    columns: (1fr, auto, 1fr),
+    column-gutter: 80 * px,
+    align: horizon,
+    line(length: 100%, stroke: 4 * px + s.ink-soft),
+    // leaves each rule at least 200px, below which the row stops reading as a lock-up
+    _fits(2340, body, _sans(size, weight: "semibold", tracking: tracking, fill: s.ink-mid, body)), line(length: 100%, stroke: 4 * px + s.ink-soft),
+  )))
   place(center + horizon, block(width: 100%, {
     align(center, _lockup(k, s.ink))
     v(150 * px)
-    align(center, box(width: 2900 * px, grid(
-      columns: (1fr, auto, 1fr),
-      column-gutter: 80 * px,
-      align: horizon,
-      line(length: 100%, stroke: 4 * px + s.ink-soft),
-      // leaves each rule at least 200px, below which the row stops reading as a lock-up
-      _fits(2340, t.trade, _sans(24 * k, weight: "semibold", tracking: 2.6 * k, fill: s.ink-mid, t.trade)), line(length: 100%, stroke: 4 * px + s.ink-soft),
-    )))
+    rule-row(24 * k, 2.6 * k, t.trade)
     v(120 * px)
     align(center, _sans(20 * k, weight: "medium", tracking: 3.6 * k, fill: palette.light.primary, t.promise))
-    // twice the rhythm above it, which is what separates the identity from the action
-    v(260 * px)
-    align(center, _fits(2900, c.phone, _display(40 * k, tracking: 0.8 * k, fill: s.ink, c.phone)))
-    v(40 * px)
-    align(center, _sans(16 * k, weight: "medium", tracking: 1.6 * k, fill: s.ink-soft, c.site))
+    v(220 * px)
+    // the number and the domain are one block: 3.5m and 1.7m of legible distance
+    // against the promise's 1.7m — docs/refs/signage/README.md has the arithmetic
+    align(center, _fits(2340, c.phone, _display(200, tracking: 4, fill: s.ink, c.phone)))
+    v(36 * px)
+    align(center, _sans(20 * k, weight: "medium", tracking: 2 * k, fill: s.ink-soft, c.site))
+    v(110 * px)
+    rule-row(76, 8.2, t.territory)
   }))
 }
 

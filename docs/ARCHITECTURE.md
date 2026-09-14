@@ -95,6 +95,9 @@ source, the repo is the port. Changing a material starts in the frame.
 | ⋯ · Components | the `Mark /` instances the other pages place; the site's own vocabulary is `ev_lib::uikit`'s, not drawn here |
 | [business_card_refs](https://www.figma.com/design/x7rCDMFviutxIJmbMHntuv) · Refs | `docs/refs/cards/` — the graded set, reproduced side by side so the measurement is checkable |
 
+The sheet has no reference file: its evidence is a formula rather than a set of
+artefacts, and it lives in `docs/refs/signage/`.
+
 Only the card and the sheet have a test behind them. Their frames are exported at
 300dpi into `brand_materials/tests/__screenshots__/`, which is the one baseline
 this repo cannot regenerate — it comes from Figma or it does not exist.

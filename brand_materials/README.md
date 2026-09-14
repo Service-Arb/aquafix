@@ -31,7 +31,7 @@ the printed card and the scanned one cannot disagree.
                                          ┌──▶ card:  front — lock-up + promise
   card(…) ──▶ validated ──▶ render(…) ───┤           back  — everything else
               data          material     └──▶ sheet: lock-up + trade + promise
-                            polarity                  + phone · site
+                            polarity                  + phone · site + territory
                                                   × light · dark
 ```
 
@@ -41,7 +41,7 @@ language out as one material.
 
 ```
 assets/card.toml  name phone email site   one person, one number — same in every language
-                  langs.<lang>            role hours promise trade credentials serving
+                  langs.<lang>            role hours promise trade territory credentials serving
                                           guarantees — written for a reader, so it is translated
 lib.typ           _labels.<lang>          DIRECT / EMAIL / WEB / SERVING / THE GUARANTEE
 ```
@@ -60,10 +60,16 @@ on the back. The lock-up spans 59% of the trim width, which is what keeps it the
 largest object on the card — the measured reference set is in
 [`docs/refs/cards/`](../docs/refs/cards/README.md).
 
-The sheet is read from a corridor and off a door: who this is, what trade, the
-promise, then the number to call. The lock-up spans 80% of the paper and the
-phone is the next largest thing on it, in the scope's ink — copper is already
-spent on the promise line. The site sits quiet underneath.
+The sheet is read at three distances, and every line on it is sized into one of
+them — the lock-up from the corridor at 7.9m, the number from across the room at
+3.5m, the rest standing at the door. The arithmetic and the reference set are in
+[`docs/refs/signage/`](../docs/refs/signage/README.md); a line that lands between
+two distances is the one that reads as unbalanced.
+
+Two rule rows bracket the page and are drawn by the same `rule-row`: the trade at
+the top, the trade qualification and the city at the bottom. Between them sit the
+promise, then the number in the scope's ink — copper is already spent on the
+promise — with the domain directly under it at the promise's size.
 
 Both its cuts are one layout: every colour it draws is its scope's, so `light`
 and `dark` differ only in which scope `sheet()` reads. Two things do not come
