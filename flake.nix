@@ -246,6 +246,7 @@
           inherit pkgs pname rs;
           enable = true;
           lastSupportedVersion = "nightly-2026-09-03";
+          containerRelease = { registry = "ghcr.io/service-arb"; };
           jobs.default = true;
           gitignore.extra = ''
             **/node_modules/
