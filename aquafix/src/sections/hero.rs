@@ -19,7 +19,9 @@ pub fn Hero(lang: Lang) -> Element {
 	let t = lang.text();
 	let p = lang.page("/");
 	rsx! {
-		Section { polarity: Polarity::Dark, class: "relative overflow-hidden",
+		// `band-uncapped` (input.css) opts this band out of `--page-max` above
+		// 3xl, and only there — see the rule for why this one band may.
+		Section { polarity: Polarity::Dark, class: "relative overflow-hidden band-uncapped",
 			Mark { class: "pointer-events-none absolute -left-24 -top-16 h-[520px] w-[450px] text-primary opacity-[0.06] md:-left-45 md:-top-30 md:h-[760px] md:w-[658px]" }
 			div { class: "relative flex flex-col gap-8 md:flex-row md:items-stretch md:gap-9",
 				div { class: "flex w-full flex-col gap-4 md:w-[656px] md:gap-[18px]",

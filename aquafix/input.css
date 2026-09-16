@@ -18,8 +18,23 @@
  * these are here and not in the generated tokens.css. Geometry is the Figma
  * frame's, at both breakpoints: 1440 desktop and 390 mobile. */
 :root {
-  --page-px: 1.25rem;   /* px-5 */
-  --page-max: none;     /* the design is full-bleed */
+  /* `--page-max` used to be `none` and was read by nothing — the token meant to
+   * cap the design was never wired to a rule, which is why a 2560 viewport got
+   * the 1440 frame stretched across it rather than held at its drawn width.
+   *
+   * The cap lives in `--page-px` rather than in a `max-width` on a wrapper,
+   * because the elements that carry the gutter are the same ones that carry the
+   * band's background — the proof bar and the emergency bar pad and lay out on
+   * one element. Capping via padding keeps the colour full-bleed and pulls only
+   * the content in, so every existing `px-[var(--page-px)]` call site is centred
+   * without a wrapper div in any section file.
+   *
+   * `100%` here is the padded element's own width, which for a full-bleed band
+   * is the viewport. Below 1440 the gutter always wins, so the drawn frame is
+   * untouched and only wider viewports change. */
+  --page-min-px: 1.25rem;  /* px-5 — the minimum edge gap */
+  --page-max: 75rem;       /* 1200px: the Figma frame's content width, held */
+  --page-px: max(var(--page-min-px), (100% - var(--page-max)) / 2);
   --band-py: 2.25rem;   /* py-9 */
   --band-py-tight: 2rem;
   --display-scale: 1;
@@ -40,9 +55,18 @@
   --control-text: 0.9375rem;
 }
 
+/* The one opt-out from the cap, for a band whose extra column is media rather
+ * than text — `sections/hero.rs`'s photograph exists only in the width beyond
+ * 656 + 480, so capping renders it a sliver instead of hiding it. Hand-written
+ * because Tailwind's Rust scanner does not extract `[--page-px:…]` from a
+ * string literal, the same reason `.mark > svg` is written out below. */
+@media (min-width: 110rem) {
+  .band-uncapped { --page-px: var(--page-min-px); }
+}
+
 @media (min-width: 768px) {
   :root {
-    --page-px: 7.5rem;  /* px-30 */
+    --page-min-px: 7.5rem;  /* px-30 */
     --band-py: 4rem;    /* py-16 */
     --band-py-tight: 3.5rem;
     --control-px: 2rem;
@@ -76,14 +100,11 @@
   .field { --page-px: 3rem; }
 }
 
-/* The quiet composition (`compose::QUIET`). One rule: text gets a measure and
- * stops, and only media may fill the viewport. The other two set
- * `--page-max: none`, which is why the drawn 1440 frame simply stretches — at
- * 2560 the price table's two columns end up 1500px apart. Here every band still
- * paints edge to edge, but what is inside it is capped and centred, so the
- * composition is the same at 1440 and at 2560 and only the photograph grows. */
+/* The quiet composition (`compose::QUIET`). Its rule — text gets a measure and
+ * stops, only media may fill the viewport — started here and moved to `:root`,
+ * because the stretch it was fixing was every composition's bug and not this
+ * one's argument. What is left is the band rhythm and the hero, which are. */
 .quiet {
-  --page-max: 74rem;   /* 1184px: ~90ch at the body size, the long end of readable */
   --measure: 40rem;    /* the hero's own, narrower — it sits over a photograph */
   --band-py: 4.5rem;
   --band-py-tight: 3.5rem;
@@ -92,23 +113,13 @@
 }
 @media (min-width: 768px) {
   .quiet {
-    --page-px: 4.5rem;
+    --page-min-px: 4.5rem;
     --band-py: 7rem;
     --band-py-tight: 5rem;
   }
 }
-@media (min-width: 1600px) {
-  .quiet { --page-px: 6rem; }
-}
-/* The kit's Section paints the band; its single child carries the content. */
-.quiet [data-slot="section"] > *,
-.quiet .quiet-footer {
-  max-width: var(--page-max);
-  margin-inline: auto;
-  width: 100%;
-}
-/* The hero is the exception that proves it: the photograph is `absolute inset-0`
- * and answers the viewport, while this block does not move. */
+/* The hero is the exception that proves the rule: the photograph is
+ * `absolute inset-0` and answers the viewport, while this block does not move. */
 .quiet .quiet-measure {
   max-width: var(--measure);
 }
