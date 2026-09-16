@@ -48,12 +48,14 @@ pub struct Composition {
 }
 
 /// `AQUAFIX_COMPOSITION` at build time. Compile-time rather than per-request so the
-/// server and the hydrating wasm cannot disagree about what they drew.
+/// server and the hydrating wasm cannot disagree about what they drew, and `env!`
+/// rather than `option_env!` so no build can leave the choice to whoever wrote
+/// this file — every one of them names it, `flake.nix` included.
 pub fn selected() -> &'static Composition {
-	match option_env!("AQUAFIX_COMPOSITION") {
-		None | Some("bands") => &BANDS,
-		Some("field") => &FIELD,
-		Some("quiet") => &QUIET,
-		Some(other) => panic!("unknown AQUAFIX_COMPOSITION={other} — see compose::ALL"),
+	match env!("AQUAFIX_COMPOSITION") {
+		"bands" => &BANDS,
+		"field" => &FIELD,
+		"quiet" => &QUIET,
+		other => panic!("unknown AQUAFIX_COMPOSITION={other} — see compose::ALL"),
 	}
 }

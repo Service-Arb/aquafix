@@ -57,6 +57,11 @@
         fieldPort = "59082";
         quietPort = "59083";
 
+        # What gets built and shipped. `compose::selected()` takes no default, so
+        # this is the only place the answer exists; `nix run .#dev <name>` is the
+        # one path that overrides it, per invocation.
+        composition = "quiet";
+
         # Pinned to the workspace's `wasm-bindgen` (`=0.2.125`): nixpkgs ships a
         # different minor and a CLI/crate schema skew is a hard error at bindgen
         # time. Shadows `pkgs.wasm-bindgen-cli` wherever referenced below.
@@ -89,16 +94,15 @@
 
             # `compose::selected()` reads this at compile time; the names are
             # `compose::ALL`. A port each, so two servers coexist.
-            composition="''${1:-bands}"
+            composition="''${1:-${composition}}"
             case "$composition" in
               bands) port=${sitePort} ;;
               field) port=${fieldPort} ;;
               quiet) port=${quietPort} ;;
               *) echo "✘ unknown composition '$composition' — bands | field | quiet (see compose::ALL)" >&2; exit 1 ;;
             esac
-            export AQUAFIX_COMPOSITION="$composition"
-            # cargo does not track `option_env!` as a rebuild input, so one shared
-            # target dir would serve whichever composition happened to build last.
+            # cargo does not track `env!` as a rebuild input, so one shared target
+            # dir would serve whichever composition happened to build last.
             export CARGO_TARGET_DIR="$repo/target/compose-$composition"
 
             cd "$repo/aquafix"
@@ -124,7 +128,10 @@
             # No `exec`: keep this shell as the parent so the trap reaps tailwind.
             # `--interactive false` is deliberately absent — TUI mode setsids, and
             # that detachment is what lets dx survive fish's ctrl-c.
-            nix develop "$repo" --command dx serve --package aquafix --port "$port"
+            # `env` and not an export: the devShell names a composition of its
+            # own, and `nix develop` lets the derivation's value win.
+            nix develop "$repo" --command env AQUAFIX_COMPOSITION="$composition" \
+              dx serve --package aquafix --port "$port"
           '';
         };
 
@@ -207,7 +214,8 @@
           name = "help";
           text = ''
             cat <<'EOF'
-              nix run .#dev            tailwind --watch + dx serve on ${sitePort}
+              nix run .#dev            tailwind --watch + dx serve, the shipped composition (${composition})
+              nix run .#dev -- bands   the same, bands composition, on ${sitePort}
               nix run .#dev -- field   the same, field composition, on ${fieldPort}
               nix run .#dev -- quiet   the same, quiet composition, on ${quietPort}
               nix run .#test           cargo test (insta) + playwright     [pre-push hook]
@@ -238,6 +246,9 @@
 
         rs = v_flakes.rs {
           inherit pkgs rust;
+          # Unforced, so the devShell and `nix run .#dev <name>` still win: this
+          # is only what a bare `cargo b` — rust-analyzer's included — compiles.
+          config.env.AQUAFIX_COMPOSITION = composition;
           build = {
             deny = false;
             workspace = let deprecate_by = "v1.0.0"; in {
@@ -326,6 +337,7 @@
           buildInputs = with pkgs; [ openssl.dev sqlite ];
           # tailwindcss is for build.rs, which derives every generated asset.
           nativeBuildInputs = with pkgs; [ pkg-config tailwindcss_4 ];
+          AQUAFIX_COMPOSITION = composition;
           # Dioxus fullstack resolves `public/` by the binary's *realpath*, so a
           # buildEnv symlink does not work — it must be in the same store path.
           postInstall = "mkdir -p $out/bin/public";
@@ -354,6 +366,7 @@
           ] ++ pkgs.lib.optionals (!pkgs.stdenv.isDarwin) [ pkgs.mold ];
 
           AQUAFIX_BUILD_REV = self.shortRev or self.dirtyShortRev or "";
+          AQUAFIX_COMPOSITION = composition;
 
           buildPhase = ''
             runHook preBuild
@@ -459,6 +472,9 @@
               imagemagick
             ] ++ pre-commit-check.enabledPackages ++ combined.enabledPackages;
 
+            # `cargo b` and `cargo test` have no other source for it, and
+            # `compose::selected()` refuses to invent one.
+            env.AQUAFIX_COMPOSITION = composition;
             env.RUST_BACKTRACE = 1;
             env.RUST_LIB_BACKTRACE = 0;
             env.SITE_PORT = sitePort;
