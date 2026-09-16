@@ -25,10 +25,21 @@ const WORK: [Asset; 4] = [
 	asset!("/assets/photos/job-pipe-repair.jpg"),
 ];
 
-/// Photographs with a label each and no prose. Nam Pa gives its portfolio a
-/// band of its own directly under the hero, and it is what makes that page feel
-/// unhurried — the space is filled by something worth looking at rather than by
-/// more sentences.
+/// Photographs with a label each, and the detail behind a disclosure. Nam Pa
+/// gives its portfolio a band of its own directly under the hero, and that is
+/// what makes the page feel unhurried — the space is filled by something worth
+/// looking at rather than by more sentences.
+///
+/// The detail opens in a native `popover`, not in flow. A `<details>` that grows
+/// inside the grid was the first attempt: to give the prose a readable measure
+/// the open card has to span the row, and spanning reflows the row, stranding
+/// whatever card sat beside it. The popover leaves the grid still.
+///
+/// `popover` and `popovertarget` are the platform's own — click to open, click
+/// outside or Escape to dismiss, focus and top-layer handled — so this costs no
+/// script and works before any wasm arrives, which is the rule the FAQ and the
+/// drawer already follow. Without support the button is inert rather than
+/// broken; the caption and photograph still say what the card is.
 #[component]
 pub fn Work(lang: Lang) -> Element {
 	let c = copy(lang);
@@ -36,23 +47,43 @@ pub fn Work(lang: Lang) -> Element {
 		Section { id: "work",
 			div { class: "flex flex-col gap-7 md:gap-10",
 				BandHead { title: c.work_title }
-				ul { class: "grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5",
-					for (photo , caption) in WORK.iter().zip(c.work_captions.iter()) {
-						li { class: "flex flex-col gap-3",
-							div { class: "overflow-hidden rounded-[var(--corner-card)] bg-muted",
+				ul { class: "grid grid-cols-2 items-start gap-3 md:grid-cols-4 md:gap-5",
+					for (i , ((photo , caption) , body)) in WORK.iter().zip(c.work_captions.iter()).zip(c.work_bodies.iter()).enumerate() {
+						li { class: "group flex flex-col gap-3",
+							button {
+								"popovertarget": "work-{i}",
+								class: "flex cursor-pointer flex-col gap-3 text-left",
+								div { class: "overflow-hidden rounded-[var(--corner-card)] bg-muted",
+									img {
+										src: "{photo}",
+										alt: "{caption}",
+										loading: "lazy",
+										decoding: "async",
+										// Square rather than the sources' own landscape: four
+										// 4:3 frames inside the measure read as thumbnails
+										// against this band's rhythm, and the subject is
+										// centred in all four.
+										class: "aspect-square w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]",
+									}
+								}
+								span { class: "text-[13px] font-medium text-ink md:text-[14.5px]", "{caption}" }
+								span { class: "text-[12px] font-medium text-primary md:text-[13px]", "{c.work_more}  →" }
+							}
+							div { id: "work-{i}", "popover": "auto", class: "work-pop",
 								img {
 									src: "{photo}",
-									alt: "{caption}",
-									loading: "lazy",
-									decoding: "async",
-									// Square rather than the sources' own landscape: four
-									// 4:3 frames inside the measure read as thumbnails
-									// against this band's rhythm, and the subject is
-									// centred in all four.
-									class: "aspect-square w-full object-cover",
+									alt: "",
+									class: "h-40 w-full rounded-[var(--corner-tile)] object-cover md:h-48",
+								}
+								h3 { class: "mt-5 font-display text-[21px] font-bold text-ink md:text-[26px]", "{caption}" }
+								p { class: "mt-3 text-[14.5px] leading-[1.65] text-ink-mid md:text-[16px]", "{body}" }
+								button {
+									"popovertarget": "work-{i}",
+									"popovertargetaction": "hide",
+									class: "mt-6 self-start rounded-[var(--corner-control)] border border-border px-4 py-2 text-[13.5px] font-medium text-ink-mid hover:text-ink",
+									"{c.work_close}"
 								}
 							}
-							span { class: "text-[13px] font-medium text-ink-mid md:text-[14.5px]", "{caption}" }
 						}
 					}
 				}
