@@ -52,9 +52,10 @@
         # Single source for the `dx serve` bind, the container's exposed port and
         # the devShell env. Matches `config::AppConfig::socket_addr`'s default.
         sitePort = "59081";
-        # The second composition gets its own port so both can be open side by
-        # side — which is the only way the bands-vs-field question gets settled.
+        # The other compositions get a port each so they can be open side by
+        # side — which is the only way the question between them gets settled.
         fieldPort = "59082";
+        quietPort = "59083";
 
         # Pinned to the workspace's `wasm-bindgen` (`=0.2.125`): nixpkgs ships a
         # different minor and a CLI/crate schema skew is a hard error at bindgen
@@ -92,7 +93,8 @@
             case "$composition" in
               bands) port=${sitePort} ;;
               field) port=${fieldPort} ;;
-              *) echo "✘ unknown composition '$composition' — bands | field (see compose::ALL)" >&2; exit 1 ;;
+              quiet) port=${quietPort} ;;
+              *) echo "✘ unknown composition '$composition' — bands | field | quiet (see compose::ALL)" >&2; exit 1 ;;
             esac
             export AQUAFIX_COMPOSITION="$composition"
             # cargo does not track `option_env!` as a rebuild input, so one shared
@@ -207,6 +209,7 @@
             cat <<'EOF'
               nix run .#dev            tailwind --watch + dx serve on ${sitePort}
               nix run .#dev -- field   the same, field composition, on ${fieldPort}
+              nix run .#dev -- quiet   the same, quiet composition, on ${quietPort}
               nix run .#test           cargo test (insta) + playwright     [pre-push hook]
               nix run .#accept-test    accept baselines; `-- <name>` for a subset
               nix run .#figma-parity   blur-diff against the Figma export  [advisory]

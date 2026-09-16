@@ -76,6 +76,55 @@
   .field { --page-px: 3rem; }
 }
 
+/* The quiet composition (`compose::QUIET`). One rule: text gets a measure and
+ * stops, and only media may fill the viewport. The other two set
+ * `--page-max: none`, which is why the drawn 1440 frame simply stretches — at
+ * 2560 the price table's two columns end up 1500px apart. Here every band still
+ * paints edge to edge, but what is inside it is capped and centred, so the
+ * composition is the same at 1440 and at 2560 and only the photograph grows. */
+.quiet {
+  --page-max: 74rem;   /* 1184px: ~90ch at the body size, the long end of readable */
+  --measure: 40rem;    /* the hero's own, narrower — it sits over a photograph */
+  --band-py: 4.5rem;
+  --band-py-tight: 3.5rem;
+  --corner-card: 16px;
+  --corner-control: 10px;
+}
+@media (min-width: 768px) {
+  .quiet {
+    --page-px: 4.5rem;
+    --band-py: 7rem;
+    --band-py-tight: 5rem;
+  }
+}
+@media (min-width: 1600px) {
+  .quiet { --page-px: 6rem; }
+}
+/* The kit's Section paints the band; its single child carries the content. */
+.quiet [data-slot="section"] > *,
+.quiet .quiet-footer {
+  max-width: var(--page-max);
+  margin-inline: auto;
+  width: 100%;
+}
+/* The hero is the exception that proves it: the photograph is `absolute inset-0`
+ * and answers the viewport, while this block does not move. */
+.quiet .quiet-measure {
+  max-width: var(--measure);
+}
+.quiet .quiet-scrim {
+  background:
+    linear-gradient(to right, rgb(5 23 38 / 0.95) 0%, rgb(5 23 38 / 0.88) 30%, rgb(5 23 38 / 0.55) 62%, rgb(5 23 38 / 0.32) 100%),
+    linear-gradient(to top, rgb(5 23 38 / 0.55) 0%, rgb(5 23 38 / 0) 45%);
+}
+/* Below the breakpoint the words stack over the photo rather than beside it, so
+ * the horizontal ramp would leave the lower half unreadable. */
+@media (max-width: 767px) {
+  .quiet .quiet-scrim {
+    background: linear-gradient(to top, rgb(5 23 38 / 0.96) 0%, rgb(5 23 38 / 0.88) 45%, rgb(5 23 38 / 0.5) 100%);
+  }
+}
+
 @layer base {
   *, *::before, *::after {
     box-sizing: border-box;

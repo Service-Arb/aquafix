@@ -9,6 +9,7 @@ pub mod compose;
 pub mod content;
 pub mod ld;
 pub mod pages;
+pub mod quiet;
 pub mod quote;
 pub mod sections;
 pub mod seo;

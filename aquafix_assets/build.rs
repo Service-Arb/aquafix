@@ -62,7 +62,7 @@ const TOKENS: &[&str] = &[
 /// Photography the site ships. Staged rather than read, so `asset!()` fingerprints
 /// and re-encodes it; the repo-root copy stays the master the print material can
 /// also draw from.
-const PHOTOS: &[&str] = &["hero.jpg"];
+const PHOTOS: &[&str] = &["hero.jpg", "hero-wide.jpg"];
 
 /// The webfaces the site `@font-face`s. The `.ttf` twins stay behind — they are
 /// typst's, and shipping them to a browser would double the font payload.

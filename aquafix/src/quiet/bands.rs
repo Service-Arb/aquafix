@@ -1,0 +1,178 @@
+//! The five bands under the hero.
+//!
+//! Every figure, price, review and place name is read from `content.rs`; only
+//! the framing line above each band belongs to this version. A band here is one
+//! heading and one object — there is no lede under a title that the title
+//! already made, which is most of what the word count lost.
+
+use dioxus::prelude::*;
+use ev_lib::uikit::{Button, Polarity, Section, Size, Surface, Table, TableBody, TableCell, TableHead, TableHeader, TableRow};
+
+use crate::{
+	brand::CTA_FACE,
+	content::{Lang, SITE},
+	quiet::copy::copy,
+	quote::QuoteCard,
+};
+
+/// The band the whole page is argued from: nobody else publishes a price.
+#[component]
+pub fn Prices(lang: Lang) -> Element {
+	let t = lang.text();
+	let c = copy(lang);
+	let (col_job, col_price, col_time) = t.price_columns;
+	rsx! {
+		Section { id: "prices",
+			div { class: "flex flex-col gap-7 md:gap-9",
+				BandHead { title: c.prices_title }
+				div { class: "overflow-hidden rounded-[var(--corner-card)] border border-border",
+					Table { class: "border-collapse text-left",
+						TableHeader {
+							TableRow { class: "bg-muted text-[10.5px] font-medium tracking-[0.14em] text-ink-soft md:text-[11px]",
+								TableHead { class: "h-auto px-4 py-3 font-medium text-ink-soft md:px-7 md:py-4", "{col_job}" }
+								TableHead { class: "h-auto px-4 py-3 text-right font-medium text-ink-soft md:w-[180px] md:px-7 md:py-4", "{col_price}" }
+								TableHead { class: "hidden h-auto w-[190px] px-7 py-4 text-right font-medium text-ink-soft md:table-cell", "{col_time}" }
+							}
+						}
+						TableBody {
+							for row in t.prices {
+								TableRow {
+									TableCell { class: "px-4 py-3.5 text-[14.5px] font-semibold text-ink md:px-7 md:text-[16px]", "{row.job}" }
+									TableCell { class: "px-4 py-3.5 text-right font-display font-num text-[17px] font-bold text-primary md:px-7 md:text-[19px]",
+										"{row.from_display()}"
+									}
+									TableCell { class: "hidden px-7 py-3.5 text-right text-[15px] text-ink-soft md:table-cell",
+										"{row.typical_time}"
+									}
+								}
+							}
+						}
+					}
+				}
+				p { class: "text-[13.5px] text-ink-soft md:text-[14.5px]", "{c.prices_note}" }
+			}
+		}
+	}
+}
+
+/// Three terms, no prose. A pillar's `body` is the argument for the term; the
+/// term is the promise, and on this version only the promise is on the page.
+#[component]
+pub fn Guarantee(lang: Lang) -> Element {
+	let t = lang.text();
+	let c = copy(lang);
+	rsx! {
+		Section { polarity: Polarity::Dark, surface: Surface::Card, id: "guarantee",
+			div { class: "flex flex-col gap-7 md:gap-10",
+				BandHead { title: c.guarantee_title }
+				ol { class: "flex flex-col gap-0 md:flex-row md:gap-14",
+					for pillar in t.pillars {
+						li { class: "flex flex-1 items-baseline gap-4 border-b border-border py-5 last:border-b-0 md:border-b-0 md:py-0",
+							span { class: "font-display font-num text-[22px] font-bold text-primary md:text-[26px]", "{pillar.n}" }
+							p { class: "font-display text-[17px] font-bold leading-[1.3] text-ink md:text-[21px]", "{pillar.title}" }
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+#[component]
+pub fn Reviews(lang: Lang) -> Element {
+	let t = lang.text();
+	let c = copy(lang);
+	rsx! {
+		Section { surface: Surface::Card, id: "reviews",
+			div { class: "flex flex-col gap-7 md:gap-10",
+				BandHead { title: c.reviews_title }
+				div { class: "flex flex-col gap-5 md:flex-row md:gap-6",
+					for review in t.reviews {
+						figure { class: "flex flex-1 flex-col gap-3.5 rounded-[var(--corner-card)] border border-border bg-background p-6 md:p-7",
+							p { class: "text-[13px] tracking-[0.18em] text-primary", {"★".repeat(review.stars as usize)} }
+							blockquote { class: "text-[14.5px] leading-[1.6] text-ink-mid md:text-[15.5px]", "{review.body}" }
+							figcaption { class: "mt-auto text-[13px] font-semibold text-ink",
+								"{review.author}"
+								span { class: "font-normal text-ink-soft", " · {review.attrib}" }
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+/// New on this version. Nam Pa gives the city list a band of its own because a
+/// visitor's first question is whether you come to them at all.
+#[component]
+pub fn Coverage(lang: Lang) -> Element {
+	let t = lang.text();
+	let c = copy(lang);
+	rsx! {
+		Section { id: "areas",
+			div { class: "flex flex-col gap-6 md:gap-8",
+				BandHead { title: c.coverage_title, lede: c.coverage_lede }
+				ul { class: "flex flex-wrap gap-2 md:gap-2.5",
+					for area in t.areas.iter().copied() {
+						li { class: "rounded-full border border-border bg-muted px-4 py-2 text-[13.5px] font-medium text-ink-mid md:text-[14.5px]",
+							"{area}"
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+/// The form lands here rather than in the hero: the emergency path is the phone,
+/// and a visitor who has read the prices is the one who fills a form in.
+#[component]
+pub fn Closing(lang: Lang) -> Element {
+	let c = copy(lang);
+	rsx! {
+		Section { polarity: Polarity::Dark, id: "quote-band",
+			div { class: "flex flex-col gap-8 md:flex-row md:items-start md:gap-14",
+				div { class: "flex flex-1 flex-col gap-4 md:gap-5 md:pt-2",
+					h2 { class: "font-display text-[28px] font-bold leading-[1.1] tracking-[-0.01em] text-ink md:text-[40px]",
+						"{c.closing_title}"
+					}
+					p { class: "text-[15.5px] leading-[1.6] text-ink-soft md:text-[17px]", "{c.closing_lede}" }
+					a {
+						href: SITE.tel_href(),
+						class: "font-display text-[22px] font-bold text-primary md:text-[26px]",
+						"{SITE.phone}"
+					}
+				}
+				div { class: "w-full md:max-w-[460px]",
+					QuoteCard { lang }
+				}
+			}
+		}
+	}
+}
+
+/// One heading, optionally one line. The version's whole density argument is
+/// that a band gets at most these two things before its object starts.
+#[component]
+fn BandHead(title: String, lede: Option<String>) -> Element {
+	rsx! {
+		div { class: "flex flex-col gap-3 md:gap-4",
+			h2 { class: "font-display text-[26px] font-bold leading-[1.12] tracking-[-0.01em] text-ink md:text-[38px]",
+				"{title}"
+			}
+			if let Some(lede) = lede {
+				p { class: "max-w-[52ch] text-[15px] leading-[1.6] text-ink-soft md:text-[17px]", "{lede}" }
+			}
+		}
+	}
+}
+
+/// Shared by the header and the closing band so the label cannot drift.
+#[component]
+pub fn QuoteButton(lang: Lang, class: String) -> Element {
+	let c = copy(lang);
+	rsx! {
+		Button { href: lang.href("/#quote"), size: Size::Lg, class: "{CTA_FACE} {class}", "{c.cta}" }
+	}
+}

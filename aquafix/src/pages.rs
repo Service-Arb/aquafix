@@ -58,6 +58,14 @@ pub enum Route {
 pub fn HomePage(#[props(default = Lang::En)] lang: Lang) -> Element {
 	rsx! {
 		seo::Head { page: lang.page("/"), lang }
+		{(compose::selected().home)(lang)}
+	}
+}
+
+/// The home page `bands` and `field` share. Named rather than inlined above so
+/// `compose::Composition` can hold it beside the one `quiet` brings.
+pub fn banded_home(lang: Lang) -> Element {
+	rsx! {
 		sections::EmergencyBar { lang }
 		Shell { lang, path: "/",
 			sections::Hero { lang }
