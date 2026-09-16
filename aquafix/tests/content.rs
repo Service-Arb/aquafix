@@ -6,8 +6,9 @@
 //! the frame it came from. So the prose stays verbatim and these tests fail the
 //! build if a `SITE` field is changed without the prose following it.
 //!
-//! This is the whole reason the placeholder phone number and licence can sit in
-//! the tree safely until launch: replacing them cannot half-land.
+//! This is the whole reason the placeholder licence can sit in the tree safely
+//! until launch: replacing it cannot half-land. The phone is no longer among
+//! them — it comes from `assets/card.toml` through the build script.
 //!
 //! Each runs over every language, so a French translation that drifts fails the
 //! same way an English edit would.
@@ -46,7 +47,14 @@ fn no_content_string_hardcodes_a_stale_licence_or_insurance() {
 
 #[test]
 fn tel_href_is_dialable() {
-	assert_eq!(SITE.tel_href(), "tel:+15035550148");
+	let href = SITE.tel_href();
+	let dialed = href.strip_prefix("tel:+").expect("an E.164 tel: target");
+	assert!(dialed.chars().all(|c| c.is_ascii_digit()), "a dialer is handed digits only, got {href:?}");
+	assert_eq!(
+		dialed,
+		SITE.phone.chars().filter(char::is_ascii_digit).collect::<String>(),
+		"the number dialled is the number printed"
+	);
 }
 
 #[test]
@@ -161,11 +169,7 @@ fn sitemap_lists_exactly_the_indexable_pages() {
 	let xml = aquafix::seo::sitemap_xml();
 	for lang in LANGS.iter().copied() {
 		for p in lang.text().pages {
-			assert!(
-				xml.contains(&format!("<loc>{}</loc>", SITE.url(&lang.href(p.path)))),
-				"sitemap is missing {} ({lang})",
-				p.path
-			);
+			assert!(xml.contains(&format!("<loc>{}</loc>", SITE.url(&lang.href(p.path)))), "sitemap is missing {} ({lang})", p.path);
 		}
 	}
 	for status in ["/404", "/403", "/500", "/thanks"] {

@@ -2,7 +2,7 @@
 
 #card(
   name: "",
-  phone: "(503) 555-0148",
+  phone: "+33 4 23 50 06 40",
   email: "val@aquafix.top",
   site: "aquafix.top",
   langs: (

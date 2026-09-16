@@ -60,10 +60,15 @@ pub fn Hero(lang: Lang) -> Element {
 				// The third column exists only where the first two have already been
 				// drawn at their Figma widths and the band is still wider; it takes
 				// the remainder rather than a width of its own.
+				// `loading=lazy` so the band it never renders in costs the
+				// emergency visitor nothing: below 3xl this is display:none, and a
+				// lazy image that never enters a viewport is never fetched.
 				img {
 					src: PHOTO,
 					alt: "{t.hero_photo_alt}",
-					class: "hidden min-w-0 flex-1 rounded-[var(--corner-float)] object-cover object-[58%_38%] 3xl:block",
+					loading: "lazy",
+					decoding: "async",
+					class: "hidden min-w-0 flex-1 rounded-[var(--corner-float)] object-cover object-[50%_62%] 3xl:block",
 				}
 			}
 		}

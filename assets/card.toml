@@ -1,14 +1,17 @@
 # The printed copy, keyed exactly as `brand_materials/lib.typ`'s `card()` takes it.
-# Read by `brand_materials/__main__.typ` (typst `toml()`) and by `flake.nix`, which
-# emits the vCards from the same fields. Every material draws from this one table;
-# the card is the material that needs all of it.
+# Read by `brand_materials/__main__.typ` (typst `toml()`), by `flake.nix`, which
+# emits the vCards from the same fields, and by `aquafix_assets/build.rs`, which
+# hands `phone` to the site. Every material draws from this one table; the card is
+# the material that needs all of it.
 #
 # Global keys are one person's and read the same in every language; a `langs`
 # entry is what a reader parses, so it is translated. Adding a language needs a
 # `_labels` entry in lib.typ too — the chrome belongs to the design.
 
 name = "Valeriy Sakharov"
-phone = "(503) 555-0148"
+# Printed in international form so the dialable one is a filter over it rather
+# than a second field to keep in step — `Site::tel_href` keeps `+` and digits.
+phone = "+33 4 23 50 06 40"
 email = "val@aquafix.top"
 site = "aquafix.top"
 

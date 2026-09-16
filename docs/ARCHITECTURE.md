@@ -45,8 +45,9 @@ after the bundle loads is not cheaper — it is a lost customer.
 **One fact, one place.** A price row renders a table cell *and* emits its
 schema.org `Offer` from a single `u32`. A description is one field read by the
 `<head>`, the OG card and the sitemap. This is the property that makes the
-placeholder phone number and licence safe to hold in the tree: replacing them
-cannot half-land.
+placeholder licence safe to hold in the tree: replacing it cannot half-land. The
+phone went one step further — it is `assets/card.toml`'s, so the card, the vCard
+and every CTA on the page read the same field.
 
 A second language does not weaken this. The language-free half of a record — the
 price, the slug, the licence, the crew member's name — is written once in `EN`,
@@ -71,9 +72,9 @@ that.
 
 | where | owns |
 |---|---|
-| `assets/` | `brand.toml`, `mark.svg`, `fonts/`. The only place a brand value is written. |
+| `assets/` | `brand.toml`, `card.toml`, `mark.svg`, `fonts/`, `photos/`. The only place a brand value or a contact fact is written. |
 | `brand_materials/` | Everything printed: the card, and the A4 sheet that marks a door. Reads `assets/` with `--root ..`. Its Figma-parity test is the guard that the shared move did not change the print output. |
-| `aquafix_assets/build.rs` | Run from `aquafix`'s `build.rs`. Derives `aquafix/assets/` (gitignored) from `assets/`: stages the woff2s, emits `tokens.css` and writes out the kit's class inventory for Tailwind to scan. Owns the list of tokens the kit needs, and fails the build if either scope has a hole. |
+| `aquafix_assets/build.rs` | Run from `aquafix`'s `build.rs`. Derives `aquafix/assets/` (gitignored) from `assets/`: stages the woff2s and the photography, emits `tokens.css` and `phone.txt`, and writes out the kit's class inventory for Tailwind to scan. Owns the list of tokens the kit needs, and fails the build if either scope has a hole. |
 | `aquafix/src/` | The site. Local conventions in `aquafix/src/README.md`. |
 | `aquafix/src/l10n.rs` | Server-only. Decides which language a request gets before the router sees it: `?lang=` mints the cookie, `/en/*` 301s to the unprefixed URL, an unprefixed entry with no cookie negotiates `Accept-Language`. English is unprefixed and canonical; French lives under `/fr`. |
 | `deploy/config.nix` | Prod `AppConfig`, evaluated to JSON at build time and passed as `--config`. |

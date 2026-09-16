@@ -18,7 +18,7 @@ pub const SITE: Site = Site {
 	legal_name: "Aquafix Plumbing LLC",
 	name: "Aquafix",
 	domain: "aquafix.top",
-	phone: "(503) 555-0148",
+	phone: include_str!("../assets/phone.txt"),
 	email_user: "hello",
 	licence: "#PL-40219",
 	ccb: "#221944",
@@ -86,7 +86,7 @@ pub const EN: Text = Text {
 		"12-month workmanship warranty, parts included",
 	],
 	hero_microproof: &[("★★★★★  4.9", "612 Google reviews"), ("43 min", "average arrival"), ("96%", "fixed same day")],
-	hero_photo_alt: "An Aquafix plumber fitting a manifold on a hot-water system.",
+	hero_photo_alt: "The Aquafix crew in front of the branded vans at the depot.",
 	header_phone_label: "24/7 · ANSWERED BY A HUMAN",
 	quote_form: QuoteForm {
 		title: "Get your flat price",
@@ -545,7 +545,7 @@ pub const FR: Text = Text {
 		"Garantie de main-d’œuvre 12 mois, pièces comprises",
 	],
 	hero_microproof: &[("★★★★★  4,9", "612 avis Google"), ("43 min", "arrivée moyenne"), ("96 %", "réparé le jour même")],
-	hero_photo_alt: "Un plombier Aquafix installe un collecteur sur un système d’eau chaude.",
+	hero_photo_alt: "L’équipe Aquafix devant les camionnettes aux couleurs de l’entreprise, au dépôt.",
 	header_phone_label: "24/7 · UN HUMAIN RÉPOND",
 	quote_form: QuoteForm {
 		title: "Obtenez votre prix fixe",
@@ -1156,7 +1156,9 @@ pub struct Site {
 	pub legal_name: &'static str,
 	pub name: &'static str,
 	pub domain: &'static str,
-	/// As printed. `tel_href` derives the dialable form.
+	/// As printed, from `assets/card.toml` through `aquafix_assets/build.rs` —
+	/// the card and the site show the same number or the build is wrong.
+	/// `tel_href` derives the dialable form.
 	pub phone: &'static str,
 	pub email_user: &'static str,
 	pub licence: &'static str,
@@ -1185,18 +1187,21 @@ impl Site {
 		format!("{}@{}", self.email_user, self.domain)
 	}
 
-	/// E.164 for `tel:`. Panics on a number that is not 10 US digits — a
-	/// mistyped CTA target is the most expensive silent bug on this page.
+	/// E.164 for `tel:`, which the printed form already carries — spacing is the
+	/// only difference. Panics on anything else: a mistyped CTA target is the
+	/// most expensive silent bug on this page.
 	pub fn tel_href(&self) -> String {
 		let digits: String = self.phone.chars().filter(char::is_ascii_digit).collect();
-		assert_eq!(digits.len(), 10, "SITE.phone must be a 10-digit US number, got {:?}", self.phone);
-		format!("tel:+1{digits}")
+		assert!(self.phone.starts_with('+'), "SITE.phone must be international, got {:?}", self.phone);
+		assert!((8..=15).contains(&digits.len()), "SITE.phone is not an E.164 length, got {:?}", self.phone);
+		format!("tel:+{digits}")
 	}
 }
 
-//DO: `(503) 555-0148` is the reserved 555 block and `aquafix.top` is unconfirmed
-// against the Figma footer's `hello@aquafix.com`. Both resolve here, once,
-// before launch — see tmp/site_dev_plans/deploy.md.
+//[x]DO: `aquafix.top` is still unconfirmed against the Figma footer's
+// `hello@aquafix.com`, and `card.toml`'s `email` says `val@` where `SITE` says
+// `hello@` — one of the two is wrong. Resolves here, once, before launch — see
+// tmp/site_dev_plans/deploy.md.
 
 // ── routes ───────────────────────────────────────────────────────────────────
 

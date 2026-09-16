@@ -27,6 +27,7 @@ fn main() {
 /// all of them: a hole is a band with no colour for something, and Tailwind
 /// answers an undefined token by emitting no rule at all — silently. So the
 /// contract is asserted here rather than discovered on the page.
+#[rustfmt::skip]
 const TOKENS: &[&str] = &[
 	"background",
 	"card",
@@ -98,6 +99,10 @@ fn stage() {
 	)
 	.expect("write tokens.css");
 
+	// No trailing newline: `content.rs` takes this file's bytes verbatim as
+	// `SITE.phone`, and there is no `const` trim to undo one.
+	std::fs::write(out.join("phone.txt"), phone(&std::fs::read_to_string(shared.join("card.toml")).expect("assets/card.toml"))).expect("write phone.txt");
+
 	// Tailwind cannot see the kit's class strings: `ev_lib` is a checkout at no
 	// path a committed `@source` could reach. The crate carries them instead.
 	std::fs::write(out.join("uikit-classes.txt"), ev_lib_classes::CLASS_INVENTORY).expect("write uikit-classes.txt");
@@ -112,6 +117,14 @@ fn stage() {
 		.status()
 		.expect("tailwindcss on PATH — enter `nix develop`, or build through the flake");
 	assert!(tailwind.success(), "tailwindcss failed");
+}
+
+/// The card's `phone`, which is the site's too — the number is one fact, and the
+/// business card is where it was already written.
+fn phone(card: &str) -> String {
+	let card: CardToml = toml::from_str(card).expect("card.toml parses");
+	assert!(card.phone.starts_with('+'), "card.toml phone must be international, got {:?}", card.phone);
+	card.phone
 }
 
 fn tokens_css(brand: &str) -> String {
@@ -175,4 +188,9 @@ struct Scopes {
 struct FontsToml {
 	display: String,
 	text: String,
+}
+
+#[derive(serde::Deserialize)]
+struct CardToml {
+	phone: String,
 }
