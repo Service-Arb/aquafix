@@ -15,6 +15,52 @@ use crate::{
 	quote::QuoteCard,
 };
 
+/// The four job photographs, in caption order. Paired with `Copy::work_captions`
+/// by index — a `[_; 4]` on both sides so a photo added without a label, or the
+/// reverse, does not compile.
+const WORK: [Asset; 4] = [
+	asset!("/assets/photos/job-under-sink.jpg"),
+	asset!("/assets/photos/job-tap-shower.jpg"),
+	asset!("/assets/photos/job-hot-water.jpg"),
+	asset!("/assets/photos/job-pipe-repair.jpg"),
+];
+
+/// Photographs with a label each and no prose. Nam Pa gives its portfolio a
+/// band of its own directly under the hero, and it is what makes that page feel
+/// unhurried — the space is filled by something worth looking at rather than by
+/// more sentences.
+#[component]
+pub fn Work(lang: Lang) -> Element {
+	let c = copy(lang);
+	rsx! {
+		Section { id: "work",
+			div { class: "flex flex-col gap-7 md:gap-10",
+				BandHead { title: c.work_title }
+				ul { class: "grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5",
+					for (photo , caption) in WORK.iter().zip(c.work_captions.iter()) {
+						li { class: "flex flex-col gap-3",
+							div { class: "overflow-hidden rounded-[var(--corner-card)] bg-muted",
+								img {
+									src: "{photo}",
+									alt: "{caption}",
+									loading: "lazy",
+									decoding: "async",
+									// Square rather than the sources' own landscape: four
+									// 4:3 frames inside the measure read as thumbnails
+									// against this band's rhythm, and the subject is
+									// centred in all four.
+									class: "aspect-square w-full object-cover",
+								}
+							}
+							span { class: "text-[13px] font-medium text-ink-mid md:text-[14.5px]", "{caption}" }
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 /// The band the whole page is argued from: nobody else publishes a price.
 #[component]
 pub fn Prices(lang: Lang) -> Element {

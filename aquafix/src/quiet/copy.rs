@@ -16,6 +16,10 @@ pub struct Copy {
 	pub cta: &'static str,
 	/// `(figure, label)` — the strip that replaced the proof band.
 	pub stats: [(&'static str, &'static str); 4],
+	pub work_title: &'static str,
+	/// One label per photograph, in the order `bands::WORK` lists them. A
+	/// caption, not a sentence — the picture is the claim.
+	pub work_captions: [&'static str; 4],
 	pub prices_title: &'static str,
 	pub prices_note: &'static str,
 	pub guarantee_title: &'static str,
@@ -40,6 +44,8 @@ static EN: Copy = Copy {
 	lede: "A written flat rate on your doorstep before we start. Two-hour window, or the call-out is free.",
 	cta: "Get my flat price",
 	stats: [("4.9★", "612 REVIEWS"), ("43 MIN", "AVG. ARRIVAL"), ("96%", "FIXED SAME DAY"), ("12 MO", "WARRANTY")],
+	work_title: "The work.",
+	work_captions: ["Blocked drains", "Taps, mixers & showers", "Hot water & heating", "Pipe repair"],
 	prices_title: "What things cost.",
 	// Dollars, because `content.rs` still formats every price through `usd()`.
 	// The currency is part of the US placeholder layer, not this version's.
@@ -59,6 +65,8 @@ static FR: Copy = Copy {
 	lede: "Un tarif ferme écrit sur votre pas de porte avant de commencer. Fenêtre de 2 h, ou le déplacement est offert.",
 	cta: "Obtenir mon prix fixe",
 	stats: [("4,9★", "612 AVIS"), ("43 MIN", "ARRIVÉE MOY."), ("96 %", "RÉPARÉ LE JOUR"), ("12 MOIS", "GARANTIE")],
+	work_title: "Le travail.",
+	work_captions: ["Débouchage", "Robinets, mitigeurs & douches", "Eau chaude & chauffage", "Réparation de canalisations"],
 	prices_title: "Ce que ça coûte.",
 	prices_note: "Déplacement 89 $, déduit intégralement des travaux que vous acceptez.",
 	guarantee_title: "Trois choses que nous payons si nous les manquons.",

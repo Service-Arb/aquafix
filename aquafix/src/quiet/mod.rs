@@ -32,6 +32,7 @@ pub fn home(lang: Lang) -> Element {
 			Header { lang }
 			main {
 				hero::Hero { lang }
+				bands::Work { lang }
 				bands::Prices { lang }
 				bands::Guarantee { lang }
 				bands::Reviews { lang }
