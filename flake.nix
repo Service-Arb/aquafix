@@ -210,6 +210,55 @@
           '';
         };
 
+        # ── bump the latest remote vX.Y.Z tag and push: `.#publish major|minor|patch [note]` ──
+        # Ported from site_conductor. The version lives in the tag, not in a
+        # file: `aquafix/Cargo.toml` carries its own and the two have already
+        # drifted (manifest 0.1.0, tags through v0.1.1), so nothing here writes
+        # to the manifest — that would be a second source for one number.
+        runPublish = pkgs.writeShellApplication {
+          name = "publish";
+          runtimeInputs = with pkgs; [ git ];
+          text = ''
+            part="''${1:-}"
+            case "$part" in
+              major | minor | patch) ;;
+              *) echo "usage: nix run .#publish -- major|minor|patch [release note]" >&2; exit 1 ;;
+            esac
+            [ -z "$(git status --porcelain)" ] || { echo "uncommitted changes — commit or stash first" >&2; exit 1; }
+            # Everything after the bump part is the note, so
+            # `.#publish patch "fixed the thing"` needs no quoting gymnastics.
+            shift
+            note="$*"
+
+            # Not silenced: computing the next version from a stale tag list is
+            # how a release number gets reused, so a failed fetch must be loud.
+            git fetch --tags --force origin >/dev/null
+            last="$(git tag -l 'v*' --sort=-v:refname | head -n1)"
+            ver="''${last#v}"; [ -n "$ver" ] || ver="0.0.0"
+            ma="''${ver%%.*}"; rest="''${ver#*.}"; mi="''${rest%%.*}"; pa="''${rest##*.}"
+            case "$part" in
+              major) ma=$((ma + 1)); mi=0; pa=0 ;;
+              minor) mi=$((mi + 1)); pa=0 ;;
+              patch) pa=$((pa + 1)) ;;
+            esac
+            next="v$ma.$mi.$pa"
+            echo "''${last:-<no tag>} → $next"
+
+            # Annotated (-a), never lightweight. `git describe` prefers annotated
+            # tags, and a lightweight one has nowhere to put a release note at
+            # all. In lib, `push --follow-tags` silently refused to send
+            # lightweight tags and those releases simply never appeared.
+            if [ -n "$note" ]; then
+              printf '%s\n\n%s\n' "$next" "$note" | git tag -a "$next" -F -
+            else
+              git tag -a "$next" -m "$next"
+            fi
+            # Named explicitly rather than --follow-tags, and the push fires the
+            # pre-push hook, so `.#test` gates the release.
+            git push origin "$next"
+          '';
+        };
+
         runHelp = pkgs.writeShellApplication {
           name = "help";
           text = ''
@@ -222,6 +271,7 @@
               nix run .#accept-test    accept baselines; `-- <name>` for a subset
               nix run .#figma-parity   blur-diff against the Figma export  [advisory]
               nix run .#size           wasm budget check (after `nix build .#dx`)
+              nix run .#publish        bump the latest remote tag: major|minor|patch [note]
               nix build .#dx           release server + public/
               nix build .#${pname}-container   OCI image
               nix build .#brand-materials  print -> result/<lang>-{card,sheet.{light,dark}[.explicit]}.pdf + <lang>.vcf
@@ -429,6 +479,7 @@
           accept-test = { type = "app"; program = "${runAcceptTest}/bin/accept-test"; };
           figma-parity = { type = "app"; program = "${runFigmaParity}/bin/figma-parity"; };
           size = { type = "app"; program = "${runSize}/bin/wasm-size"; };
+          publish = { type = "app"; program = "${runPublish}/bin/publish"; };
           help = { type = "app"; program = "${runHelp}/bin/help"; };
         };
 
