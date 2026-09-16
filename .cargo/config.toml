@@ -1,9 +1,6 @@
 [build]
 rustc-wrapper = "sccache"
 
-[env]
-AQUAFIX_COMPOSITION = "quiet"
-
 [profile.rust]
 codegen-backend = "cranelift"
 
