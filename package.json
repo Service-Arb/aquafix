@@ -15,7 +15,8 @@
     "start": "node .next/standalone/server.js",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "size": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/bundle-budget.ts"
   },
   "dependencies": {
     "@evinvest/analytics": "file:vendor/evinvest/evinvest-analytics-0.2.0.tgz",
