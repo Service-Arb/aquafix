@@ -10,8 +10,9 @@ import { join } from "node:path";
  * Production has no defaults for where state lives. The Rust server booted on
  * dev defaults when nobody passed its config — leads written outside the
  * mounted volume — and that is the failure this refuses: in production a
- * missing `LEADS_DB_PATH` stops the server at start (`instrumentation.ts`),
- * not at the first lead.
+ * missing `LEADS_DB_PATH` fails `instrumentation.ts`, and Next then answers 500
+ * to every request, `/health` included — a pod that never turns ready, rather
+ * than one that loses the first lead.
  */
 export interface ServerEnv {
   production: boolean;

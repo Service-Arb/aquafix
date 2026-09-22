@@ -155,7 +155,7 @@ crawler the points are gone.
 
 **Secrets are not in the image.** `SMTP_URL`, `SMS_TOKEN` and `POSTHOG_KEY`
 come from the container environment at runtime. In production
-`LEADS_DB_PATH` has no default and the server refuses to start without it
+`LEADS_DB_PATH` has no default: without it every request, `/health` included, is a 500
 (`instrumentation.ts`) — the Rust server once booted on dev defaults and wrote
 leads outside the mounted volume.
 
