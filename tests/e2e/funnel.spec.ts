@@ -1,4 +1,5 @@
 import { DatabaseSync } from "node:sqlite";
+import { LIBRARY_PROPS } from "@evinvest/analytics";
 import { expect, test } from "@playwright/test";
 import { MIN_FILL_MS } from "../../src/features/quote-form/model/antispam";
 import { LEADS_DB, POSTHOG_HOST } from "./env";
@@ -77,5 +78,6 @@ test("contact_intent_click reaches PostHog when the visitor leaves for tel:", as
   });
   // The allow-list at work: nothing about the visitor rides along.
   const props = Object.keys(events.find(e => e.event === "contact_intent_click")?.properties ?? {});
-  expect(props.every(p => ["brand_id", "location_id", "channel", "source", "device", "form_id"].includes(p) || p.startsWith("$"))).toBe(true);
+  const allowed = ["brand_id", "location_id", "channel", "source", "device", "form_id", ...LIBRARY_PROPS];
+  expect(props.filter(p => !allowed.includes(p))).toEqual([]);
 });
