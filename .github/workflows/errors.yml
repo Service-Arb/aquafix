@@ -1,4 +1,21 @@
 jobs:
+  container:
+    name: Container smoke (the release image)
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Nix
+      uses: DeterminateSystems/nix-installer-action@main
+      with:
+        extra-conf: lazy-trees = true
+    - name: Setup Nix cache
+      uses: nix-community/cache-nix-action@v7
+      with:
+        primary-key: nix-${{ runner.os }}-${{ hashFiles('**/flake.lock') }}
+        restore-prefixes-first-match: nix-${{ runner.os }}-
+    - name: Boot the image
+      run: bash nix/container-smoke.sh
+    timeout-minutes: 45
   e2e:
     name: Playwright (1440 + 390)
     runs-on: ubuntu-latest
