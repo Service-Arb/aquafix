@@ -2,34 +2,40 @@
 
 Aquafix sells one thing — a plumbing job at a price agreed before work starts —
 and the repo exists to make that offer visible in the three places a customer
-meets it: a printed card, a landing page, and whatever a search engine shows.
-All three render the same facts.
+meets it: a printed card, a landing page per point, and whatever a search
+engine shows. All three render the same facts.
 
 ```mermaid
 flowchart LR
     subgraph shared["assets/ — the brand, once"]
       B["brand.toml<br/>the kit's colour tokens × 2 scopes<br/>+ the two families"]
+      C["card.toml<br/>phone · email · site"]
       M["mark.svg<br/>currentColor"]
       F["fonts/<br/>.ttf print · .woff2 web"]
     end
     subgraph card["brand_materials/ — typst"]
-      C["lib.typ → __main__.typ<br/>card · sheet"]
+      T["lib.typ → __main__.typ<br/>card · sheet"]
     end
-    subgraph site["aquafix/ — dioxus fullstack"]
-      T["assets.rs (build.rs)<br/>→ tokens.css + woff2"]
-      K["content.rs<br/>every fact once<br/>+ Text × {en, fr}"]
-      K --> R["sections/ → rsx"]
-      K --> L["ld.rs → schema.org"]
-      K --> S["seo.rs → head · hreflang · sitemap"]
-      N["l10n.rs<br/>cookie · Accept-Language"] --> K
-      Q["quote.rs → store.rs<br/>the commit point"]
+    subgraph site["the Next app — app/ + src/"]
+      P["app/brand.css<br/>(evinvest-palette)"]
+      E["build env<br/>phone · mark · OG palette"]
+      K["entities/content<br/>every fact once<br/>+ Text × {fr, en}"]
+      L["entities/location<br/>6 points · live overlay · gate"]
+      K --> W["widgets/ → pages"]
+      L --> W
+      K --> D["features/seo → schema.org · head · sitemap"]
+      L --> D
+      R["proxy.ts<br/>subdomain · cookie · Accept-Language"] --> W
+      Q["/quote → entities/lead<br/>the commit point"]
     end
-    B --> C
-    M --> C
-    F --> C
     B --> T
-    M --> R
+    C --> T
+    M --> T
     F --> T
+    B --> P
+    C --> E
+    M --> E
+    F --> W
 ```
 
 ## Directional invariants
@@ -37,125 +43,153 @@ flowchart LR
 These are the trade-offs that decide the ones this file does not list.
 
 **The visitor is standing in water.** Every performance and interaction call
-resolves in favour of the emergency case: content server-rendered so it is on
-screen before any wasm arrives, a form that submits without hydration, native
-HTML wherever it does the job. A feature that is faster to build but only works
-after the bundle loads is not cheaper — it is a lost customer.
+resolves in favour of the emergency case: pages server-rendered so they are on
+screen before any script arrives, a form that submits without hydration,
+native HTML wherever it does the job. A feature that is faster to build but
+only works after the bundle loads is not cheaper — it is a lost customer. In
+Next terms: `"use client"` only on leaves that cannot be anything else (the
+analytics boundary, the click-to-load map), and the quote form is a plain
+`<form method="post" action="/quote">` answered with a 303.
 
 **One fact, one place.** A price row renders a table cell *and* emits its
-schema.org `Offer` from a single `u32`. A description is one field read by the
-`<head>`, the OG card and the sitemap. This is the property that makes the
-placeholder licence safe to hold in the tree: replacing it cannot half-land. The
-phone went one step further — it is `assets/card.toml`'s, so the card, the vCard
-and every CTA on the page read the same field.
+schema.org `Offer` from a single integer in `PRICE_LIST`. A description is one
+field read by the `<head>`, the OG card and the sitemap. This is the property
+that makes the placeholder licence safe to hold in the tree: replacing it
+cannot half-land. The phone goes one step further — it is `assets/card.toml`'s,
+inlined at build, so the card, the vCard and every CTA read the same field.
 
-A second language does not weaken this. The language-free half of a record — the
-price, the slug, the licence, the crew member's name — is written once in `EN`,
-and `the_language_free_half_of_every_record_is_identical` is what holds `FR` to
-it. A French price that drifts from its English twin would put one number on the
-page and another in the `Offer`, and that test is the only thing that would
-notice.
+A second language does not weaken this. The language-free half of a record —
+the price, the job slug, the service's price row — is written once in
+`entities/content/model/catalogue.ts`, and each language gives it words through
+a `Record` over the ids. A French price cannot drift from its English twin:
+there is one number. `FR` and `EN` are two objects of one `Text` type checked
+with `satisfies`, so a field added to one and not the other does not compile.
+Prose that quotes a fact takes it as an argument (`(f: Facts) => string`)
+instead of spelling it out.
 
 **The copy is argued, not written.** Every section traces to graded conversion
-evidence in `docs/refs/sites/README.md`. Improving a headline without going back
-to that argument silently detaches the page from its reasoning. `FR` is a
-translation of that graded copy, not a second grading of it.
+evidence in `docs/refs/sites/README.md`. Improving a headline without going
+back to that argument silently detaches the page from its reasoning. `EN` is
+the graded copy moved to France (euros with TVA, kilometres, SIRET and
+décennale in place of US licences); `FR` translates it and does not re-grade it.
 
-**Copper is the action.** `primary` marks the call to action, the eyebrow and
-the price. It used to be two values a shade apart — one that could only be a
-fill and one that could only be text. Authoring one copper legible as both is
-the resolution the split never reached, and it is why `on-primary` exists: a
-role that gets filled says what reads on it, because neither polarity derives
-that.
+**Copper is the action.** `primary` fills the call to action; `primary-ink` is
+the same hue as text, a step darker on light, because the fill (3.70:1 on
+white) is not legible as small type. `on-primary` says what reads on the fill.
+
+**A point earns its index.** Six points under one brand, each on its own
+subdomain, is close to what Google's spam policy calls doorway pages. So a
+point is `noindex` and out of the sitemap until it says something its
+neighbours cannot: a storefront photo, a landmark, its service area and real
+hours (`publicationGaps`). The page still answers — its phone is real.
+
+**Structured data says only what is true.** No `aggregateRating` from anything
+the repo holds; a rating appears only when the live source mirrored Google's
+within the API's 30-day window. The ratings in the copy are placeholders the
+owner chose to keep on the page, not in the schema.
 
 ## Codemap
 
 | where | owns |
 |---|---|
 | `assets/` | `brand.toml`, `card.toml`, `mark.svg`, `fonts/`, `photos/`. The only place a brand value or a contact fact is written. |
-| `brand_materials/` | Everything printed: the card, and the A4 sheet that marks a door. Reads `assets/` with `--root ..`. Its Figma-parity test is the guard that the shared move did not change the print output. |
-| `aquafix_assets/build.rs` | Run from `aquafix`'s `build.rs`. Derives `aquafix/assets/` (gitignored) from `assets/`: stages the woff2s and the photography, emits `tokens.css` and `phone.txt`, and writes out the kit's class inventory for Tailwind to scan. Owns the list of tokens the kit needs, and fails the build if either scope has a hole. |
-| `aquafix/src/` | The site. Local conventions in `aquafix/src/README.md`. |
-| `aquafix/src/l10n.rs` | Server-only. Decides which language a request gets before the router sees it: `?lang=` mints the cookie, `/en/*` 301s to the unprefixed URL, an unprefixed entry with no cookie negotiates `Accept-Language`. English is unprefixed and canonical; French lives under `/fr`. |
-| `deploy/config.nix` | Prod `AppConfig`, evaluated to JSON at build time and passed as `--config`. |
-| `flake.nix` | `dev` / `test` / `accept-test` / `figma-parity` / `size`, the release build and the container. `tmp/site_dev_plans/nix.md` records what each non-obvious line prevents. |
+| `brand_materials/` | Everything printed: the card and the A4 door sheet. Reads `assets/` with `--root ..`. |
+| `app/` | Routes only. `[locale]/` is the root layout (so `<html lang>` is right on the first byte); `[locale]/[location]/` the point's pages; `quote`, `og`, `health`, `sitemap`, `robots` the non-page routes. `brand.css` is generated by `npm run palette` and held to its source by a test. |
+| `proxy.ts` → `src/features/request-routing` | Which point and which language a request gets, before any route renders. |
+| `src/shared` | Config (`brand`, `i18n` registry, routes, the server env), money formatting, the SMTP client, the lock-up. |
+| `src/entities/content` | Every string, once per language, and the language-free catalogue. |
+| `src/entities/location` | The six points (baked), the live overlay, the publication gate, URLs. |
+| `src/entities/lead` | The lead, its SQLite store and its notifier. |
+| `src/features` | The quote form and its acceptance, analytics, SEO, the map facade. |
+| `src/widgets` | One band per file, ≤120 lines, over a `Copy` and a `Point`. |
+| `src/views` | The compositions: a point's home, its sub-pages, its status screens; the brand page. |
 
-## The design files
+## Routing
 
-Three Figma files, one page per thing. The direction is one-way: the page is the
-source, the repo is the port. Changing a material starts in the frame.
+```text
+royat.aquafix.top/                → 302 /fr or /en (cookie, then Accept-Language), Vary
+royat.aquafix.top/fr/prices       → renders app/[locale]/[location]/prices for royat
+aquafix.top/fr                    → the brand page, listing the points
+aquafix.top/fr/royat/prices       → the same point page, through the apex (fallback)
+…?lang=en                         → cookie for a year, 303 to the clean URL
+```
 
-| Figma page | ports to |
-|---|---|
-| [Brand](https://www.figma.com/design/IcOjAnEPBHnQbMWemVZtgE) · Brand Foundations | `assets/brand.toml`'s swatches, and the type ramp both the site and the print draw from |
-| ⋯ · Logo | `assets/mark.svg`, and the lock-up's clear space and minimum sizes |
-| ⋯ · Business Card | `brand_materials` `card`, both faces |
-| ⋯ · Sheet | `brand_materials` `sheet`, both polarities. Its `explicit` cut has no frame — the row's size is solved, so a frame would hold a hand-copy of a computed number |
-| [Site](https://www.figma.com/design/hn1D34By2eYTsakhzDWWkV) · variables `aqua/core`, `aqua/semantic` | `assets/brand.toml`'s two scopes — the values, as against the swatch page's names |
-| ⋯ · Site | `aquafix/src/sections/`, at the two designed breakpoints |
-| ⋯ · Components | the `Mark /` instances the other pages place; the site's own vocabulary is `ev_lib::uikit`'s, not drawn here |
-| [business_card_refs](https://www.figma.com/design/x7rCDMFviutxIJmbMHntuv) · Refs | `docs/refs/cards/` — the graded set, reproduced side by side so the measurement is checkable |
-
-The sheet has no reference file: its evidence is a formula rather than a set of
-artefacts, and it lives in `docs/refs/signage/`.
-
-Only the card and the sheet have a test behind them. Their frames are exported at
-300dpi into `brand_materials/tests/__screenshots__/`, which is the one baseline
-this repo cannot regenerate — it comes from Figma or it does not exist.
+Both languages carry a prefix and French is the default: there are no legacy
+URLs to keep, and a header-less crawler lands on French and reaches English
+through `hreflang`. The negotiation is a **302**, never a 301: the choice is per
+visitor. Only page paths are negotiated — `/quote`, the sitemap and assets pass
+straight through. The canonical host of a point is always its subdomain, so the
+apex fallback never competes with it. Locally, `<slug>.localhost:3000` gets the
+subdomain behaviour and `localhost:3000/fr/<slug>` the fallback.
 
 ## Boundaries
 
 **`assets/` → everything.** Values only, no layout. Typst reads the TOML
-natively; the site reads it through a build script. Neither knows about the
-other, and adding a third consumer costs one reader.
+natively; the site reads it at build (`src/shared/config/build-env.ts`, inlined
+through `next.config.ts`) and through the kit's `evinvest-palette`. Neither
+knows about the other.
 
-**`content.rs` → `sections/`.** A section receives its slice and nothing else.
-It may not contain a literal string of copy, and it may not write a spacing or
-type-scale class — the band rhythm, the gutter, the headline scale and the CTA's
-shape are tokens (`--band-py`, `--page-px`, `--display-scale`, `--control-*`),
-written once in `aquafix/input.css`. The constraint is what keeps a global
-retuning to one file.
+**Content → widgets.** A widget receives a `Copy` (language, `Text`, facts) and
+a `Point` and nothing else. It may not contain a literal string of copy, and it
+may not write its own band rhythm or gutter: `--band-py`, `--page-px`,
+`--measure` and `--control-*` are tokens on the brand scope in
+`app/globals.css`. The constraint keeps a global retuning to one file.
 
-**`store.rs` is the commit point.** A lead is durable before the customer is
-told their price is coming. Notification failure logs at `error!` and changes
-nothing; a store failure is a 500, never a redirect to `/thanks`.
+**Polarity is a scope, not a prop.** `data-brand="aquafix"` and `light` sit on
+`<html>`; a `<Section polarity="dark">` puts `dark` on the band and custom
+properties inherit, so `text-ink` and `border-border` are right on either side.
+A light island inside a dark band (the quote card) says `light` on itself.
+
+**`insert` is the commit point.** A lead is durable before the customer is told
+their price is coming. Notification and the analytics event run after the
+response (`after()`); their failure logs and changes nothing. A store failure is
+a 500 with the phone on it, never a 303 to the thank-you page. The table is the
+Rust server's, brought forward in place with `location_id`.
+
+**Live data is an overlay, not a dependency.** `getLocation` merges
+`LOCATIONS_API_URL`'s answer over the baked point, with the TTL on the fetch
+itself. A 404 is `notFound()`; a 5xx throws (a 500, not a soft 404); an
+unreachable source serves the baked point. The sitemap is stricter: with a
+source configured, any failure throws, because a truncated sitemap tells a
+crawler the points are gone.
+
+**Secrets are not in the image.** `SMTP_URL`, `SMS_TOKEN` and `POSTHOG_KEY`
+come from the container environment at runtime. In production
+`LEADS_DB_PATH` has no default and the server refuses to start without it
+(`instrumentation.ts`) — the Rust server once booted on dev defaults and wrote
+leads outside the mounted volume.
 
 ## Cross-cutting
 
-**`ev_lib::uikit` is the kit**, on its `modern` token feature. Its class tables
-name only roles — `bg-card`, `text-ink`, `border-border`, `bg-primary` — and
-`assets/brand.toml` fills those names with this brand's values, in two scopes.
-Nothing here overrides a kit class to get a colour, which is the property that
-makes taking the dependency cheaper than not.
-
-Two things this design needed and the kit gained: a band whose *polarity is a
-scope class* rather than a prop threaded through every child, and control
-geometry behind tokens so a call to action is `Button { size: Xl }` and not a
-bespoke anchor. The site's whole layout vocabulary — `Section`, `SectionHead`,
-`Display`, `Prose`, `Stat`, `Check` — is the kit's.
-
-Tailwind cannot scan a crate it did not vendor, so `ev_lib_classes` carries its
-class literals as a string and the build script writes them out to `@source`.
+**`@evinvest/uikit` is the kit.** Its class tables name only roles —
+`bg-card`, `text-ink`, `border-border`, `bg-primary` — and `assets/brand.toml`
+fills those names with this brand's values in two scopes through the kit's own
+generator, which fails on a hole in either. Nothing here overrides a kit class
+to get a colour, and no component writes a hex value.
 
 Where a native element does the job it still wins: `<details>` for the FAQ and
 the mobile drawer, a native `<select>` in the quote form, a `<label>` wrapping
-its input. The kit's `Select` is a `div` combobox and its `Field` mints ids from
-a `FormControl` — both are hydration-shaped, and this form has to submit before
-any wasm arrives. The invariant outranks the reuse.
+its input, `popover` for the work cards. The kit's `Select` and `Field` are
+hydration-shaped, and this form has to submit before any script arrives. The
+invariant outranks the reuse.
 
-**`ev_lib::analytics` is not a dependency.** Right on shape — pure-Rust PostHog,
-no JS SDK, no autocapture — it was adopted, then measured out. It POSTs through
-`reqwest`, which cost **236 KB of a 1.03 MB release wasm**: 1,059,047 B with it,
-823,287 B with analytics removed entirely. The same five events over
-`navigator.sendBeacon` cost ~10 KB. On the one metric this site is built around
-that is not a defensible price, and the size budget is what surfaced it. What
-would change it is a transport that is not a full HTTP client.
+**Analytics records; it never decides what renders.** Cookieless by
+construction: `@evinvest/analytics`' beacon sink holds its id in memory,
+writes nothing, and needs no consent banner. `sendBeacon`, because the events
+that matter — a tap on `tel:` or `wa.me` — hand the visitor to another app.
+Every property name is on an allow-list (`brand_id`, `location_id`, `source`,
+`device`, `channel`, `form_id`); a customer's phone reaching PostHog could only
+be undone by deleting the project's history. `contact_intent_click` is an
+intent, not a lead, and is named apart from `lead_form_submit`. No A/B system:
+one landing page's traffic cannot power a test.
 
-**Analytics records; it never decides what renders.** No A/B system: the copy is
-argued from evidence, and one landing page's traffic cannot power a test.
+The history of the Rust version, and the measurement that threw
+`ev_lib::analytics`' `reqwest` transport out of the wasm (236 KB of 1.03 MB),
+is in git before the port.
 
-**Testing is layered by cost** (`tmp/site_dev_plans/testing.md`). insta SSR
-snapshots catch structure and class drift; Playwright catches layout at the two
-designed breakpoints; the Figma blur-diff is advisory and catches gross drift
-only. The wasm budget is the one hard gate, because it is the one number the
-emergency visitor pays for directly.
+**Testing is layered by cost.** vitest holds the invariants that are cheap and
+exact: the copy has no hole in either language, every `Offer` is its price
+row's integer, no rating leaks into the schema, the negotiation's 302 / cookie
+/ whitelist, the publication gate, the lead store's commit point, the
+antispam barriers, the palette's generated file. Layout at the two designed
+breakpoints (1440 and 390) and the bundle-weight gate are the next stage's.
