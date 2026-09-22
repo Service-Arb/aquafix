@@ -41,7 +41,6 @@
     "node_modules",
     "brand_materials",
     "docs",
-    "vendor",
-    "aquafix"
+    "vendor"
   ]
 }
