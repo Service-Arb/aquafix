@@ -30,12 +30,12 @@ test.describe("without JavaScript", () => {
     expect(response.status()).toBe(303);
     await page.waitForURL("**/fr/thanks");
 
-    // A bot is answered with the same 303, so the redirect alone proves
-    // nothing: the row is the proof.
+    // A suspected bot is answered with the same 303, so the redirect alone
+    // proves nothing: the row is the proof, and it must not be flagged.
     const db = new DatabaseSync(LEADS_DB, { readOnly: true });
     try {
-      const row = db.prepare("SELECT zip, location_id FROM leads WHERE mobile = ?").get(mobile);
-      expect(row).toEqual({ zip, location_id: "royat" });
+      const row = db.prepare("SELECT zip, location_id, spam_verdict FROM leads WHERE mobile = ?").get(mobile);
+      expect(row).toEqual({ zip, location_id: "royat", spam_verdict: null });
     } finally {
       db.close();
     }
