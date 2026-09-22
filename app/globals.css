@@ -1,0 +1,140 @@
+@import "tailwindcss";
+@import "@evinvest/uikit/styles/tokens.css";
+/* Generated from assets/brand.toml by `npm run palette`; a test holds the
+ * committed copy to its source. */
+@import "./brand.css";
+
+/* The kit and the marketing layer ship class literals in their bundles, which
+ * Tailwind's detection skips with the rest of node_modules. */
+@source "../node_modules/@evinvest/uikit/dist";
+@source "../node_modules/@evinvest/marketing/dist";
+
+/* The brand's two families, self-hosted through next/font (shared/ui/fonts.ts).
+ * The kit's display face is a serif; this brand's is Archivo. */
+@theme inline {
+  --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --breakpoint-3xl: 110rem;
+}
+
+/* Layout scalars, which the kit's `Section`, `Button size="xl"` and the section
+ * files read. `assets/` carries values, never layout, so they live here. Scoped
+ * to the brand rather than `:root` so they outrank the kit's zero-specificity
+ * geometry at every width. Geometry is the Figma frame's, at 1440 and 390.
+ *
+ * `--page-px` caps the content rather than a wrapper's `max-width`: the element
+ * that carries the gutter also carries the band's background, so capping via
+ * padding keeps the colour full-bleed and pulls only the content in. `100%` is
+ * the padded element's own width — the viewport, for a full-bleed band. */
+[data-brand="aquafix"] {
+  --page-min-px: 1.25rem;
+  --page-max: 75rem;
+  --page-px: max(var(--page-min-px), (100% - var(--page-max)) / 2);
+  /* The measure text stops at; only media may fill the viewport. */
+  --measure: 40rem;
+  --band-py: 4.5rem;
+  --band-py-tight: 3.5rem;
+  --display-scale: 1;
+  /* The corner ladder, outermost first. */
+  --corner-card: 16px;
+  --corner-tile: 12px;
+  --corner-float: 18px;
+  --corner-control: 10px;
+  --radius: 0.625rem;
+  /* The call to action's shape: the kit's xl button is these and nothing else. */
+  --control-radius: 0.625rem;
+  --control-px: 1.375rem;
+  --control-py: 0.875rem;
+  --control-text: 0.9375rem;
+}
+
+@media (min-width: 768px) {
+  [data-brand="aquafix"] {
+    --page-min-px: 4.5rem;
+    --band-py: 7rem;
+    --band-py-tight: 5rem;
+    --control-px: 2rem;
+    --control-py: 1.1875rem;
+    --control-text: 1.125rem;
+  }
+}
+
+/* The hero's photograph answers the viewport; the scrim is heaviest where the
+ * words are, so the crew stays legible without type ever sitting on a face. It
+ * is drawn from the dark scope's own background, not a literal. */
+.hero-scrim {
+  background:
+    linear-gradient(
+      to right,
+      color-mix(in srgb, var(--background) 95%, transparent) 0%,
+      color-mix(in srgb, var(--background) 88%, transparent) 30%,
+      color-mix(in srgb, var(--background) 55%, transparent) 62%,
+      color-mix(in srgb, var(--background) 32%, transparent) 100%
+    ),
+    linear-gradient(to top, color-mix(in srgb, var(--background) 55%, transparent) 0%, transparent 45%);
+}
+/* Below the breakpoint the words stack over the photo rather than beside it,
+ * so the horizontal ramp would leave the lower half unreadable. */
+@media (max-width: 767px) {
+  .hero-scrim {
+    background: linear-gradient(
+      to top,
+      color-mix(in srgb, var(--background) 96%, transparent) 0%,
+      color-mix(in srgb, var(--background) 88%, transparent) 45%,
+      color-mix(in srgb, var(--background) 50%, transparent) 100%
+    );
+  }
+}
+
+/* The work band's detail, in the top layer rather than in flow: growing a card
+ * in place reflowed the grid and stranded its neighbours. `popover` gives the
+ * prose its own measure, and open / dismiss / Escape are the platform's — no
+ * script, the same rule as the FAQ. */
+.work-pop {
+  /* The UA centres a popover with `inset: 0; margin: auto`; preflight's global
+   * `margin: 0` wins over it, so it is restated. */
+  inset: 0;
+  margin: auto;
+  width: min(34rem, calc(100vw - 2.5rem));
+  max-height: min(42rem, calc(100vh - 3rem));
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+@media (min-width: 768px) {
+  .work-pop {
+    padding: 2rem;
+  }
+}
+.work-pop::backdrop {
+  background: color-mix(in srgb, var(--brand) 60%, transparent);
+}
+
+@layer base {
+  html {
+    scroll-padding-top: 1rem;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+  body {
+    @apply bg-background font-sans text-ink antialiased;
+  }
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+  .font-num {
+    font-variant-numeric: tabular-nums;
+  }
+  /* The FAQ and the mobile drawer are <details>; the default marker is not in
+   * the design and cannot be removed with a utility. */
+  summary {
+    list-style: none;
+    cursor: pointer;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+}
