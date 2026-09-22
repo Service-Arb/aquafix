@@ -3,6 +3,9 @@ import { buildEnv } from "./src/shared/config/build-env";
 
 const config: NextConfig = {
   poweredByHeader: false,
+  // The image ships `.next/standalone`: the server plus only the files it was
+  // traced to need, not the dev toolchain `npm ci` installed to build it.
+  output: "standalone",
   // The card's facts, the mark and the OG palette are inlined at build time:
   // the container carries no `assets/`, and a phone number is not read per
   // request.
@@ -15,6 +18,18 @@ const config: NextConfig = {
   // the .ttf bytes at runtime, which file tracing cannot infer from a path.
   outputFileTracingIncludes: {
     "/og": ["./assets/fonts/*.ttf"],
+  },
+  // The tracer keeps sharp because Next can optimise images; with
+  // `unoptimized` it is never loaded, and its prebuilt libvips links against a
+  // system loader the Nix image does not have — half the standalone's weight.
+  outputFileTracingExcludes: {
+    "*": ["node_modules/sharp/**", "node_modules/@img/**"],
+  },
+  experimental: {
+    // The server runs from the read-only Nix store, so the live-data fetch
+    // cache stays in memory: per pod, which a restart forgetting costs one
+    // round trip, instead of a write the store refuses.
+    isrFlushToDisk: false,
   },
 };
 
