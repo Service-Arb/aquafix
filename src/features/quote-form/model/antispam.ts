@@ -1,3 +1,5 @@
+import type { SpamVerdict } from "@/entities/lead";
+
 /**
  * Three cheap barriers, none of which needs the visitor to run a script — the
  * form has to work before any JavaScript arrives, so a challenge widget is not
@@ -15,10 +17,10 @@ export const MIN_FILL_MS = 3_000;
 /** A render time this far ahead of the clock was forged. */
 const MAX_SKEW_MS = 60_000;
 
-export type SpamVerdict = "ok" | "honeypot" | "too-fast" | "rate-limited";
+export type Screening = "ok" | SpamVerdict;
 
-export function checkTiming(renderedAt: string | null, now: number): SpamVerdict {
-  const t = renderedAt === null ? Number.NaN : Number(renderedAt);
+export function checkTiming(renderedAt: string | null, now: number): Screening {
+  const t = renderedAt === null || renderedAt.trim() === "" ? Number.NaN : Number(renderedAt);
   if (!Number.isFinite(t) || t - now > MAX_SKEW_MS) return "too-fast";
   return now - t < MIN_FILL_MS ? "too-fast" : "ok";
 }
@@ -63,7 +65,7 @@ export function screen(input: {
   clientKey: string;
   now: number;
   limiter: RateLimiter;
-}): SpamVerdict {
+}): Screening {
   if (input.honeypot !== null && input.honeypot.trim() !== "") return "honeypot";
   const timing = checkTiming(input.renderedAt, input.now);
   if (timing !== "ok") return timing;

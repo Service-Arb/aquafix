@@ -52,6 +52,11 @@ function migrate(db: DatabaseSync): void {
   if (!columns.includes("location_id")) {
     db.exec("ALTER TABLE leads ADD COLUMN location_id TEXT");
   }
+  // Suspected spam is kept, flagged, and never notified — a false positive is
+  // a customer, and a reviewer can still find it here.
+  if (!columns.includes("spam_verdict")) {
+    db.exec("ALTER TABLE leads ADD COLUMN spam_verdict TEXT");
+  }
 }
 
 export function openLeadStore(path: string): LeadStore {
@@ -60,11 +65,11 @@ export function openLeadStore(path: string): LeadStore {
   db.exec("PRAGMA journal_mode = WAL");
   db.exec("PRAGMA busy_timeout = 5000");
   migrate(db);
-  const insert = db.prepare("INSERT INTO leads (job, zip, mobile, location_id) VALUES (?, ?, ?, ?) RETURNING id");
+  const insert = db.prepare("INSERT INTO leads (job, zip, mobile, location_id, spam_verdict) VALUES (?, ?, ?, ?, ?) RETURNING id");
   const count = db.prepare("SELECT COUNT(*) AS n FROM leads");
   return {
     insert(lead) {
-      return integer(insert.get(lead.job, lead.zip, lead.mobile, lead.locationId), "id");
+      return integer(insert.get(lead.job, lead.zip, lead.mobile, lead.locationId, lead.spamVerdict), "id");
     },
     count() {
       return integer(count.get(), "n");
