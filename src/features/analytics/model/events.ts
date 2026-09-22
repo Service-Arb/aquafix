@@ -1,5 +1,6 @@
 import { createBeaconSink, type AnalyticsSink } from "@evinvest/analytics";
 import { BRAND } from "@/shared/config/brand";
+import { THANKS } from "@/shared/config/routes";
 
 /**
  * The event model. Analytics records; it never decides what renders.
@@ -24,6 +25,14 @@ export type IntentChannel = "form_open" | "whatsapp" | "phone" | "booking";
  */
 export const ALLOWED_PROPS = ["brand_id", "location_id", "source", "device", "channel", "form_id"] as const;
 
+/**
+ * The thank-you page is the form's receipt, not a visit to the point: counting
+ * it as `location_page_view` would add a page view to every lead.
+ */
+export function countsAsPageView(pathname: string): boolean {
+  return !pathname.replace(/\/+$/, "").endsWith(THANKS);
+}
+
 /** Where events go. `key: null` → every capture is a silent no-op. */
 export interface AnalyticsTarget {
   key: string | null;
@@ -36,11 +45,11 @@ export interface AnalyticsTarget {
  * because the events that matter most — a tap on `tel:` or `wa.me` — are
  * followed by the page handing the visitor to another app.
  */
-export function analyticsSink(target: AnalyticsTarget, locationId: string): AnalyticsSink {
+export function analyticsSink(target: AnalyticsTarget, locationId: string | null): AnalyticsSink {
   return createBeaconSink({
     key: target.key ?? undefined,
     host: target.host,
     allowedProps: ALLOWED_PROPS,
-    globalProps: { brand_id: BRAND.id, location_id: locationId },
+    globalProps: locationId ? { brand_id: BRAND.id, location_id: locationId } : { brand_id: BRAND.id },
   });
 }

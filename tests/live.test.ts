@@ -64,10 +64,34 @@ describe("the live location source", () => {
       expect(fetch).not.toHaveBeenCalled();
     });
 
-    it("keeps the sitemap's list strict: any failure throws", async () => {
+    const list = async () => (await import("@/entities/location/server")).listLocations;
+    const bySlug = (answer: (slug: string) => Response | Promise<Response>) =>
+      vi.fn(async (input: string | URL | Request) => {
+        const slug = /\/locations\/([^?]+)/.exec(String(input))?.[1] ?? "";
+        return answer(slug);
+      });
+
+    it("keeps the sitemap strict on a dead or failing source", async () => {
       vi.stubGlobal("fetch", vi.fn(async () => Promise.reject(new TypeError("fetch failed"))));
-      const { listLocations } = await import("@/entities/location/server");
-      await expect(listLocations("fr")).rejects.toThrow();
+      await expect((await list())("fr", "sitemap")).rejects.toThrow(/unreachable/);
+      vi.stubGlobal("fetch", bySlug(s => new Response(null, { status: s === "royat" ? 503 : 200 })));
+      await expect((await list())("fr", "sitemap")).rejects.toThrow(/503/);
+    });
+
+    it("lets the brand page stand on the baked points when the source is dead", async () => {
+      vi.stubGlobal("fetch", vi.fn(async () => Promise.reject(new TypeError("fetch failed"))));
+      expect(await (await list())("fr", "page")).toHaveLength(6);
+      vi.stubGlobal("fetch", vi.fn(async () => new Response(null, { status: 500 })));
+      expect(await (await list())("fr", "page")).toHaveLength(6);
+    });
+
+    it("drops a point the source retired (404) in both modes", async () => {
+      vi.stubGlobal("fetch", bySlug(s => (s === "royat" ? new Response(null, { status: 404 }) : Response.json({}))));
+      for (const mode of ["page", "sitemap"] as const) {
+        const slugs = (await (await list())("fr", mode)).map(l => l.slug);
+        expect(slugs).toHaveLength(5);
+        expect(slugs).not.toContain("royat");
+      }
     });
   });
 });

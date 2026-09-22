@@ -1,8 +1,9 @@
 "use client";
 
 import { ContactLinkTracker } from "@evinvest/marketing/react";
+import { usePathname } from "next/navigation";
 import { useEffect, useMemo, type ReactNode } from "react";
-import { analyticsSink, EVENTS, type AnalyticsTarget, type IntentChannel } from "../model/events";
+import { analyticsSink, countsAsPageView, EVENTS, type AnalyticsTarget, type IntentChannel } from "../model/events";
 
 /** `data-intent` on a link or button marks a conversion intent that is not a contact link. */
 const INTENT_ATTR = "data-intent";
@@ -36,13 +37,15 @@ export function AnalyticsBoundary({
   children: ReactNode;
 }) {
   const sink = useMemo(() => analyticsSink(target, locationId), [target, locationId]);
+  const pathname = usePathname();
 
   useEffect(() => {
+    if (!countsAsPageView(pathname)) return;
     sink.capture(EVENTS.pageView, {
       source: source(),
       device: window.matchMedia("(max-width: 767px)").matches ? "mobile" : "desktop",
     });
-  }, [sink]);
+  }, [sink, pathname]);
 
   useEffect(() => {
     const onClick = (event: MouseEvent) => {

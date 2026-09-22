@@ -5,6 +5,18 @@ import { decide, LANG_COOKIE, LANG_COOKIE_MAX_AGE } from "./decide";
 /** The bare URL's answer depends on both; a shared cache must key on them. */
 const VARY = "Accept-Language, Cookie";
 
+/**
+ * The request's headers without the two only this proxy may set. Stripped on
+ * every branch — a client-sent value must never choose how links render or
+ * which point a 404 speaks for, including on a path the proxy passes through.
+ */
+function ownHeaders(request: NextRequest): Headers {
+  const headers = new Headers(request.headers);
+  headers.delete(LOCATION_MODE_HEADER);
+  headers.delete(ROUTE_HEADER);
+  return headers;
+}
+
 /** `decide`, applied to a live request. */
 export function routeRequest(request: NextRequest): NextResponse {
   const url = request.nextUrl;
@@ -15,10 +27,13 @@ export function routeRequest(request: NextRequest): NextResponse {
     acceptLanguage: request.headers.get("accept-language"),
     cookieLang: request.cookies.get(LANG_COOKIE)?.value ?? null,
   });
+  const headers = ownHeaders(request);
 
   switch (decision.kind) {
     case "pass":
-      return NextResponse.next();
+      return NextResponse.next({ request: { headers } });
+    case "moved":
+      return NextResponse.redirect(new URL(decision.location, url), 301);
     case "negotiate": {
       const response = NextResponse.redirect(new URL(decision.location, url), 302);
       response.headers.set("Vary", VARY);
@@ -36,9 +51,6 @@ export function routeRequest(request: NextRequest): NextResponse {
       return response;
     }
     case "serve": {
-      const headers = new Headers(request.headers);
-      // Set by us only: a client-sent value must never choose how links render.
-      headers.delete(LOCATION_MODE_HEADER);
       if (decision.mode) headers.set(LOCATION_MODE_HEADER, decision.mode);
       headers.set(ROUTE_HEADER, decision.pathname);
       // No `Vary` here, unlike the Rust server: there the bare URL *was* a page

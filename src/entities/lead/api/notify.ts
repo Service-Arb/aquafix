@@ -15,7 +15,7 @@ export interface LeadNotifier {
 
 function body(lead: Lead, id: number): string {
   return [
-    `Demande #${id} — point ${lead.locationId}`,
+    `Demande #${id} — point ${lead.locationId ?? "inconnu"}${lead.spamVerdict ? ` — suspecte (${lead.spamVerdict})` : ""}`,
     "",
     `Intervention : ${lead.job}`,
     `Commune / CP : ${lead.zip}`,
@@ -32,7 +32,7 @@ export function leadNotifier(env: Pick<ServerEnv, "smtpUrl" | "notifyTo" | "noti
           sendMail(env.smtpUrl, {
             from: env.notifyFrom ?? `leads@${BRAND.domain}`,
             to: env.notifyTo ?? BRAND.email,
-            subject: `Aquafix — nouvelle demande (${lead.locationId})`,
+            subject: `Aquafix — nouvelle demande (${lead.locationId ?? "point inconnu"})`,
             text: body(lead, id),
           }),
         );

@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { describe, expect, it } from "vitest";
 import { decide, hostSlug, routeRequest, type RequestFacts } from "@/features/request-routing";
-import { LOCATION_MODE_HEADER } from "@/shared/config/routes";
+import { LOCATION_MODE_HEADER, ROUTE_HEADER } from "@/shared/config/routes";
 
 const APEX = "aquafix.top";
 const ROYAT = "royat.aquafix.top";
@@ -47,6 +47,26 @@ describe("language negotiation", () => {
   });
 });
 
+describe("the Rust site's URLs", () => {
+  it.each([
+    ["/prices", "/en"],
+    ["/about", "/en"],
+    ["/guarantee", "/en"],
+    ["/thanks", "/en/thanks"],
+    ["/fr/prices", "/fr"],
+    ["/fr/about", "/fr"],
+    ["/fr/guarantee", "/fr"],
+    ["/en/prices", "/en"],
+  ])("moves %s on the apex permanently to %s", (from, to) => {
+    expect(decide(req(from))).toEqual({ kind: "moved", location: to });
+  });
+
+  it("keeps the brand's own thank-you page and a point's own sub-pages", () => {
+    expect(decide(req("/fr/thanks"))).toEqual({ kind: "serve", pathname: "/fr/thanks", mode: "path" });
+    expect(decide(req("/prices", { host: ROYAT }))).toMatchObject({ kind: "negotiate" });
+  });
+});
+
 describe("host routing", () => {
   it("reads the point from the subdomain, locally too", () => {
     expect(hostSlug("royat.aquafix.top")).toBe("royat");
@@ -85,6 +105,23 @@ describe("the proxy", () => {
     const cookie = res.headers.get("set-cookie") ?? "";
     expect(cookie).toMatch(/^lang=en;/);
     expect(cookie).toContain("Max-Age=31536000");
+  });
+
+  it("answers an old apex URL with a 301", () => {
+    const res = routeRequest(request("https://aquafix.top/fr/prices"));
+    expect(res.status).toBe(301);
+    expect(new URL(res.headers.get("location") ?? "").pathname).toBe("/fr");
+  });
+
+  it("strips the proxy's own headers on a pass-through path too", () => {
+    const res = routeRequest(
+      request("https://aquafix.top/quote", { accept: "text/html", [LOCATION_MODE_HEADER]: "host", [ROUTE_HEADER]: "/fr/royat" }),
+    );
+    const overridden = res.headers.get("x-middleware-override-headers") ?? "";
+    expect(overridden.split(",")).toContain("accept");
+    expect(overridden.split(",")).not.toContain(LOCATION_MODE_HEADER);
+    expect(overridden.split(",")).not.toContain(ROUTE_HEADER);
+    expect(res.headers.get(`x-middleware-request-${ROUTE_HEADER}`)).toBeNull();
   });
 
   it("strips a client-sent link mode before setting its own", () => {

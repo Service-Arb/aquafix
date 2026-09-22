@@ -1,1 +1,1 @@
-export { validateLead, type Lead } from "./model/lead";
+export { validateLead, type Lead, type SpamVerdict } from "./model/lead";

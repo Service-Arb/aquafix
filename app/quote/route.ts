@@ -3,8 +3,9 @@ import { copyFor } from "@/entities/content";
 import { leadNotifier, openLeadStore, type LeadStore } from "@/entities/lead/server";
 import { bakedLocation, pointFor } from "@/entities/location";
 import { analyticsSink, EVENTS } from "@/features/analytics/events";
-import { acceptLead, RateLimiter } from "@/features/quote-form";
+import { acceptLead, clientKey, RateLimiter } from "@/features/quote-form";
 import { hostSlug } from "@/features/request-routing";
+import { BRAND } from "@/shared/config/brand";
 import { serverEnv } from "@/shared/config/env";
 import type { Locale } from "@/shared/config/i18n";
 import { THANKS } from "@/shared/config/routes";
@@ -26,18 +27,23 @@ function leadStore(): LeadStore {
   return store;
 }
 
-function clientKey(request: Request): string {
-  const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-  return forwarded || request.headers.get("x-real-ip") || "unknown";
-}
-
 function seeOther(location: string): Response {
   return new Response(null, { status: 303, headers: { Location: location } });
 }
 
-function unavailable(slug: string, locale: Locale): Response {
-  const location = bakedLocation(slug);
-  const copy = copyFor({ locale, place: location?.place[locale] ?? "", phone: location?.phone ?? "" });
+/** Where a page of the submitting point is — or of the brand, with no point. */
+function href(request: Request, slug: string | null, locale: Locale, suffix: string): string {
+  const location = slug ? bakedLocation(slug) : undefined;
+  if (!location) return `/${locale}${suffix}`;
+  // Links follow the host the form was posted from: the point's subdomain, or
+  // the apex fallback path.
+  const mode = hostSlug(request.headers.get("host") ?? "") === location.slug ? "host" : "path";
+  return pointFor(location, locale, mode).href(suffix);
+}
+
+function unavailable(slug: string | null, locale: Locale): Response {
+  const location = slug ? bakedLocation(slug) : undefined;
+  const copy = copyFor({ locale, place: location?.place[locale] ?? BRAND.name, phone: location?.phone ?? BRAND.phone });
   const s = copy.t.serverError;
   const tel = `tel:${copy.f.phone.replace(/[^\d+]/g, "")}`;
   // Self-contained: the thing that failed may be the thing that renders pages.
@@ -55,7 +61,7 @@ export async function POST(request: Request): Promise<Response> {
   }
   const env = serverEnv();
   const notifier = leadNotifier(env);
-  const outcome = acceptLead(form, clientKey(request), {
+  const outcome = acceptLead(form, clientKey(request.headers), {
     insert: lead => leadStore().insert(lead),
     defer: task => after(task),
     notify: (lead, id) => notifier.notify(lead, id),
@@ -68,23 +74,13 @@ export async function POST(request: Request): Promise<Response> {
     log: console,
   });
 
-  if (outcome.kind === "unknown-location") return new Response(null, { status: 400 });
-  const slug = outcome.kind === "stored" ? outcome.lead.locationId : outcome.slug;
-  const location = bakedLocation(slug);
-  if (!location) return new Response(null, { status: 400 });
-  // Links follow the host the form was posted from: the point's subdomain, or
-  // the apex fallback path.
-  const mode = hostSlug(request.headers.get("host") ?? "") === slug ? "host" : "path";
-  const point = pointFor(location, outcome.locale, mode);
-
   switch (outcome.kind) {
+    // A suspected bot is answered exactly as a person is.
     case "stored":
-    // A bot is answered exactly as a person is.
-    case "spam":
-      return seeOther(point.href(THANKS));
+      return seeOther(href(request, outcome.lead.locationId, outcome.locale, THANKS));
     case "invalid":
-      return seeOther(point.href("#quote"));
+      return seeOther(href(request, outcome.slug, outcome.locale, outcome.slug ? "#quote" : ""));
     case "failed":
-      return unavailable(slug, outcome.locale);
+      return unavailable(outcome.slug, outcome.locale);
   }
 }
