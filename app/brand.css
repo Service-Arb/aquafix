@@ -3,6 +3,7 @@
 [data-brand="aquafix"],
 [data-brand="aquafix"].light,
 [data-brand="aquafix"] .light {
+  --scheme: light;
   --background: #ffffff;
   --card: #f6f8fa;
   --popover: #ffffff;
@@ -41,6 +42,7 @@
 
 [data-brand="aquafix"].dark,
 [data-brand="aquafix"] .dark {
+  --scheme: dark;
   --background: #051726;
   --card: #0a2540;
   --popover: #12395c;
@@ -75,4 +77,9 @@
   --border: #1b3a57;
   --input: #1b3a57;
   --ring: #c2703d;
+}
+
+[data-brand="aquafix"] {
+  --brand-font-sans: "Inter";
+  --brand-font-display: "Archivo";
 }
