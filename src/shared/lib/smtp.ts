@@ -1,6 +1,7 @@
 import "server-only";
 import { connect as tcp, type Socket } from "node:net";
 import { connect as tlsConnect, type TLSSocket } from "node:tls";
+import { randomUUID } from "node:crypto";
 
 /**
  * A minimal SMTP submission client: one message, plain text, AUTH PLAIN,
@@ -8,8 +9,8 @@ import { connect as tlsConnect, type TLSSocket } from "node:tls";
  * mail library in the dependency tree.
  *
  * `smtps://user:pass@host:465` is implicit TLS; `smtp://…:587` upgrades with
- * STARTTLS when the server offers it (and refuses to send credentials in the
- * clear when it does not, unless the host is loopback — a local catcher).
+ * STARTTLS, and refuses to send anything when the server offers no TLS —
+ * unless the host is loopback, a local mail catcher.
  */
 export interface Mail {
   from: string;
@@ -18,7 +19,8 @@ export interface Mail {
   text: string;
 }
 
-const TIMEOUT_MS = 10_000;
+/** The whole conversation, connect to QUIT. */
+const TOTAL_TIMEOUT_MS = 20_000;
 
 class Replies {
   private buffer = "";
@@ -75,13 +77,26 @@ function encodeHeader(value: string): string {
   return /^[\x20-\x7e]*$/.test(value) ? value : `=?UTF-8?B?${Buffer.from(value, "utf8").toString("base64")}?=`;
 }
 
+async function open(url: URL, watch: (s: Socket | TLSSocket) => void): Promise<Socket | TLSSocket> {
+  const implicit = url.protocol === "smtps:";
+  const port = Number(url.port || (implicit ? 465 : 587));
+  const host = hostOf(url);
+  const socket = implicit ? tlsConnect({ host, port, servername: host }) : tcp({ host, port });
+  watch(socket);
+  await new Promise<void>(resolve => socket.once(implicit ? "secureConnect" : "connect", () => resolve()));
+  return socket;
+}
+
 function message(mail: Mail): string {
   const body = Buffer.from(mail.text, "utf8").toString("base64").replace(/.{76}/g, "$&\r\n");
+  const domain = mail.from.split("@")[1] ?? "localhost";
   return [
     `From: ${mail.from}`,
     `To: ${mail.to}`,
     `Subject: ${encodeHeader(mail.subject)}`,
     `Date: ${new Date().toUTCString()}`,
+    // Without one, some relays add their own and some spam filters score it.
+    `Message-ID: <${randomUUID()}@${domain}>`,
     "MIME-Version: 1.0",
     "Content-Type: text/plain; charset=utf-8",
     "Content-Transfer-Encoding: base64",
@@ -90,38 +105,55 @@ function message(mail: Mail): string {
   ].join("\r\n");
 }
 
-async function open(url: URL): Promise<Socket | TLSSocket> {
-  const implicit = url.protocol === "smtps:";
-  const port = Number(url.port || (implicit ? 465 : 587));
-  const socket = implicit
-    ? tlsConnect({ host: url.hostname, port, servername: url.hostname })
-    : tcp({ host: url.hostname, port });
-  socket.setTimeout(TIMEOUT_MS, () => socket.destroy(new Error("smtp: timed out")));
-  await new Promise<void>((resolve, reject) => {
-    socket.once(implicit ? "secureConnect" : "connect", () => resolve());
-    socket.once("error", reject);
-  });
-  return socket;
-}
+const LOOPBACK = ["localhost", "127.0.0.1", "::1"];
 
-export async function sendMail(smtpUrl: string, mail: Mail): Promise<void> {
+/** `URL.hostname` keeps an IPv6 literal's brackets; sockets want it bare. */
+const hostOf = (url: URL): string => url.hostname.replace(/^\[(.*)\]$/, "$1");
+
+/**
+ * Sends one message or rejects. Every way the conversation can die rejects
+ * rather than hangs: an error or a close on either socket (the raw one, and
+ * the TLS one over it after STARTTLS), and one deadline over the whole
+ * exchange — a server that accepts the connection and then says nothing must
+ * not hold a request's `after()` task forever.
+ *
+ * Off loopback, TLS is required: implicit (`smtps://`) or STARTTLS. A server
+ * that offers neither gets nothing — not the credentials, and not the
+ * customer's phone number in the body. The lead is already stored, so a
+ * refusal here is loud in the log and costs nothing else.
+ */
+export async function sendMail(smtpUrl: string, mail: Mail, timeoutMs = TOTAL_TIMEOUT_MS): Promise<void> {
   const url = new URL(smtpUrl);
   if (url.protocol !== "smtp:" && url.protocol !== "smtps:") throw new Error(`smtp: unsupported scheme ${url.protocol}`);
-  let socket = await open(url);
-  const replies = new Replies(socket);
+  const deadline = AbortSignal.timeout(timeoutMs);
   let fail: (e: Error) => void = () => undefined;
   const failed = new Promise<never>((_, reject) => (fail = reject));
-  // Handled here so an error after the last exchange is not an unhandled
-  // rejection; every `expect` still races against it.
+  // Handled here so a failure after the last exchange is not an unhandled
+  // rejection; every step still races against it.
   failed.catch(() => undefined);
-  socket.on("error", fail);
+  const sockets: (Socket | TLSSocket)[] = [];
+  const watch = (s: Socket | TLSSocket) => {
+    sockets.push(s);
+    s.on("error", fail);
+    s.once("close", () => fail(new Error("smtp: connection closed")));
+  };
+  deadline.addEventListener("abort", () => {
+    fail(new Error(`smtp: no answer within ${timeoutMs} ms`));
+    for (const s of sockets) s.destroy();
+  });
+
+  let socket = await Promise.race([open(url, watch), failed]);
+  const replies = new Replies(socket);
+  const step = <T>(p: Promise<T>) => Promise.race([p, failed]);
   const expect = async (ok: (code: number) => boolean, what: string) => {
-    const reply = await Promise.race([replies.next(), failed]);
+    const reply = await step(replies.next());
     if (!ok(reply.code)) throw new Error(`smtp: ${what} refused: ${reply.text}`);
     return reply;
   };
   const say = (line: string) => socket.write(`${line}\r\n`);
   const hello = url.hostname.includes(".") ? "aquafix.top" : "localhost";
+  const loopback = LOOPBACK.includes(hostOf(url));
+  let done = false;
   try {
     await expect(c => c === 220, "greeting");
     say(`EHLO ${hello}`);
@@ -131,22 +163,17 @@ export async function sendMail(smtpUrl: string, mail: Mail): Promise<void> {
       say("STARTTLS");
       await expect(c => c === 220, "STARTTLS");
       replies.detach();
-      socket = tlsConnect({ socket, servername: url.hostname });
-      await new Promise<void>((resolve, reject) => {
-        socket.once("secureConnect", () => resolve());
-        socket.once("error", reject);
-      });
-      socket.on("error", fail);
+      const raw = socket;
+      socket = tlsConnect({ socket: raw, servername: hostOf(url) });
+      watch(socket);
+      await step(new Promise<void>(resolve => socket.once("secureConnect", () => resolve())));
       encrypted = true;
       replies.attach(socket);
       say(`EHLO ${hello}`);
       await expect(c => c === 250, "EHLO after STARTTLS");
     }
+    if (!encrypted && !loopback) throw new Error("smtp: the server offers no TLS; refusing to send a lead in the clear");
     if (url.username) {
-      const loopback = ["localhost", "127.0.0.1", "::1"].includes(url.hostname);
-      if (!encrypted && !loopback) {
-        throw new Error("smtp: refusing to send credentials without TLS");
-      }
       const plain = Buffer.from(`\0${decodeURIComponent(url.username)}\0${decodeURIComponent(url.password)}`).toString("base64");
       say(`AUTH PLAIN ${plain}`);
       await expect(c => c === 235, "AUTH");
@@ -160,8 +187,11 @@ export async function sendMail(smtpUrl: string, mail: Mail): Promise<void> {
     // Dot-stuffing: a line that starts with "." would otherwise end the data.
     say(`${message(mail).replace(/\r\n\./g, "\r\n..")}\r\n.`);
     await expect(c => c === 250, "message");
+    done = true;
     say("QUIT");
   } finally {
-    socket.end();
+    // After the message is accepted, the server closing on QUIT is expected.
+    if (!done) for (const s of sockets) s.destroy();
+    else socket.end();
   }
 }
