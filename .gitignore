@@ -83,17 +83,23 @@ graphify-out/
 **/.tb/
 **/.tb-client
 **/.pg/
-## Rust
-**/**.pending-snap
-### could be used for initial debugging of apps using `config` crate
-/config.toml
-**/rustc-ice*
+## JavaScript / Node
+./*/node_modules/
 **/node_modules/
-# Derived from the repo-root assets/ by aquafix/assets.rs + tailwind.
-aquafix/assets/
+**/.pnpm-store/
+**/.pnpm-debug.log
+**/npm-debug.log*
+**/yarn-error.log
+**/dist/
+**/.next/
+**/.turbo/
+**/.cache/
+.direnv/corepack/
+next-env.d.ts
 /data/
+# A symlink to the flake-pinned @playwright/test, so no trailing slash.
+tests/e2e/node_modules
 # Playwright failure artefacts. The baselines under
-# aquafix/tests/__screenshots__/ are tracked; these are not.
+# tests/e2e/__screenshots__/ are tracked; these are not.
 **/test-results/
 **/playwright-report/
-

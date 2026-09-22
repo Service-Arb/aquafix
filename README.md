@@ -1,7 +1,4 @@
 # aquafix
-![Minimum Supported Rust Version](https://img.shields.io/badge/nightly-1.100+-ab6000.svg)
-[<img alt="crates.io" src="https://img.shields.io/crates/v/aquafix.svg?color=fc8d62&logo=rust" height="20" style=flat-square>](https://crates.io/crates/aquafix)
-[<img alt="docs.rs" src="https://img.shields.io/badge/docs.rs-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs&style=flat-square" height="20">](https://docs.rs/aquafix)
 ![Lines Of Code](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/valeratrades/b48e6f02c61942200e7d1e3eeabf9bcb/raw/aquafix-loc.json)
 <br>
 [<img alt="ci errors" src="https://img.shields.io/github/actions/workflow/status/Service-Arb/aquafix/errors.yml?branch=main&style=for-the-badge&style=flat-square&label=errors&labelColor=420d09" height="20">](https://github.com/Service-Arb/aquafix/actions?query=branch%3Amain) <!--NB: Won't find it if repo is private-->
@@ -72,7 +69,7 @@ nix build .#container
 
 ```text
 assets/          brand.toml, mark.svg, fonts/ — the brand, written once
-business_card/   the Typst card
+brand_materials/ the Typst card and the A4 door sheet
 aquafix/         the site (see aquafix/src/README.md for local conventions)
 docs/refs/       graded conversion evidence the copy is argued from
 deploy/          production config, authored in Nix

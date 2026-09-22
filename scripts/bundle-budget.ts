@@ -1,6 +1,7 @@
 // The one hard gate: the gzip weight of the JavaScript a point page makes the
 // browser download before it is interactive, against `tests/bundle_budget.txt`.
-// Run after `npm run build` — `nix run .#size` does both.
+// Run after `npm run build` — `nix run .#size` does both. An argument names
+// another build root holding `.next/` (the flake's check passes the Nix build).
 //
 // Plain `node` runs it (type stripping), so it imports nothing but builtins.
 import { readFileSync } from "node:fs";
@@ -58,15 +59,15 @@ export function gzipSize(bytes: Buffer): number {
   return gzipSync(bytes).length;
 }
 
-function main(root: string): number {
+function main(repo: string, root: string): number {
   let stats: string;
   try {
     stats = readFileSync(join(root, STATS), "utf8");
   } catch {
-    console.error(`✘ ${STATS} is missing — run \`npm run build\` first`);
+    console.error(`✘ ${join(root, STATS)} is missing — run \`npm run build\` first`);
     return 1;
   }
-  const budget = parseBudget(readFileSync(join(root, BUDGET), "utf8"));
+  const budget = parseBudget(readFileSync(join(repo, BUDGET), "utf8"));
   let total = 0;
   let raw = 0;
   for (const chunk of firstLoadChunks(stats, GATED_ROUTE)) {
@@ -86,5 +87,5 @@ function main(root: string): number {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  process.exitCode = main(process.cwd());
+  process.exitCode = main(process.cwd(), process.argv[2] ?? process.cwd());
 }
