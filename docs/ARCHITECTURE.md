@@ -191,5 +191,22 @@ is in git before the port.
 exact: the copy has no hole in either language, every `Offer` is its price
 row's integer, no rating leaks into the schema, the negotiation's 302 / cookie
 / whitelist, the publication gate, the lead store's commit point, the
-antispam barriers, the palette's generated file. Layout at the two designed
-breakpoints (1440 and 390) and the bundle-weight gate are the next stage's.
+antispam barriers, the palette's generated file. Playwright holds what only a
+browser can: one screenshot per section at the two designed breakpoints (1440
+and 390), each reached by its own URL fragment rather than a scroll, since a
+scroll is a moving target; the quote form posting with JavaScript disabled,
+proven by the row in SQLite, because a bot gets the same 303; and
+`contact_intent_click` leaving as a beacon when the visitor taps `tel:`. The
+baselines are Linux's, taken by CI.
+
+**One hard gate: the weight of the point page.** The gzip of the chunks Next
+lists as a point page's first load, against `tests/bundle_budget.txt`. The
+visitor is on mobile data in an emergency; the form works without any of it,
+so the number is what becoming interactive costs, not whether the page works.
+Raising it is a commit that says why. Every other check is a test or advisory.
+
+**The image is the build.** `nix build` runs `next build` in a sandbox with
+every npm package pinned by the lockfile's integrity hash, and ships
+`.next/standalone` — the server and only the files it was traced to need —
+on a slim Node. `deploy/config.nix` is the prod environment, passed
+explicitly for the same reason the Rust server's `--config` was.
