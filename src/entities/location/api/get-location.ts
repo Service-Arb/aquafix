@@ -62,25 +62,40 @@ export const getLocation = cache(async (slug: string, locale: Locale): Promise<L
 });
 
 /**
- * Every point, for the sitemap and the brand page. Strict: with a live source
- * configured, any failure throws. A sitemap that silently drops points tells a
- * crawler they are gone (site_conductor#184); a 5xx tells it to keep the last
- * copy and come back.
+ * Every point the source still has — a 404 is a point it retired, and is left
+ * out. What happens on a failing source depends on who asks:
+ *
+ * - `"page"` (the brand page): lenient. A 5xx or an unreachable source serves
+ *   the baked point; the list a visitor reads must not go down with the API.
+ * - `"sitemap"`: strict. A 5xx or an unreachable source throws. A sitemap that
+ *   silently drops points tells a crawler they are gone (site_conductor#184);
+ *   a 5xx tells it to keep the last copy and come back.
  */
-export async function listLocations(locale: Locale): Promise<Location[]> {
+export async function listLocations(locale: Locale, mode: "page" | "sitemap"): Promise<Location[]> {
   const base = serverEnv().locationsApiUrl;
   if (!base) return [...LOCATIONS];
-  return Promise.all(
-    LOCATIONS.map(async baked => {
-      const response = await fetch(`${base}/locations/${encodeURIComponent(baked.slug)}?locale=${locale}`, {
-        cache: "force-cache",
-        next: { revalidate: LOCATION_REVALIDATE_SECONDS },
-        signal: AbortSignal.timeout(TIMEOUT_MS),
-      });
+  const results = await Promise.all(
+    LOCATIONS.map(async (baked): Promise<Location | null> => {
+      let response: Response;
+      try {
+        response = await fetch(`${base}/locations/${encodeURIComponent(baked.slug)}?locale=${locale}`, {
+          cache: "force-cache",
+          next: { revalidate: LOCATION_REVALIDATE_SECONDS },
+          signal: AbortSignal.timeout(TIMEOUT_MS),
+        });
+      } catch (cause) {
+        if (mode === "sitemap") throw new LocationSourceError(`location list: ${baked.slug} unreachable`, { cause });
+        return baked;
+      }
+      if (response.status === 404) return null;
       if (!response.ok) {
-        throw new LocationSourceError(`location list: ${baked.slug} answered ${response.status}`);
+        if (mode === "sitemap") {
+          throw new LocationSourceError(`location list: ${baked.slug} answered ${response.status}`);
+        }
+        return baked;
       }
       return mergeLive(baked, parseLocationLive(await response.json()));
     }),
   );
+  return results.filter((l): l is Location => l !== null);
 }

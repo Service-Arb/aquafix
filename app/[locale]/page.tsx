@@ -23,5 +23,5 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function BrandPage({ params }: Props) {
   const copy = await brandCopy(params);
-  return <BrandHome copy={copy} locations={await listLocations(copy.locale)} />;
+  return <BrandHome copy={copy} locations={await listLocations(copy.locale, "page")} />;
 }
