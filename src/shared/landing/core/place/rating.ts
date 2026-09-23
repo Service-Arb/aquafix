@@ -1,4 +1,4 @@
-import type { Location, Rating } from "./types";
+import type { Place, Rating } from "./types";
 
 /** Google Business Profile API policy: no cached copy older than this. */
 export const RATING_MAX_AGE_DAYS = 30;
@@ -8,8 +8,8 @@ export const RATING_MAX_AGE_DAYS = 30;
  * is treated as absent — the page then says nothing about a rating rather than
  * something the terms no longer allow.
  */
-export function freshRating(location: Location, now: Date): Rating | null {
-  const rating = location.rating;
+export function freshRating(place: Place<string>, now: Date): Rating | null {
+  const rating = place.rating;
   if (!rating) return null;
   const fetched = Date.parse(rating.fetchedAt);
   if (Number.isNaN(fetched)) return null;

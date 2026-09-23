@@ -2,7 +2,7 @@ import "../globals.css";
 import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
-import { brandOrigin } from "@/entities/location";
+import { brandOrigin } from "@/entities/place";
 import { site } from "@/shared/config/site";
 import { isLocale } from "@/shared/config/i18n";
 import { archivo, inter } from "@/shared/ui/fonts";

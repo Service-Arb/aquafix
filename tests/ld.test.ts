@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { PRICE_LIST } from "@/entities/content";
-import { LOCATIONS } from "@/entities/location";
+import { PLACES } from "@/entities/place";
 import { locationGraph } from "@/features/seo";
 import { PAGE_KEYS } from "@/shared/config/site";
 import { context, royat } from "./support/fixtures";
@@ -36,7 +36,7 @@ describe("schema.org", () => {
   });
 
   it.each(PAGE_KEYS)("never carries aggregateRating from baked data (%s)", page => {
-    for (const location of LOCATIONS) {
+    for (const location of PLACES) {
       const { point, copy } = context(location);
       expect(JSON.stringify(graph(point, copy, page, NOW))).not.toContain("aggregateRating");
     }
@@ -51,7 +51,7 @@ describe("schema.org", () => {
     expect(JSON.stringify(graph(stale.point, stale.copy, "home", NOW))).not.toContain("aggregateRating");
   });
 
-  it.each(LOCATIONS.map(l => [l.slug, l] as const))("addresses %s in France", (_, location) => {
+  it.each(PLACES.map(l => [l.slug, l] as const))("addresses %s in France", (_, location) => {
     const { point, copy } = context(location);
     const [business] = ofType(graph(point, copy, "home", NOW), "Plumber");
     const address = business?.address as Node;

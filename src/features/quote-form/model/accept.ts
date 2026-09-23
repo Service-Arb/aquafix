@@ -47,20 +47,18 @@ function field(form: FormData, name: string): string | null {
  */
 export function createAcceptLead<L extends string, P extends string, B extends BrandFacts>(
   site: Site<L, P, B>,
-  placeSlugs: readonly string[],
 ): (form: FormData, clientKey: string, deps: AcceptDeps) => Outcome<L> {
-  return (form, clientKey, deps) => accept(site, placeSlugs, form, clientKey, deps);
+  return (form, clientKey, deps) => accept(site, form, clientKey, deps);
 }
 
 function accept<L extends string, P extends string, B extends BrandFacts>(
   site: Site<L, P, B>,
-  placeSlugs: readonly string[],
   form: FormData,
   clientKey: string,
   deps: AcceptDeps,
 ): Outcome<L> {
   const rawSlug = field(form, LOCATION_FIELD);
-  const slug = rawSlug && placeSlugs.includes(rawSlug) ? rawSlug : null;
+  const slug = rawSlug && site.placeSlugs.includes(rawSlug) ? rawSlug : null;
   const rawLocale = field(form, LOCALE_FIELD);
   const locale = site.i18n.isLocale(rawLocale) ? rawLocale : site.i18n.defaultLocale;
 

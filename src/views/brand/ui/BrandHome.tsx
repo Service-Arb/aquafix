@@ -1,7 +1,7 @@
 import { telHref } from "@evinvest/marketing";
 import { Section } from "@evinvest/uikit";
 import type { Copy } from "@/entities/content";
-import type { Location } from "@/entities/location";
+import type { Place } from "@/entities/place";
 import { site } from "@/shared/config/site";
 import { perLocale } from "@/shared/config/i18n";
 import { Lockup } from "@/shared/ui/brand";
@@ -12,7 +12,7 @@ import { LocationList } from "@/widgets/location-list";
  * The apex, `aquafix.top`: the brand and its points, nothing to convert on
  * here — every conversion belongs to a point, which has the phone and the van.
  */
-export function BrandHome({ copy, locations }: { copy: Copy; locations: readonly Location[] }) {
+export function BrandHome({ copy, locations }: { copy: Copy; locations: readonly Place[] }) {
   const { t } = copy;
   return (
     <>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import type { Copy } from "@/entities/content";
-import { brandOrigin, isPublished, locationOrigin, type Point } from "@/entities/location";
+import { brandOrigin, isPublished, placeOrigin, type PlaceView } from "@/entities/place";
 import { site, PAGES, type PageKey } from "@/shared/config/site";
 import { i18n, LOCALES, OG_LOCALE, type Locale } from "@/shared/config/i18n";
 
@@ -25,19 +25,19 @@ function others(locale: Locale): string[] {
  * always the point's subdomain, so the apex fallback path never competes.
  * An unpublished point answers `noindex` — see `publicationGaps`.
  */
-export function locationMetadata(point: Point, copy: Copy, page: PageKey): Metadata {
+export function locationMetadata(point: PlaceView, copy: Copy, page: PageKey): Metadata {
   const p = copy.t.pages[page];
   const title = page === "home" ? `${site.brand.name} — ${p.title(copy.f)}` : `${p.title(copy.f)} · ${site.brand.name}`;
   const description = p.description(copy.f);
   const canonical = point.url(PAGES[page]);
-  const image = ogImageUrl({ slug: point.location.slug, locale: copy.locale, page });
+  const image = ogImageUrl({ slug: point.place.slug, locale: copy.locale, page });
   return {
     title,
     description,
-    robots: isPublished(point.location) ? { index: true, follow: true } : { index: false, follow: true },
+    robots: isPublished(point.place) ? { index: true, follow: true } : { index: false, follow: true },
     alternates: {
       canonical,
-      languages: i18n.languageAlternates(PAGES[page] || "/", locationOrigin(point.location.slug)),
+      languages: i18n.languageAlternates(PAGES[page] || "/", placeOrigin(point.place.slug)),
     },
     openGraph: {
       type: "website",

@@ -20,7 +20,7 @@ flowchart LR
       P["app/brand.css<br/>(evinvest-palette)"]
       E["build env<br/>phone · mark · OG palette"]
       K["entities/content<br/>every fact once<br/>+ Text × {fr, en}"]
-      L["entities/location<br/>6 points · live overlay · gate"]
+      L["entities/place<br/>6 points · live overlay · gate"]
       K --> W["widgets/ → pages"]
       L --> W
       K --> D["features/seo → schema.org · head · sitemap"]
@@ -99,10 +99,10 @@ owner chose to keep on the page, not in the schema.
 | `src/shared` | Config (`site` — the composition root every brand fact is read from —, the `i18n` registry, the server env), money formatting, the lock-up. |
 | `src/shared/landing` | The brand-free machinery a future shared landing package takes whole: `core/` is pure (no React, Next or `node:*`; eslint holds the line), `server/` the Node half (the SMTP client). |
 | `src/entities/content` | Every string, once per language, and the language-free catalogue. |
-| `src/entities/location` | The six points (baked), the live overlay, the publication gate, URLs. |
+| `src/entities/place` | The six points bound to the site: baked data from `shared/config/places.ts`, the live overlay, the publication gate, URLs. The model (`Place` with a storefront or service-area `presence`, `PlaceView`, the gate as a policy) is in `shared/landing/core/place`. |
 | `src/entities/lead` | The lead, its SQLite store and its notifier. |
 | `src/features` | The quote form and its acceptance, analytics, SEO, the map facade. |
-| `src/widgets` | One band per file, ≤120 lines, over a `Copy` and a `Point`. |
+| `src/widgets` | One band per file, ≤120 lines, over a `Copy` and a `PlaceView`. |
 | `src/views` | The compositions: a point's home, its sub-pages, its status screens; the brand page. |
 
 ## Routing
@@ -131,7 +131,7 @@ through `next.config.ts`) and through the kit's `evinvest-palette`. Neither
 knows about the other.
 
 **Content → widgets.** A widget receives a `Copy` (language, `Text`, facts) and
-a `Point` and nothing else. It may not contain a literal string of copy, and it
+a `PlaceView` and nothing else. It may not contain a literal string of copy, and it
 may not write its own band rhythm or gutter: `--band-py`, `--page-px`,
 `--measure` and `--control-*` are tokens on the brand scope in
 `app/globals.css`. The constraint keeps a global retuning to one file.
@@ -147,7 +147,7 @@ response (`after()`); their failure logs and changes nothing. A store failure is
 a 500 with the phone on it, never a 303 to the thank-you page. The table is the
 Rust server's, brought forward in place with `location_id`.
 
-**Live data is an overlay, not a dependency.** `getLocation` merges
+**Live data is an overlay, not a dependency.** `getPlace` merges
 `LOCATIONS_API_URL`'s answer over the baked point, with the TTL on the fetch
 itself. A 404 is `notFound()`; a 5xx throws (a 500, not a soft 404); an
 unreachable source serves the baked point. The sitemap is stricter: with a

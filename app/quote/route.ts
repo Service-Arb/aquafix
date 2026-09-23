@@ -1,7 +1,7 @@
 import { after } from "next/server";
 import { copyFor } from "@/entities/content";
 import { leadNotifier, openLeadStore, type LeadStore } from "@/entities/lead/server";
-import { bakedLocation, pointFor } from "@/entities/location";
+import { bakedPlace, contactOf, placeView } from "@/entities/place";
 import { analyticsSink, EVENTS } from "@/features/analytics/events";
 import { acceptLead, clientKey, RateLimiter } from "@/features/quote-form";
 import { hostSlug } from "@/features/request-routing";
@@ -33,17 +33,18 @@ function seeOther(location: string): Response {
 
 /** Where a page of the submitting point is — or of the brand, with no point. */
 function href(request: Request, slug: string | null, locale: Locale, suffix: string): string {
-  const location = slug ? bakedLocation(slug) : undefined;
+  const location = slug ? bakedPlace(slug) : undefined;
   if (!location) return `/${locale}${suffix}`;
   // Links follow the host the form was posted from: the point's subdomain, or
   // the apex fallback path.
   const mode = hostSlug(request.headers.get("host") ?? "") === location.slug ? "host" : "path";
-  return pointFor(location, locale, mode).href(suffix);
+  return placeView(location, locale, mode).href(suffix);
 }
 
 function unavailable(slug: string | null, locale: Locale): Response {
-  const location = slug ? bakedLocation(slug) : undefined;
-  const copy = copyFor({ locale, place: location?.place[locale] ?? site.brand.name, phone: location?.phone ?? site.brand.phone });
+  const location = slug ? bakedPlace(slug) : undefined;
+  const phone = location ? contactOf(location).phone : site.brand.phone;
+  const copy = copyFor({ locale, place: location?.name[locale] ?? site.brand.name, phone });
   const s = copy.t.serverError;
   const tel = `tel:${copy.f.phone.replace(/[^\d+]/g, "")}`;
   // Self-contained: the thing that failed may be the thing that renders pages.
