@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import type { Copy } from "@/entities/content";
 import { brandOrigin, isPublished, locationOrigin, type Point } from "@/entities/location";
-import { BRAND } from "@/shared/config/brand";
+import { site, PAGES, type PageKey } from "@/shared/config/site";
 import { i18n, LOCALES, OG_LOCALE, type Locale } from "@/shared/config/i18n";
-import { PAGES, type PageKey } from "@/shared/config/routes";
 
 /** The OG card, rendered at runtime by `app/og`; apex, so it never needs a rewrite. */
 export function ogImageUrl(query: { slug?: string; locale: Locale; page?: PageKey }): string {
@@ -28,7 +27,7 @@ function others(locale: Locale): string[] {
  */
 export function locationMetadata(point: Point, copy: Copy, page: PageKey): Metadata {
   const p = copy.t.pages[page];
-  const title = page === "home" ? `${BRAND.name} — ${p.title(copy.f)}` : `${p.title(copy.f)} · ${BRAND.name}`;
+  const title = page === "home" ? `${site.brand.name} — ${p.title(copy.f)}` : `${p.title(copy.f)} · ${site.brand.name}`;
   const description = p.description(copy.f);
   const canonical = point.url(PAGES[page]);
   const image = ogImageUrl({ slug: point.location.slug, locale: copy.locale, page });
@@ -42,7 +41,7 @@ export function locationMetadata(point: Point, copy: Copy, page: PageKey): Metad
     },
     openGraph: {
       type: "website",
-      siteName: BRAND.name,
+      siteName: site.brand.name,
       title,
       description,
       url: canonical,
@@ -63,7 +62,7 @@ export function brandMetadata(copy: Copy): Metadata {
     alternates: { canonical, languages: i18n.languageAlternates("/", brandOrigin()) },
     openGraph: {
       type: "website",
-      siteName: BRAND.name,
+      siteName: site.brand.name,
       title: b.title,
       description: b.description,
       url: canonical,
@@ -77,5 +76,5 @@ export function brandMetadata(copy: Copy): Metadata {
 
 /** Status pages must never be indexed nor appear in the sitemap. */
 export function statusMetadata(title: string): Metadata {
-  return { title: `${title} · ${BRAND.name}`, robots: { index: false, follow: false } };
+  return { title: `${title} · ${site.brand.name}`, robots: { index: false, follow: false } };
 }

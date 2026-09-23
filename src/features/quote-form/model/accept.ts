@@ -1,6 +1,5 @@
-import { LOCATION_SLUGS } from "@/entities/location";
 import { validateLead, type Lead } from "@/entities/lead";
-import { DEFAULT_LOCALE, isLocale, type Locale } from "@/shared/config/i18n";
+import type { BrandFacts, Site } from "@/shared/landing/core/site";
 import { HONEYPOT_FIELD, RENDERED_AT_FIELD, screen, type RateLimiter } from "./antispam";
 
 /** Hidden fields the form carries besides what the visitor types. */
@@ -11,10 +10,10 @@ export const FORM_ID_FIELD = "form_id";
 /** A field is capped, not rejected: a long answer is still a customer. */
 const MAX_FIELD = 200;
 
-export type Outcome =
-  | { kind: "stored"; id: number; lead: Lead; locale: Locale; formId: string }
-  | { kind: "invalid"; why: string; locale: Locale; slug: string | null }
-  | { kind: "failed"; locale: Locale; slug: string | null };
+export type Outcome<L extends string> =
+  | { kind: "stored"; id: number; lead: Lead; locale: L; formId: string }
+  | { kind: "invalid"; why: string; locale: L; slug: string | null }
+  | { kind: "failed"; locale: L; slug: string | null };
 
 export interface AcceptDeps {
   insert: (lead: Lead) => number;
@@ -46,11 +45,24 @@ function field(form: FormData, name: string): string | null {
  * `failed`, never `stored` — a thank-you page for a lead that was never
  * written is the worst outcome this system can produce.
  */
-export function acceptLead(form: FormData, clientKey: string, deps: AcceptDeps): Outcome {
+export function createAcceptLead<L extends string, P extends string, B extends BrandFacts>(
+  site: Site<L, P, B>,
+  placeSlugs: readonly string[],
+): (form: FormData, clientKey: string, deps: AcceptDeps) => Outcome<L> {
+  return (form, clientKey, deps) => accept(site, placeSlugs, form, clientKey, deps);
+}
+
+function accept<L extends string, P extends string, B extends BrandFacts>(
+  site: Site<L, P, B>,
+  placeSlugs: readonly string[],
+  form: FormData,
+  clientKey: string,
+  deps: AcceptDeps,
+): Outcome<L> {
   const rawSlug = field(form, LOCATION_FIELD);
-  const slug = rawSlug && LOCATION_SLUGS.includes(rawSlug) ? rawSlug : null;
+  const slug = rawSlug && placeSlugs.includes(rawSlug) ? rawSlug : null;
   const rawLocale = field(form, LOCALE_FIELD);
-  const locale = isLocale(rawLocale) ? rawLocale : DEFAULT_LOCALE;
+  const locale = site.i18n.isLocale(rawLocale) ? rawLocale : site.i18n.defaultLocale;
 
   const candidate = {
     job: field(form, "job") ?? "",

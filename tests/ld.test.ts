@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { PRICE_LIST } from "@/entities/content";
 import { LOCATIONS } from "@/entities/location";
 import { locationGraph } from "@/features/seo";
-import { PAGE_KEYS } from "@/shared/config/routes";
+import { PAGE_KEYS } from "@/shared/config/site";
 import { context, royat } from "./support/fixtures";
 
 type Node = Record<string, unknown>;

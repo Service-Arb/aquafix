@@ -1,6 +1,5 @@
 import { createBeaconSink, type AnalyticsSink } from "@evinvest/analytics";
-import { BRAND } from "@/shared/config/brand";
-import { THANKS } from "@/shared/config/routes";
+import { THANKS } from "@/shared/landing/core/routing";
 
 /**
  * The event model. Analytics records; it never decides what renders.
@@ -33,10 +32,15 @@ export function countsAsPageView(pathname: string): boolean {
   return !pathname.replace(/\/+$/, "").endsWith(THANKS);
 }
 
-/** Where events go. `key: null` → every capture is a silent no-op. */
+/**
+ * Where events go, and whose they are. `key: null` → every capture is a silent
+ * no-op. `brandId` travels in the target, not in an import of the site config:
+ * this module reaches the client island, and the config would ride with it.
+ */
 export interface AnalyticsTarget {
   key: string | null;
   host: string;
+  brandId: string;
 }
 
 /**
@@ -50,6 +54,6 @@ export function analyticsSink(target: AnalyticsTarget, locationId: string | null
     key: target.key ?? undefined,
     host: target.host,
     allowedProps: ALLOWED_PROPS,
-    globalProps: locationId ? { brand_id: BRAND.id, location_id: locationId } : { brand_id: BRAND.id },
+    globalProps: locationId ? { brand_id: target.brandId, location_id: locationId } : { brand_id: target.brandId },
   });
 }

@@ -4,7 +4,7 @@
  * `shared/config/build-env.ts`).
  */
 
-const MARK_PATH = process.env.AQUAFIX_MARK_PATH ?? "";
+const MARK_PATH = process.env.SITE_MARK_PATH ?? "";
 
 /**
  * The display face on a call to action. `cn` merges `font-*` as one group, so a

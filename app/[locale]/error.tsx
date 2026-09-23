@@ -2,7 +2,7 @@
 
 import { useParams, usePathname } from "next/navigation";
 import { copyFor } from "@/entities/content";
-import { BRAND } from "@/shared/config/brand";
+import { site } from "@/shared/config/site";
 import { DEFAULT_LOCALE, isLocale, perLocale } from "@/shared/config/i18n";
 import { StatusScreen } from "@/widgets/status-screen";
 
@@ -15,12 +15,12 @@ export default function ServerError() {
   const params = useParams<{ locale?: string }>();
   const pathname = usePathname();
   const locale = isLocale(params.locale) ? params.locale : DEFAULT_LOCALE;
-  const copy = copyFor({ locale, place: BRAND.name, phone: BRAND.phone });
+  const copy = copyFor({ locale, place: site.brand.name, phone: site.brand.phone });
   return (
     <StatusScreen
       copy={copy}
       status={copy.t.serverError}
-      target={{ phone: BRAND.phone, home: `/${locale}`, retry: pathname, langHrefs: perLocale(l => `/${l}`) }}
+      target={{ phone: site.brand.phone, home: `/${locale}`, retry: pathname, langHrefs: perLocale(l => `/${l}`) }}
     />
   );
 }

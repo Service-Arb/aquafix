@@ -1,4 +1,4 @@
-import { BRAND } from "@/shared/config/brand";
+import { site } from "@/shared/config/site";
 import type { Location, PostalAddress } from "../model/types";
 
 /**
@@ -23,9 +23,9 @@ function point(
     gbpName,
     place: { fr: place, en: place },
     address: { ...address, region: ARA, country: "FR" },
-    phone: BRAND.phone,
+    phone: site.brand.phone,
     // The card's number until a point has its own WhatsApp Business line.
-    whatsapp: BRAND.phone,
+    whatsapp: site.brand.phone,
     geo: null,
     storefrontPhoto: null,
     landmark: null,

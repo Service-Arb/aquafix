@@ -1,5 +1,5 @@
 import type { Locale } from "@/shared/config/i18n";
-import type { LinkMode } from "@/shared/config/routes";
+import type { LinkMode } from "@/shared/landing/core/routing";
 import { locationHref, locationUrl } from "../lib/urls";
 import type { Location } from "./types";
 

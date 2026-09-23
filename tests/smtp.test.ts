@@ -1,6 +1,6 @@
 import { createServer, type AddressInfo, type Server, type Socket } from "node:net";
 import { afterEach, describe, expect, it } from "vitest";
-import { sendMail } from "@/shared/lib/smtp";
+import { sendMail } from "@/shared/landing/server/smtp";
 
 let server: Server | undefined;
 const open: Socket[] = [];
@@ -67,12 +67,14 @@ function fakeSmtp(script: Script = {}): Promise<{ port: number; lines: string[] 
 }
 
 const mail = { from: "leads@aquafix.top", to: "val@aquafix.top", subject: "Aquafix — nouvelle demande", text: "Demande #1" };
+const OPTS = { helo: "aquafix.top" };
 
 describe("the SMTP client", () => {
   it("delivers one message with auth, an encoded subject, a Message-ID and a base64 body", async () => {
     const { port, lines } = await fakeSmtp();
-    await sendMail(`smtp://user:secret@127.0.0.1:${port}`, mail);
+    await sendMail(`smtp://user:secret@127.0.0.1:${port}`, mail, OPTS);
     expect(lines).toContain(`AUTH PLAIN ${Buffer.from("\0user\0secret").toString("base64")}`);
+    expect(lines).toContain("EHLO aquafix.top");
     expect(lines).toContain("RCPT TO:<val@aquafix.top>");
     expect(lines.some(l => l.startsWith("Subject: =?UTF-8?B?"))).toBe(true);
     expect(lines.some(l => /^Message-ID: <[0-9a-f-]+@aquafix\.top>$/.test(l))).toBe(true);
@@ -82,23 +84,23 @@ describe("the SMTP client", () => {
 
   it("fails loudly when the server refuses the recipient", async () => {
     const { port } = await fakeSmtp({ rcpt: "550 no such user\r\n" });
-    await expect(sendMail(`smtp://127.0.0.1:${port}`, mail)).rejects.toThrow(/RCPT TO refused/);
+    await expect(sendMail(`smtp://127.0.0.1:${port}`, mail, OPTS)).rejects.toThrow(/RCPT TO refused/);
   });
 
   it("rejects, not hangs, when the server hangs up mid-conversation", async () => {
     const { port } = await fakeSmtp({ hangUpAtMail: true });
-    await expect(sendMail(`smtp://127.0.0.1:${port}`, mail, 5_000)).rejects.toThrow(/closed/);
+    await expect(sendMail(`smtp://127.0.0.1:${port}`, mail, { ...OPTS, timeoutMs: 5_000 })).rejects.toThrow(/closed/);
   });
 
   it("gives up on a server that accepts and says nothing", async () => {
     const { port } = await fakeSmtp({ silent: true });
-    await expect(sendMail(`smtp://127.0.0.1:${port}`, mail, 300)).rejects.toThrow(/no answer within 300 ms/);
+    await expect(sendMail(`smtp://127.0.0.1:${port}`, mail, { ...OPTS, timeoutMs: 300 })).rejects.toThrow(/no answer within 300 ms/);
   });
 
   it("sends nothing in the clear to a server off loopback that offers no TLS", async () => {
     const { port, lines } = await fakeSmtp({ anyAddress: true });
     // Loopback reached through a spelling the client does not treat as loopback.
-    await expect(sendMail(`smtp://[::ffff:127.0.0.1]:${port}`, mail)).rejects.toThrow(/no TLS/);
+    await expect(sendMail(`smtp://[::ffff:127.0.0.1]:${port}`, mail, OPTS)).rejects.toThrow(/no TLS/);
     expect(lines.some(l => l.startsWith("MAIL FROM"))).toBe(false);
   });
 });

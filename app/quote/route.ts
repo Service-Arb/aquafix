@@ -5,10 +5,10 @@ import { bakedLocation, pointFor } from "@/entities/location";
 import { analyticsSink, EVENTS } from "@/features/analytics/events";
 import { acceptLead, clientKey, RateLimiter } from "@/features/quote-form";
 import { hostSlug } from "@/features/request-routing";
-import { BRAND } from "@/shared/config/brand";
+import { site } from "@/shared/config/site";
 import { serverEnv } from "@/shared/config/env";
 import type { Locale } from "@/shared/config/i18n";
-import { THANKS } from "@/shared/config/routes";
+import { THANKS } from "@/shared/landing/core/routing";
 
 /**
  * The no-JS path, and the one that has to keep working: a plain form POST
@@ -43,7 +43,7 @@ function href(request: Request, slug: string | null, locale: Locale, suffix: str
 
 function unavailable(slug: string | null, locale: Locale): Response {
   const location = slug ? bakedLocation(slug) : undefined;
-  const copy = copyFor({ locale, place: location?.place[locale] ?? BRAND.name, phone: location?.phone ?? BRAND.phone });
+  const copy = copyFor({ locale, place: location?.place[locale] ?? site.brand.name, phone: location?.phone ?? site.brand.phone });
   const s = copy.t.serverError;
   const tel = `tel:${copy.f.phone.replace(/[^\d+]/g, "")}`;
   // Self-contained: the thing that failed may be the thing that renders pages.
@@ -66,9 +66,10 @@ export async function POST(request: Request): Promise<Response> {
     defer: task => after(task),
     notify: (lead, id) => notifier.notify(lead, id),
     capture: (lead, formId) =>
-      analyticsSink({ key: env.posthogKey, host: env.posthogHost }, lead.locationId).capture(EVENTS.leadSubmit, {
-        form_id: formId,
-      }),
+      analyticsSink({ key: env.posthogKey, host: env.posthogHost, brandId: site.brand.id }, lead.locationId).capture(
+        EVENTS.leadSubmit,
+        { form_id: formId },
+      ),
     limiter,
     now: Date.now(),
     log: console,

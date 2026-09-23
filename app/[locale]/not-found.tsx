@@ -1,3 +1,4 @@
+import { site } from "@/shared/config/site";
 import { StatusScreen } from "@/widgets/status-screen";
 import { loadNotFound } from "@/views/location/server";
 
@@ -10,7 +11,7 @@ export default async function NotFound() {
   const { copy, target } = await loadNotFound();
   return (
     <>
-      <title>{`${copy.t.notFound.title} · Aquafix`}</title>
+      <title>{`${copy.t.notFound.title} · ${site.brand.name}`}</title>
       <StatusScreen copy={copy} status={copy.t.notFound} target={target} />
     </>
   );

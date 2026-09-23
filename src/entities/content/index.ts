@@ -1,4 +1,4 @@
-import { BRAND } from "@/shared/config/brand";
+import { TRADE } from "@/shared/config/site";
 import type { Locale } from "@/shared/config/i18n";
 import { formatEur } from "@/shared/lib/money";
 import { priceOf } from "./model/catalogue";
@@ -37,12 +37,12 @@ export function factsFor(input: { locale: Locale; place: string; phone: string }
     place: input.place,
     phone: input.phone,
     price: id => formatEur(priceOf(id), locale),
-    callout: formatEur(BRAND.calloutEur, locale),
-    surcharge: formatEur(BRAND.surchargeEur, locale),
-    siret: BRAND.siret,
-    insurer: BRAND.decennale.insurer,
-    policy: BRAND.decennale.policy,
-    radiusKm: BRAND.radiusKm,
+    callout: formatEur(TRADE.calloutEur, locale),
+    surcharge: formatEur(TRADE.surchargeEur, locale),
+    siret: TRADE.siret,
+    insurer: TRADE.decennale.insurer,
+    policy: TRADE.decennale.policy,
+    radiusKm: TRADE.radiusKm,
   };
 }
 
