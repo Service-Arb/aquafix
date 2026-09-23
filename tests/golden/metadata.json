@@ -1,0 +1,711 @@
+{
+  "royat/fr/home": {
+    "title": "Aquafix — Plombier à Royat — prix fixe, réparé aujourd’hui",
+    "description": "Plombiers à Royat. Tarif fixe écrit avant de commencer, une fenêtre d’arrivée de 2 heures ou le déplacement est offert, et une garantie de 12 mois. Prix publiés pour neuf interventions.",
+    "robots": {
+      "index": false,
+      "follow": true
+    },
+    "alternates": {
+      "canonical": "https://royat.aquafix.top/fr",
+      "languages": {
+        "fr-FR": "https://royat.aquafix.top/fr",
+        "en": "https://royat.aquafix.top/en",
+        "x-default": "https://royat.aquafix.top/fr"
+      }
+    },
+    "openGraph": {
+      "type": "website",
+      "siteName": "Aquafix",
+      "title": "Aquafix — Plombier à Royat — prix fixe, réparé aujourd’hui",
+      "description": "Plombiers à Royat. Tarif fixe écrit avant de commencer, une fenêtre d’arrivée de 2 heures ou le déplacement est offert, et une garantie de 12 mois. Prix publiés pour neuf interventions.",
+      "url": "https://royat.aquafix.top/fr",
+      "locale": "fr_FR",
+      "alternateLocale": [
+        "en_GB"
+      ],
+      "images": [
+        {
+          "url": "https://aquafix.top/og?lang=fr&l=royat&p=home",
+          "width": 1200,
+          "height": 630
+        }
+      ]
+    },
+    "twitter": {
+      "card": "summary_large_image"
+    }
+  },
+  "royat/fr/prices": {
+    "title": "Chaque intervention, chaque chiffre · Aquafix",
+    "description": "La liste complète des prix Aquafix à Royat : neuf interventions, de vrais tarifs fixes TTC, et les questions que tout le monde pose avant de réserver.",
+    "robots": {
+      "index": false,
+      "follow": true
+    },
+    "alternates": {
+      "canonical": "https://royat.aquafix.top/fr/prices",
+      "languages": {
+        "fr-FR": "https://royat.aquafix.top/fr/prices",
+        "en": "https://royat.aquafix.top/en/prices",
+        "x-default": "https://royat.aquafix.top/fr/prices"
+      }
+    },
+    "openGraph": {
+      "type": "website",
+      "siteName": "Aquafix",
+      "title": "Chaque intervention, chaque chiffre · Aquafix",
+      "description": "La liste complète des prix Aquafix à Royat : neuf interventions, de vrais tarifs fixes TTC, et les questions que tout le monde pose avant de réserver.",
+      "url": "https://royat.aquafix.top/fr/prices",
+      "locale": "fr_FR",
+      "alternateLocale": [
+        "en_GB"
+      ],
+      "images": [
+        {
+          "url": "https://aquafix.top/og?lang=fr&l=royat&p=prices",
+          "width": 1200,
+          "height": 630
+        }
+      ]
+    },
+    "twitter": {
+      "card": "summary_large_image"
+    }
+  },
+  "royat/fr/guarantee": {
+    "title": "Ce que nous promettons vraiment · Aquafix",
+    "description": "Les quatre craintes que l’on a en appelant un plombier, les conditions écrites qui suppriment chacune d’elles, et le déroulement d’une intervention Aquafix du début à la fin.",
+    "robots": {
+      "index": false,
+      "follow": true
+    },
+    "alternates": {
+      "canonical": "https://royat.aquafix.top/fr/guarantee",
+      "languages": {
+        "fr-FR": "https://royat.aquafix.top/fr/guarantee",
+        "en": "https://royat.aquafix.top/en/guarantee",
+        "x-default": "https://royat.aquafix.top/fr/guarantee"
+      }
+    },
+    "openGraph": {
+      "type": "website",
+      "siteName": "Aquafix",
+      "title": "Ce que nous promettons vraiment · Aquafix",
+      "description": "Les quatre craintes que l’on a en appelant un plombier, les conditions écrites qui suppriment chacune d’elles, et le déroulement d’une intervention Aquafix du début à la fin.",
+      "url": "https://royat.aquafix.top/fr/guarantee",
+      "locale": "fr_FR",
+      "alternateLocale": [
+        "en_GB"
+      ],
+      "images": [
+        {
+          "url": "https://aquafix.top/og?lang=fr&l=royat&p=guarantee",
+          "width": 1200,
+          "height": 630
+        }
+      ]
+    },
+    "twitter": {
+      "card": "summary_large_image"
+    }
+  },
+  "royat/fr/about": {
+    "title": "Quatre plombiers et un rayon de 30 km · Aquafix",
+    "description": "Qui se présente chez vous, comment ils sont assurés, et exactement où autour de Royat nous acceptons — ou refusons — de nous déplacer.",
+    "robots": {
+      "index": false,
+      "follow": true
+    },
+    "alternates": {
+      "canonical": "https://royat.aquafix.top/fr/about",
+      "languages": {
+        "fr-FR": "https://royat.aquafix.top/fr/about",
+        "en": "https://royat.aquafix.top/en/about",
+        "x-default": "https://royat.aquafix.top/fr/about"
+      }
+    },
+    "openGraph": {
+      "type": "website",
+      "siteName": "Aquafix",
+      "title": "Quatre plombiers et un rayon de 30 km · Aquafix",
+      "description": "Qui se présente chez vous, comment ils sont assurés, et exactement où autour de Royat nous acceptons — ou refusons — de nous déplacer.",
+      "url": "https://royat.aquafix.top/fr/about",
+      "locale": "fr_FR",
+      "alternateLocale": [
+        "en_GB"
+      ],
+      "images": [
+        {
+          "url": "https://aquafix.top/og?lang=fr&l=royat&p=about",
+          "width": 1200,
+          "height": 630
+        }
+      ]
+    },
+    "twitter": {
+      "card": "summary_large_image"
+    }
+  },
+  "royat/en/home": {
+    "title": "Aquafix — Plumber in Royat — fixed price, fixed today",
+    "description": "Plumbers in Royat. A written flat rate before we start, a 2-hour arrival window or the call-out is free, and a 12-month warranty. Published prices for nine jobs.",
+    "robots": {
+      "index": false,
+      "follow": true
+    },
+    "alternates": {
+      "canonical": "https://royat.aquafix.top/en",
+      "languages": {
+        "fr-FR": "https://royat.aquafix.top/fr",
+        "en": "https://royat.aquafix.top/en",
+        "x-default": "https://royat.aquafix.top/fr"
+      }
+    },
+    "openGraph": {
+      "type": "website",
+      "siteName": "Aquafix",
+      "title": "Aquafix — Plumber in Royat — fixed price, fixed today",
+      "description": "Plumbers in Royat. A written flat rate before we start, a 2-hour arrival window or the call-out is free, and a 12-month warranty. Published prices for nine jobs.",
+      "url": "https://royat.aquafix.top/en",
+      "locale": "en_GB",
+      "alternateLocale": [
+        "fr_FR"
+      ],
+      "images": [
+        {
+          "url": "https://aquafix.top/og?lang=en&l=royat&p=home",
+          "width": 1200,
+          "height": 630
+        }
+      ]
+    },
+    "twitter": {
+      "card": "summary_large_image"
+    }
+  },
+  "royat/en/prices": {
+    "title": "Every job, every number · Aquafix",
+    "description": "The full Aquafix price list in Royat: nine jobs, real flat rates including TVA, and the questions everybody asks before booking.",
+    "robots": {
+      "index": false,
+      "follow": true
+    },
+    "alternates": {
+      "canonical": "https://royat.aquafix.top/en/prices",
+      "languages": {
+        "fr-FR": "https://royat.aquafix.top/fr/prices",
+        "en": "https://royat.aquafix.top/en/prices",
+        "x-default": "https://royat.aquafix.top/fr/prices"
+      }
+    },
+    "openGraph": {
+      "type": "website",
+      "siteName": "Aquafix",
+      "title": "Every job, every number · Aquafix",
+      "description": "The full Aquafix price list in Royat: nine jobs, real flat rates including TVA, and the questions everybody asks before booking.",
+      "url": "https://royat.aquafix.top/en/prices",
+      "locale": "en_GB",
+      "alternateLocale": [
+        "fr_FR"
+      ],
+      "images": [
+        {
+          "url": "https://aquafix.top/og?lang=en&l=royat&p=prices",
+          "width": 1200,
+          "height": 630
+        }
+      ]
+    },
+    "twitter": {
+      "card": "summary_large_image"
+    }
+  },
+  "royat/en/guarantee": {
+    "title": "What we actually promise · Aquafix",
+    "description": "The four things people fear about calling a plumber, the written terms that remove each one, and how an Aquafix job runs start to finish.",
+    "robots": {
+      "index": false,
+      "follow": true
+    },
+    "alternates": {
+      "canonical": "https://royat.aquafix.top/en/guarantee",
+      "languages": {
+        "fr-FR": "https://royat.aquafix.top/fr/guarantee",
+        "en": "https://royat.aquafix.top/en/guarantee",
+        "x-default": "https://royat.aquafix.top/fr/guarantee"
+      }
+    },
+    "openGraph": {
+      "type": "website",
+      "siteName": "Aquafix",
+      "title": "What we actually promise · Aquafix",
+      "description": "The four things people fear about calling a plumber, the written terms that remove each one, and how an Aquafix job runs start to finish.",
+      "url": "https://royat.aquafix.top/en/guarantee",
+      "locale": "en_GB",
+      "alternateLocale": [
+        "fr_FR"
+      ],
+      "images": [
+        {
+          "url": "https://aquafix.top/og?lang=en&l=royat&p=guarantee",
+          "width": 1200,
+          "height": 630
+        }
+      ]
+    },
+    "twitter": {
+      "card": "summary_large_image"
+    }
+  },
+  "royat/en/about": {
+    "title": "Four plumbers and a 30 km radius · Aquafix",
+    "description": "Who turns up, how they are insured, and exactly where around Royat we will and will not drive.",
+    "robots": {
+      "index": false,
+      "follow": true
+    },
+    "alternates": {
+      "canonical": "https://royat.aquafix.top/en/about",
+      "languages": {
+        "fr-FR": "https://royat.aquafix.top/fr/about",
+        "en": "https://royat.aquafix.top/en/about",
+        "x-default": "https://royat.aquafix.top/fr/about"
+      }
+    },
+    "openGraph": {
+      "type": "website",
+      "siteName": "Aquafix",
+      "title": "Four plumbers and a 30 km radius · Aquafix",
+      "description": "Who turns up, how they are insured, and exactly where around Royat we will and will not drive.",
+      "url": "https://royat.aquafix.top/en/about",
+      "locale": "en_GB",
+      "alternateLocale": [
+        "fr_FR"
+      ],
+      "images": [
+        {
+          "url": "https://aquafix.top/og?lang=en&l=royat&p=about",
+          "width": 1200,
+          "height": 630
+        }
+      ]
+    },
+    "twitter": {
+      "card": "summary_large_image"
+    }
+  },
+  "royat-published/fr/home": {
+    "title": "Aquafix — Plombier à Royat — prix fixe, réparé aujourd’hui",
+    "description": "Plombiers à Royat. Tarif fixe écrit avant de commencer, une fenêtre d’arrivée de 2 heures ou le déplacement est offert, et une garantie de 12 mois. Prix publiés pour neuf interventions.",
+    "robots": {
+      "index": true,
+      "follow": true
+    },
+    "alternates": {
+      "canonical": "https://royat.aquafix.top/fr",
+      "languages": {
+        "fr-FR": "https://royat.aquafix.top/fr",
+        "en": "https://royat.aquafix.top/en",
+        "x-default": "https://royat.aquafix.top/fr"
+      }
+    },
+    "openGraph": {
+      "type": "website",
+      "siteName": "Aquafix",
+      "title": "Aquafix — Plombier à Royat — prix fixe, réparé aujourd’hui",
+      "description": "Plombiers à Royat. Tarif fixe écrit avant de commencer, une fenêtre d’arrivée de 2 heures ou le déplacement est offert, et une garantie de 12 mois. Prix publiés pour neuf interventions.",
+      "url": "https://royat.aquafix.top/fr",
+      "locale": "fr_FR",
+      "alternateLocale": [
+        "en_GB"
+      ],
+      "images": [
+        {
+          "url": "https://aquafix.top/og?lang=fr&l=royat&p=home",
+          "width": 1200,
+          "height": 630
+        }
+      ]
+    },
+    "twitter": {
+      "card": "summary_large_image"
+    }
+  },
+  "royat-published/fr/prices": {
+    "title": "Chaque intervention, chaque chiffre · Aquafix",
+    "description": "La liste complète des prix Aquafix à Royat : neuf interventions, de vrais tarifs fixes TTC, et les questions que tout le monde pose avant de réserver.",
+    "robots": {
+      "index": true,
+      "follow": true
+    },
+    "alternates": {
+      "canonical": "https://royat.aquafix.top/fr/prices",
+      "languages": {
+        "fr-FR": "https://royat.aquafix.top/fr/prices",
+        "en": "https://royat.aquafix.top/en/prices",
+        "x-default": "https://royat.aquafix.top/fr/prices"
+      }
+    },
+    "openGraph": {
+      "type": "website",
+      "siteName": "Aquafix",
+      "title": "Chaque intervention, chaque chiffre · Aquafix",
+      "description": "La liste complète des prix Aquafix à Royat : neuf interventions, de vrais tarifs fixes TTC, et les questions que tout le monde pose avant de réserver.",
+      "url": "https://royat.aquafix.top/fr/prices",
+      "locale": "fr_FR",
+      "alternateLocale": [
+        "en_GB"
+      ],
+      "images": [
+        {
+          "url": "https://aquafix.top/og?lang=fr&l=royat&p=prices",
+          "width": 1200,
+          "height": 630
+        }
+      ]
+    },
+    "twitter": {
+      "card": "summary_large_image"
+    }
+  },
+  "royat-published/fr/guarantee": {
+    "title": "Ce que nous promettons vraiment · Aquafix",
+    "description": "Les quatre craintes que l’on a en appelant un plombier, les conditions écrites qui suppriment chacune d’elles, et le déroulement d’une intervention Aquafix du début à la fin.",
+    "robots": {
+      "index": true,
+      "follow": true
+    },
+    "alternates": {
+      "canonical": "https://royat.aquafix.top/fr/guarantee",
+      "languages": {
+        "fr-FR": "https://royat.aquafix.top/fr/guarantee",
+        "en": "https://royat.aquafix.top/en/guarantee",
+        "x-default": "https://royat.aquafix.top/fr/guarantee"
+      }
+    },
+    "openGraph": {
+      "type": "website",
+      "siteName": "Aquafix",
+      "title": "Ce que nous promettons vraiment · Aquafix",
+      "description": "Les quatre craintes que l’on a en appelant un plombier, les conditions écrites qui suppriment chacune d’elles, et le déroulement d’une intervention Aquafix du début à la fin.",
+      "url": "https://royat.aquafix.top/fr/guarantee",
+      "locale": "fr_FR",
+      "alternateLocale": [
+        "en_GB"
+      ],
+      "images": [
+        {
+          "url": "https://aquafix.top/og?lang=fr&l=royat&p=guarantee",
+          "width": 1200,
+          "height": 630
+        }
+      ]
+    },
+    "twitter": {
+      "card": "summary_large_image"
+    }
+  },
+  "royat-published/fr/about": {
+    "title": "Quatre plombiers et un rayon de 30 km · Aquafix",
+    "description": "Qui se présente chez vous, comment ils sont assurés, et exactement où autour de Royat nous acceptons — ou refusons — de nous déplacer.",
+    "robots": {
+      "index": true,
+      "follow": true
+    },
+    "alternates": {
+      "canonical": "https://royat.aquafix.top/fr/about",
+      "languages": {
+        "fr-FR": "https://royat.aquafix.top/fr/about",
+        "en": "https://royat.aquafix.top/en/about",
+        "x-default": "https://royat.aquafix.top/fr/about"
+      }
+    },
+    "openGraph": {
+      "type": "website",
+      "siteName": "Aquafix",
+      "title": "Quatre plombiers et un rayon de 30 km · Aquafix",
+      "description": "Qui se présente chez vous, comment ils sont assurés, et exactement où autour de Royat nous acceptons — ou refusons — de nous déplacer.",
+      "url": "https://royat.aquafix.top/fr/about",
+      "locale": "fr_FR",
+      "alternateLocale": [
+        "en_GB"
+      ],
+      "images": [
+        {
+          "url": "https://aquafix.top/og?lang=fr&l=royat&p=about",
+          "width": 1200,
+          "height": 630
+        }
+      ]
+    },
+    "twitter": {
+      "card": "summary_large_image"
+    }
+  },
+  "royat-published/en/home": {
+    "title": "Aquafix — Plumber in Royat — fixed price, fixed today",
+    "description": "Plumbers in Royat. A written flat rate before we start, a 2-hour arrival window or the call-out is free, and a 12-month warranty. Published prices for nine jobs.",
+    "robots": {
+      "index": true,
+      "follow": true
+    },
+    "alternates": {
+      "canonical": "https://royat.aquafix.top/en",
+      "languages": {
+        "fr-FR": "https://royat.aquafix.top/fr",
+        "en": "https://royat.aquafix.top/en",
+        "x-default": "https://royat.aquafix.top/fr"
+      }
+    },
+    "openGraph": {
+      "type": "website",
+      "siteName": "Aquafix",
+      "title": "Aquafix — Plumber in Royat — fixed price, fixed today",
+      "description": "Plumbers in Royat. A written flat rate before we start, a 2-hour arrival window or the call-out is free, and a 12-month warranty. Published prices for nine jobs.",
+      "url": "https://royat.aquafix.top/en",
+      "locale": "en_GB",
+      "alternateLocale": [
+        "fr_FR"
+      ],
+      "images": [
+        {
+          "url": "https://aquafix.top/og?lang=en&l=royat&p=home",
+          "width": 1200,
+          "height": 630
+        }
+      ]
+    },
+    "twitter": {
+      "card": "summary_large_image"
+    }
+  },
+  "royat-published/en/prices": {
+    "title": "Every job, every number · Aquafix",
+    "description": "The full Aquafix price list in Royat: nine jobs, real flat rates including TVA, and the questions everybody asks before booking.",
+    "robots": {
+      "index": true,
+      "follow": true
+    },
+    "alternates": {
+      "canonical": "https://royat.aquafix.top/en/prices",
+      "languages": {
+        "fr-FR": "https://royat.aquafix.top/fr/prices",
+        "en": "https://royat.aquafix.top/en/prices",
+        "x-default": "https://royat.aquafix.top/fr/prices"
+      }
+    },
+    "openGraph": {
+      "type": "website",
+      "siteName": "Aquafix",
+      "title": "Every job, every number · Aquafix",
+      "description": "The full Aquafix price list in Royat: nine jobs, real flat rates including TVA, and the questions everybody asks before booking.",
+      "url": "https://royat.aquafix.top/en/prices",
+      "locale": "en_GB",
+      "alternateLocale": [
+        "fr_FR"
+      ],
+      "images": [
+        {
+          "url": "https://aquafix.top/og?lang=en&l=royat&p=prices",
+          "width": 1200,
+          "height": 630
+        }
+      ]
+    },
+    "twitter": {
+      "card": "summary_large_image"
+    }
+  },
+  "royat-published/en/guarantee": {
+    "title": "What we actually promise · Aquafix",
+    "description": "The four things people fear about calling a plumber, the written terms that remove each one, and how an Aquafix job runs start to finish.",
+    "robots": {
+      "index": true,
+      "follow": true
+    },
+    "alternates": {
+      "canonical": "https://royat.aquafix.top/en/guarantee",
+      "languages": {
+        "fr-FR": "https://royat.aquafix.top/fr/guarantee",
+        "en": "https://royat.aquafix.top/en/guarantee",
+        "x-default": "https://royat.aquafix.top/fr/guarantee"
+      }
+    },
+    "openGraph": {
+      "type": "website",
+      "siteName": "Aquafix",
+      "title": "What we actually promise · Aquafix",
+      "description": "The four things people fear about calling a plumber, the written terms that remove each one, and how an Aquafix job runs start to finish.",
+      "url": "https://royat.aquafix.top/en/guarantee",
+      "locale": "en_GB",
+      "alternateLocale": [
+        "fr_FR"
+      ],
+      "images": [
+        {
+          "url": "https://aquafix.top/og?lang=en&l=royat&p=guarantee",
+          "width": 1200,
+          "height": 630
+        }
+      ]
+    },
+    "twitter": {
+      "card": "summary_large_image"
+    }
+  },
+  "royat-published/en/about": {
+    "title": "Four plumbers and a 30 km radius · Aquafix",
+    "description": "Who turns up, how they are insured, and exactly where around Royat we will and will not drive.",
+    "robots": {
+      "index": true,
+      "follow": true
+    },
+    "alternates": {
+      "canonical": "https://royat.aquafix.top/en/about",
+      "languages": {
+        "fr-FR": "https://royat.aquafix.top/fr/about",
+        "en": "https://royat.aquafix.top/en/about",
+        "x-default": "https://royat.aquafix.top/fr/about"
+      }
+    },
+    "openGraph": {
+      "type": "website",
+      "siteName": "Aquafix",
+      "title": "Four plumbers and a 30 km radius · Aquafix",
+      "description": "Who turns up, how they are insured, and exactly where around Royat we will and will not drive.",
+      "url": "https://royat.aquafix.top/en/about",
+      "locale": "en_GB",
+      "alternateLocale": [
+        "fr_FR"
+      ],
+      "images": [
+        {
+          "url": "https://aquafix.top/og?lang=en&l=royat&p=about",
+          "width": 1200,
+          "height": 630
+        }
+      ]
+    },
+    "twitter": {
+      "card": "summary_large_image"
+    }
+  },
+  "brand/fr": {
+    "title": "Aquafix — plombiers chauffagistes à Clermont-Ferrand et Lyon",
+    "description": "Aquafix, plomberie et chauffage : un tarif fixe écrit avant les travaux, une fenêtre d’arrivée de 2 heures et une garantie de 12 mois. Six points entre Clermont-Ferrand et Lyon.",
+    "alternates": {
+      "canonical": "https://aquafix.top/fr",
+      "languages": {
+        "fr-FR": "https://aquafix.top/fr",
+        "en": "https://aquafix.top/en",
+        "x-default": "https://aquafix.top/fr"
+      }
+    },
+    "openGraph": {
+      "type": "website",
+      "siteName": "Aquafix",
+      "title": "Aquafix — plombiers chauffagistes à Clermont-Ferrand et Lyon",
+      "description": "Aquafix, plomberie et chauffage : un tarif fixe écrit avant les travaux, une fenêtre d’arrivée de 2 heures et une garantie de 12 mois. Six points entre Clermont-Ferrand et Lyon.",
+      "url": "https://aquafix.top/fr",
+      "locale": "fr_FR",
+      "alternateLocale": [
+        "en_GB"
+      ],
+      "images": [
+        {
+          "url": "https://aquafix.top/og?lang=fr",
+          "width": 1200,
+          "height": 630
+        }
+      ]
+    },
+    "twitter": {
+      "card": "summary_large_image"
+    }
+  },
+  "status/fr": {
+    "title": "Demande reçue · Aquafix",
+    "robots": {
+      "index": false,
+      "follow": false
+    }
+  },
+  "brand/en": {
+    "title": "Aquafix — plumbers in Clermont-Ferrand and Lyon",
+    "description": "Aquafix plumbing and heating: a written flat rate before work starts, a 2-hour arrival window and a 12-month warranty. Six points across Clermont-Ferrand and Lyon.",
+    "alternates": {
+      "canonical": "https://aquafix.top/en",
+      "languages": {
+        "fr-FR": "https://aquafix.top/fr",
+        "en": "https://aquafix.top/en",
+        "x-default": "https://aquafix.top/fr"
+      }
+    },
+    "openGraph": {
+      "type": "website",
+      "siteName": "Aquafix",
+      "title": "Aquafix — plumbers in Clermont-Ferrand and Lyon",
+      "description": "Aquafix plumbing and heating: a written flat rate before work starts, a 2-hour arrival window and a 12-month warranty. Six points across Clermont-Ferrand and Lyon.",
+      "url": "https://aquafix.top/en",
+      "locale": "en_GB",
+      "alternateLocale": [
+        "fr_FR"
+      ],
+      "images": [
+        {
+          "url": "https://aquafix.top/og?lang=en",
+          "width": 1200,
+          "height": 630
+        }
+      ]
+    },
+    "twitter": {
+      "card": "summary_large_image"
+    }
+  },
+  "status/en": {
+    "title": "Request received · Aquafix",
+    "robots": {
+      "index": false,
+      "follow": false
+    }
+  },
+  "royat/fr/home (path mode)": {
+    "title": "Aquafix — Plombier à Royat — prix fixe, réparé aujourd’hui",
+    "description": "Plombiers à Royat. Tarif fixe écrit avant de commencer, une fenêtre d’arrivée de 2 heures ou le déplacement est offert, et une garantie de 12 mois. Prix publiés pour neuf interventions.",
+    "robots": {
+      "index": false,
+      "follow": true
+    },
+    "alternates": {
+      "canonical": "https://royat.aquafix.top/fr",
+      "languages": {
+        "fr-FR": "https://royat.aquafix.top/fr",
+        "en": "https://royat.aquafix.top/en",
+        "x-default": "https://royat.aquafix.top/fr"
+      }
+    },
+    "openGraph": {
+      "type": "website",
+      "siteName": "Aquafix",
+      "title": "Aquafix — Plombier à Royat — prix fixe, réparé aujourd’hui",
+      "description": "Plombiers à Royat. Tarif fixe écrit avant de commencer, une fenêtre d’arrivée de 2 heures ou le déplacement est offert, et une garantie de 12 mois. Prix publiés pour neuf interventions.",
+      "url": "https://royat.aquafix.top/fr",
+      "locale": "fr_FR",
+      "alternateLocale": [
+        "en_GB"
+      ],
+      "images": [
+        {
+          "url": "https://aquafix.top/og?lang=fr&l=royat&p=home",
+          "width": 1200,
+          "height": 630
+        }
+      ]
+    },
+    "twitter": {
+      "card": "summary_large_image"
+    }
+  }
+}
