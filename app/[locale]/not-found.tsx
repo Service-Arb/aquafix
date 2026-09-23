@@ -1,17 +1,18 @@
-import { StatusScreen } from "@/widgets/status-screen";
-import { loadNotFound } from "@/views/location/server";
+"use client";
+
+import dynamic from "next/dynamic";
 
 /**
- * A real 404 — a soft one would keep the dead URL in the index. The visitor
- * still gets the offer and the phone. No `robots` here: Next already emits
- * `noindex` for a not-found render, and a second tag was a duplicate.
+ * Next renders a segment's not-found boundary into every page under it, so it
+ * must not read the request (that would make each cached page per-request
+ * again) and should not weigh on pages that never 404. The screen is a lazily
+ * loaded client component over the route params; the server still renders it
+ * into a 404 response. A client module itself, because `dynamic` only splits
+ * code from one: from a Server Component the screen and the whole copy would
+ * ride in every page's first load.
  */
-export default async function NotFound() {
-  const { copy, target } = await loadNotFound();
-  return (
-    <>
-      <title>{`${copy.t.notFound.title} · Aquafix`}</title>
-      <StatusScreen copy={copy} status={copy.t.notFound} target={target} />
-    </>
-  );
+const Screen = dynamic(() => import("@/views/not-found").then(m => m.NotFound));
+
+export default function NotFound() {
+  return <Screen />;
 }

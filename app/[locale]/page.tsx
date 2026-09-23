@@ -7,9 +7,14 @@ import { BRAND } from "@/shared/config/brand";
 import { isLocale } from "@/shared/config/i18n";
 import { BrandHome } from "@/views/brand";
 
-export const dynamic = "force-dynamic";
-
 type Props = { params: Promise<{ locale: string }> };
+
+/** Rendered on first request and cached like a point's pages (see its layout). */
+export function generateStaticParams(): Array<{ locale: string }> {
+  return [];
+}
+
+export const revalidate = 600;
 
 async function brandCopy(params: Props["params"]) {
   const { locale } = await params;

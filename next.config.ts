@@ -3,6 +3,10 @@ import { buildEnv } from "./src/shared/config/build-env";
 
 const config: NextConfig = {
   poweredByHeader: false,
+  // Pages are cached (ISR) and say so: `s-maxage` is the live data's TTL, and
+  // this bounds the `stale-while-revalidate` tail a CDN may serve while it
+  // refetches — a day, not Next's default year.
+  expireTime: 86_400,
   // The image ships `.next/standalone`: the server plus only the files it was
   // traced to need, not the dev toolchain `npm ci` installed to build it.
   output: "standalone",

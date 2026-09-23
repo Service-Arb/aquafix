@@ -1,26 +1,17 @@
 "use client";
 
-import { useParams, usePathname } from "next/navigation";
-import { copyFor } from "@/entities/content";
-import { BRAND } from "@/shared/config/brand";
-import { DEFAULT_LOCALE, isLocale, perLocale } from "@/shared/config/i18n";
-import { StatusScreen } from "@/widgets/status-screen";
+import dynamic from "next/dynamic";
 
 /**
- * The 500: a failing live source or a render error lands here. Client-only by
- * Next's contract, so it knows only the brand's phone, which is inlined at
- * build — enough, because the phone works whatever broke.
+ * The 500. Next ships a segment's error boundary with every page under it, so
+ * whatever this module imports is paid by every visitor, error or not — and
+ * the screen needs the whole copy of both languages (~12 KB gz). Loaded on
+ * demand instead. Nothing is lost: a server error answers 500 and the
+ * boundary renders in the browser after hydration either way; now it costs
+ * one more request on the failed page, and nothing on the others.
  */
-export default function ServerError() {
-  const params = useParams<{ locale?: string }>();
-  const pathname = usePathname();
-  const locale = isLocale(params.locale) ? params.locale : DEFAULT_LOCALE;
-  const copy = copyFor({ locale, place: BRAND.name, phone: BRAND.phone });
-  return (
-    <StatusScreen
-      copy={copy}
-      status={copy.t.serverError}
-      target={{ phone: BRAND.phone, home: `/${locale}`, retry: pathname, langHrefs: perLocale(l => `/${l}`) }}
-    />
-  );
+const ServerError = dynamic(() => import("@/views/server-error").then(m => m.ServerError));
+
+export default function ErrorBoundary() {
+  return <ServerError />;
 }

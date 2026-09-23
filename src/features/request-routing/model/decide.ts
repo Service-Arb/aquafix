@@ -1,14 +1,14 @@
 import { LOCATION_SLUGS } from "@/entities/location";
 import { BRAND } from "@/shared/config/brand";
 import { i18n, isLocale, type Locale } from "@/shared/config/i18n";
-import { LOCATION_SUFFIXES, THANKS, type LinkMode } from "@/shared/config/routes";
+import { LOCATION_SUFFIXES, locationParam, THANKS } from "@/shared/config/routes";
 
 /**
  * Which point and which language a request gets, decided before any route
  * renders. Pure, so it is tested without a server.
  *
  * ```text
- * <slug>.aquafix.top                → the point; /fr/prices renders /fr/<slug>/prices
+ * <slug>.aquafix.top                → the point; /fr/prices renders /fr/_<slug>/prices
  * aquafix.top/fr/<slug>/…           → the same point, through the apex (fallback)
  * ?lang=<l> on a page               → cookie for a year, 303 to the clean URL
  * the Rust site's /prices, /fr/about… → 301 to the brand page
@@ -37,7 +37,7 @@ export type Decision =
   | { kind: "negotiate"; location: string }
   | { kind: "choose"; location: string; locale: Locale }
   | { kind: "moved"; location: string }
-  | { kind: "serve"; pathname: string; mode: LinkMode | null };
+  | { kind: "serve"; pathname: string };
 
 /** `royat.aquafix.top` → `"royat"`; `royat.localhost:3000` too, for local work. */
 export function hostSlug(host: string): string | null {
@@ -114,6 +114,10 @@ export function decide(req: RequestFacts): Decision {
   if (locale === null) return { kind: "pass" };
   // Every prefixed path on a point's host belongs to that point, page or not:
   // `/fr/nonsense` is that point's French 404, not the brand's.
-  if (slug) return { kind: "serve", pathname: `/${locale}/${slug}${rest}`, mode: "host" };
-  return { kind: "serve", pathname: req.pathname, mode: rest === "" ? null : "path" };
+  if (slug) return { kind: "serve", pathname: `/${locale}/${locationParam(slug, "host")}${rest}` };
+  // A host-mode path (`/fr/_royat`) passes as it is. It must: Next runs this
+  // proxy again, host-less, on the rewritten path when it renders a page into
+  // its cache. Reached from the apex by hand it is the same cached page, whose
+  // canonical is the subdomain — no second copy for an index to find.
+  return { kind: "serve", pathname: req.pathname };
 }

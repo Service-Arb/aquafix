@@ -34,12 +34,16 @@ async function fetchLive(base: string, baked: Location, locale: Locale): Promise
     console.error(`live location ${baked.slug}: source unreachable, serving baked`, cause);
     return { kind: "found", location: baked };
   }
-  // A missing point is a real 404 (and `noindex`); a failing source is a 5xx,
-  // thrown so the error boundary answers 500 instead of a soft 404 that would
-  // teach a crawler the page is gone.
+  // A missing point is a real 404 (and `noindex`). A failing source is treated
+  // like an unreachable one — the baked point, never a 404 that would teach a
+  // crawler the page is gone. It used to throw for a 500, but the pages are
+  // cached (ISR) now: a warm page keeps its last good render through an
+  // outage anyway, and a cold one that throws gets Next's bare-text 500 with
+  // no phone on it, not the error boundary.
   if (response.status === 404) return { kind: "missing" };
   if (!response.ok) {
-    throw new LocationSourceError(`live location ${baked.slug}: source answered ${response.status}`);
+    console.error(`live location ${baked.slug}: source answered ${response.status}, serving baked`);
+    return { kind: "found", location: baked };
   }
   return { kind: "found", location: mergeLive(baked, parseLocationLive(await response.json())) };
 }

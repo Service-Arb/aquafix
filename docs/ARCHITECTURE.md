@@ -108,7 +108,7 @@ owner chose to keep on the page, not in the schema.
 
 ```text
 royat.aquafix.top/                → 302 /fr or /en (cookie, then Accept-Language), Vary
-royat.aquafix.top/fr/prices       → renders app/[locale]/[location]/prices for royat
+royat.aquafix.top/fr/prices       → rewritten to /fr/_royat/prices (host link mode)
 aquafix.top/fr                    → the brand page, listing the points
 aquafix.top/fr/royat/prices       → the same point page, through the apex (fallback)
 …?lang=en                         → cookie for a year, 303 to the clean URL
@@ -121,6 +121,16 @@ visitor. Only page paths are negotiated — `/quote`, the sitemap and assets pas
 straight through. The canonical host of a point is always its subdomain, so the
 apex fallback never competes with it. Locally, `<slug>.localhost:3000` gets the
 subdomain behaviour and `localhost:3000/fr/<slug>` the fallback.
+
+**Pages are cached, so nothing reads the request.** Every page is incremental
+static regeneration: rendered on its first request, served from cache after,
+re-rendered in the background when the live data's TTL
+(`LOCATION_REVALIDATE_SECONDS`, 600 s) has passed. The proxy tells a page how to
+write its links through the path it rewrites to, not a header — the subdomain
+lands on `[location]` = `_royat`, the apex fallback on `royat` — so the two link
+modes are two cache entries and no page calls `headers()`. The not-found and
+error boundaries follow the same rule (route params, not request data) and are
+loaded on demand, since Next ships a segment's boundaries with every page.
 
 ## Boundaries
 
@@ -148,8 +158,9 @@ Rust server's, brought forward in place with `location_id`.
 
 **Live data is an overlay, not a dependency.** `getLocation` merges
 `LOCATIONS_API_URL`'s answer over the baked point, with the TTL on the fetch
-itself. A 404 is `notFound()`; a 5xx throws (a 500, not a soft 404); an
-unreachable source serves the baked point. The sitemap is stricter: with a
+itself. A 404 is `notFound()`; a 5xx or an unreachable source serves the
+baked point (a cached page keeps its last good render; a cold one that threw
+would get Next's bare-text 500, with no phone). The sitemap is stricter: with a
 source configured, any failure throws, because a truncated sitemap tells a
 crawler the points are gone.
 

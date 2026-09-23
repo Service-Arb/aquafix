@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { describe, expect, it } from "vitest";
 import { decide, hostSlug, routeRequest, type RequestFacts } from "@/features/request-routing";
-import { LOCATION_MODE_HEADER, ROUTE_HEADER } from "@/shared/config/routes";
+import { parseLocationParam } from "@/shared/config/routes";
 
 const APEX = "aquafix.top";
 const ROYAT = "royat.aquafix.top";
@@ -62,7 +62,7 @@ describe("the Rust site's URLs", () => {
   });
 
   it("keeps the brand's own thank-you page and a point's own sub-pages", () => {
-    expect(decide(req("/fr/thanks"))).toEqual({ kind: "serve", pathname: "/fr/thanks", mode: "path" });
+    expect(decide(req("/fr/thanks"))).toEqual({ kind: "serve", pathname: "/fr/thanks" });
     expect(decide(req("/prices", { host: ROYAT }))).toMatchObject({ kind: "negotiate" });
   });
 });
@@ -76,16 +76,25 @@ describe("host routing", () => {
     expect(hostSlug("evil.aquafix.top")).toBeNull();
   });
 
-  it("serves a subdomain's pages from the point's route, in host link mode", () => {
-    expect(decide(req("/fr", { host: ROYAT }))).toEqual({ kind: "serve", pathname: "/fr/royat", mode: "host" });
-    expect(decide(req("/en/prices", { host: ROYAT }))).toEqual({ kind: "serve", pathname: "/en/royat/prices", mode: "host" });
+  it("serves a subdomain's pages from the point's host-mode route", () => {
+    expect(decide(req("/fr", { host: ROYAT }))).toEqual({ kind: "serve", pathname: "/fr/_royat" });
+    expect(decide(req("/en/prices", { host: ROYAT }))).toEqual({ kind: "serve", pathname: "/en/_royat/prices" });
     // A dead path on a point's host is that point's 404.
-    expect(decide(req("/fr/nope", { host: ROYAT }))).toEqual({ kind: "serve", pathname: "/fr/royat/nope", mode: "host" });
+    expect(decide(req("/fr/nope", { host: ROYAT }))).toEqual({ kind: "serve", pathname: "/fr/_royat/nope" });
   });
 
   it("serves the apex fallback path as it is, in path link mode", () => {
-    expect(decide(req("/fr/royat/about"))).toEqual({ kind: "serve", pathname: "/fr/royat/about", mode: "path" });
-    expect(decide(req("/en"))).toEqual({ kind: "serve", pathname: "/en", mode: null });
+    expect(decide(req("/fr/royat/about"))).toEqual({ kind: "serve", pathname: "/fr/royat/about" });
+    expect(decide(req("/en"))).toEqual({ kind: "serve", pathname: "/en" });
+  });
+
+  it("passes a host-mode path through untouched — Next re-enters the proxy with it to fill its cache", () => {
+    expect(decide(req("/fr/_royat/prices", { host: "localhost:3000" }))).toEqual({ kind: "serve", pathname: "/fr/_royat/prices" });
+  });
+
+  it("reads the link mode back out of the location param", () => {
+    expect(parseLocationParam("_royat")).toEqual({ slug: "royat", mode: "host" });
+    expect(parseLocationParam("royat")).toEqual({ slug: "royat", mode: "path" });
   });
 });
 
@@ -113,20 +122,13 @@ describe("the proxy", () => {
     expect(new URL(res.headers.get("location") ?? "").pathname).toBe("/fr");
   });
 
-  it("strips the proxy's own headers on a pass-through path too", () => {
-    const res = routeRequest(
-      request("https://aquafix.top/quote", { accept: "text/html", [LOCATION_MODE_HEADER]: "host", [ROUTE_HEADER]: "/fr/royat" }),
-    );
-    const overridden = res.headers.get("x-middleware-override-headers") ?? "";
-    expect(overridden.split(",")).toContain("accept");
-    expect(overridden.split(",")).not.toContain(LOCATION_MODE_HEADER);
-    expect(overridden.split(",")).not.toContain(ROUTE_HEADER);
-    expect(res.headers.get(`x-middleware-request-${ROUTE_HEADER}`)).toBeNull();
+  it("rewrites a subdomain to the host-mode route", () => {
+    const res = routeRequest(request("https://royat.aquafix.top/fr", { host: ROYAT }));
+    expect(new URL(res.headers.get("x-middleware-rewrite") ?? "").pathname).toBe("/fr/_royat");
   });
 
-  it("strips a client-sent link mode before setting its own", () => {
-    const res = routeRequest(request("https://royat.aquafix.top/fr", { host: ROYAT, [LOCATION_MODE_HEADER]: "path" }));
-    expect(res.headers.get("x-middleware-rewrite")).toContain("/fr/royat");
-    expect(res.headers.get(`x-middleware-request-${LOCATION_MODE_HEADER}`)).toBe("host");
+  it("hands the page nothing but the path — no request header for it to read", () => {
+    const res = routeRequest(request("https://royat.aquafix.top/fr/prices", { host: ROYAT }));
+    expect(res.headers.get("x-middleware-override-headers")).toBeNull();
   });
 });

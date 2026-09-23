@@ -23,15 +23,24 @@ export const LOCATION_SUFFIXES: readonly string[] = [...Object.values(PAGES), TH
 /**
  * How links are written on a location's pages. On its own subdomain a page is
  * `/fr/prices`; reached through the apex fallback it is `/fr/<slug>/prices`.
- * The proxy decides which one a request is and says so in `LOCATION_MODE_HEADER`.
  */
 export type LinkMode = "host" | "path";
 
-export const LOCATION_MODE_HEADER = "x-aquafix-link-mode";
-
 /**
- * The internal path a request was routed to (`/fr/royat/nonsense`), for the
- * one place that gets no params: `not-found.tsx`, which still has to answer in
- * the right language with the right point's phone.
+ * The proxy says which mode a request is in through the path it rewrites to,
+ * not a header: `royat.aquafix.top/fr/prices` renders `/fr/_royat/prices`.
+ * A header would make every page read `headers()` and render per request; in
+ * the path, each mode is its own cacheable page (ISR), and the two modes'
+ * different links can never share a cache entry.
  */
-export const ROUTE_HEADER = "x-aquafix-route";
+export const HOST_MARK = "_";
+
+/** The `[location]` param for a slug in a mode. */
+export function locationParam(slug: string, mode: LinkMode): string {
+  return mode === "host" ? `${HOST_MARK}${slug}` : slug;
+}
+
+/** Inverse of {@link locationParam}. */
+export function parseLocationParam(param: string): { slug: string; mode: LinkMode } {
+  return param.startsWith(HOST_MARK) ? { slug: param.slice(HOST_MARK.length), mode: "host" } : { slug: param, mode: "path" };
+}
