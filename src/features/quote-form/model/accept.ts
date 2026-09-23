@@ -1,6 +1,6 @@
-import { LOCATION_SLUGS } from "@/entities/location";
-import { validateLead, type Lead } from "@/entities/lead";
-import { DEFAULT_LOCALE, isLocale, type Locale } from "@/shared/config/i18n";
+import type { Lead } from "@/entities/lead";
+import { MAX_FIELD, readCandidate, validateCandidate } from "@/shared/landing/core/lead";
+import type { BrandFacts, Site } from "@/shared/landing/core/site";
 import { HONEYPOT_FIELD, RENDERED_AT_FIELD, screen, type RateLimiter } from "./antispam";
 
 /** Hidden fields the form carries besides what the visitor types. */
@@ -8,16 +8,14 @@ export const LOCATION_FIELD = "location";
 export const LOCALE_FIELD = "locale";
 export const FORM_ID_FIELD = "form_id";
 
-/** A field is capped, not rejected: a long answer is still a customer. */
-const MAX_FIELD = 200;
-
-export type Outcome =
-  | { kind: "stored"; id: number; lead: Lead; locale: Locale; formId: string }
-  | { kind: "invalid"; why: string; locale: Locale; slug: string | null }
-  | { kind: "failed"; locale: Locale; slug: string | null };
+export type Outcome<L extends string> =
+  | { kind: "stored"; id: number; lead: Lead; locale: L; formId: string }
+  | { kind: "invalid"; why: string; locale: L; slug: string | null }
+  | { kind: "failed"; locale: L; slug: string | null };
 
 export interface AcceptDeps {
-  insert: (lead: Lead) => number;
+  /** The commit point: resolves once the lead is durable. */
+  insert: (lead: Lead) => Promise<number>;
   /** Runs after the response is sent; see the route handler. */
   defer: (task: () => Promise<void> | void) => void;
   notify: (lead: Lead, id: number) => Promise<void>;
@@ -46,19 +44,25 @@ function field(form: FormData, name: string): string | null {
  * `failed`, never `stored` — a thank-you page for a lead that was never
  * written is the worst outcome this system can produce.
  */
-export function acceptLead(form: FormData, clientKey: string, deps: AcceptDeps): Outcome {
-  const rawSlug = field(form, LOCATION_FIELD);
-  const slug = rawSlug && LOCATION_SLUGS.includes(rawSlug) ? rawSlug : null;
-  const rawLocale = field(form, LOCALE_FIELD);
-  const locale = isLocale(rawLocale) ? rawLocale : DEFAULT_LOCALE;
+export function createAcceptLead<L extends string, P extends string, B extends BrandFacts>(
+  site: Site<L, P, B>,
+): (form: FormData, clientKey: string, deps: AcceptDeps) => Promise<Outcome<L>> {
+  return (form, clientKey, deps) => accept(site, form, clientKey, deps);
+}
 
-  const candidate = {
-    job: field(form, "job") ?? "",
-    zip: field(form, "zip") ?? "",
-    mobile: field(form, "mobile") ?? "",
-    locationId: slug,
-  };
-  const why = validateLead(candidate);
+async function accept<L extends string, P extends string, B extends BrandFacts>(
+  site: Site<L, P, B>,
+  form: FormData,
+  clientKey: string,
+  deps: AcceptDeps,
+): Promise<Outcome<L>> {
+  const rawSlug = field(form, LOCATION_FIELD);
+  const slug = rawSlug && site.placeSlugs.includes(rawSlug) ? rawSlug : null;
+  const rawLocale = field(form, LOCALE_FIELD);
+  const locale = site.i18n.isLocale(rawLocale) ? rawLocale : site.i18n.defaultLocale;
+
+  const candidate = readCandidate(site.lead, form, slug);
+  const why = validateCandidate(site.lead, candidate);
   if (why) {
     deps.log.warn(`quote: rejected a submission for ${slug ?? "no point"}: missing ${why}`);
     return { kind: "invalid", why, locale, slug };
@@ -76,7 +80,7 @@ export function acceptLead(form: FormData, clientKey: string, deps: AcceptDeps):
 
   let id: number;
   try {
-    id = deps.insert(lead);
+    id = await deps.insert(lead);
   } catch (error) {
     deps.log.error(`quote: the lead store rejected a submission for ${slug ?? "no point"}`, error);
     return { kind: "failed", locale, slug };

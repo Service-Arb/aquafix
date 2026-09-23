@@ -1,7 +1,7 @@
 import { telHref, whatsappHref } from "@evinvest/marketing";
 import { Button } from "@evinvest/uikit";
 import type { Copy } from "@/entities/content";
-import type { Point } from "@/entities/location";
+import { contactOf, type PlaceView } from "@/entities/place";
 import { PHOTO_SETS } from "@/shared/assets/photos";
 import { CTA_FACE } from "@/shared/ui/brand";
 import heroWide from "../../../../assets/photos/hero-wide.jpg";
@@ -17,10 +17,10 @@ const BELOW_MD = "(width < 48rem)";
  * A hero crop, not the library shot: the master carries the depot signage
  * across its top third, which puts a second wordmark under the header.
  */
-export function Hero({ copy, point }: { copy: Copy; point: Point }) {
+export function Hero({ copy, point }: { copy: Copy; point: PlaceView }) {
   const { t, f } = copy;
   const h = t.home;
-  const { location } = point;
+  const { phone, whatsapp } = contactOf(point.place);
   return (
     <section className="dark relative isolate flex min-h-[580px] flex-col justify-end overflow-hidden md:min-h-[76vh] md:justify-center">
       {/* The LCP element. Below `md` a crop of the region a phone can show, not
@@ -54,7 +54,7 @@ export function Hero({ copy, point }: { copy: Copy; point: Point }) {
               {h.cta}
             </Button>
             <Button
-              href={whatsappHref(location.whatsapp, t.whatsappMessage(f))}
+              href={whatsappHref(whatsapp, t.whatsappMessage(f))}
               size="xl"
               variant="outline"
               className={`border-ink-soft text-ink ${CTA_FACE}`}
@@ -62,10 +62,10 @@ export function Hero({ copy, point }: { copy: Copy; point: Point }) {
               {t.whatsappLabel}
             </Button>
             <a
-              href={telHref(location.phone)}
+              href={telHref(phone)}
               className="font-display text-[19px] font-bold text-ink hover:text-primary-ink md:text-[21px]"
             >
-              {location.phone}
+              {phone}
             </a>
           </div>
           {/* Four figures under a rule say what the proof band said, inside the measure. */}

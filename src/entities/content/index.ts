@@ -1,5 +1,6 @@
-import { BRAND } from "@/shared/config/brand";
 import type { Locale } from "@/shared/config/i18n";
+import { TRADE } from "@/shared/config/site";
+import type { CopySlice } from "@/shared/landing/core/content";
 import { formatEur } from "@/shared/lib/money";
 import { priceOf } from "./model/catalogue";
 import { EN } from "./model/en";
@@ -23,7 +24,7 @@ export {
   type WorkId,
 } from "./model/catalogue";
 
-const TEXT: Record<Locale, Text> = { fr: FR, en: EN };
+const TEXT = { fr: FR, en: EN } satisfies Record<Locale, Text>;
 
 export function text(locale: Locale): Text {
   return TEXT[locale];
@@ -37,21 +38,24 @@ export function factsFor(input: { locale: Locale; place: string; phone: string }
     place: input.place,
     phone: input.phone,
     price: id => formatEur(priceOf(id), locale),
-    callout: formatEur(BRAND.calloutEur, locale),
-    surcharge: formatEur(BRAND.surchargeEur, locale),
-    siret: BRAND.siret,
-    insurer: BRAND.decennale.insurer,
-    policy: BRAND.decennale.policy,
-    radiusKm: BRAND.radiusKm,
+    callout: formatEur(TRADE.calloutEur, locale),
+    surcharge: formatEur(TRADE.surchargeEur, locale),
+    siret: TRADE.siret,
+    insurer: TRADE.decennale.insurer,
+    policy: TRADE.decennale.policy,
+    radiusKm: TRADE.radiusKm,
   };
 }
 
 /** What a section needs to say something: the language, its words, and the facts they quote. */
-export interface Copy {
-  locale: Locale;
-  t: Text;
-  f: Facts;
-}
+export type Copy = CopySlice<Locale, Text, Facts>;
+
+/**
+ * A widget's slice of the copy: `CopyOf<Pick<Text, "callLabel">>` says the
+ * widget prints the call label and nothing else. The whole `Copy` is
+ * assignable to it, so callers still pass one object.
+ */
+export type CopyOf<T> = CopySlice<Locale, T, Facts>;
 
 export function copyFor(input: { locale: Locale; place: string; phone: string }): Copy {
   return { locale: input.locale, t: text(input.locale), f: factsFor(input) };

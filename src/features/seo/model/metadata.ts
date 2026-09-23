@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
-import type { Copy } from "@/entities/content";
-import { brandOrigin, isPublished, locationOrigin, type Point } from "@/entities/location";
-import { BRAND } from "@/shared/config/brand";
+import type { BrandPageCopy, CopyOf, PageMetaCopy } from "@/entities/content";
+import { brandOrigin, isPublished, placeOrigin, type PlaceView } from "@/entities/place";
 import { i18n, LOCALES, OG_LOCALE, type Locale } from "@/shared/config/i18n";
-import { PAGES, type PageKey } from "@/shared/config/routes";
+import { PAGES, site, type PageKey } from "@/shared/config/site";
+
+/** `<head>` reads a page's title and description, nothing else. */
+export type PageMetaSlice = CopyOf<{ pages: Record<PageKey, PageMetaCopy> }>;
+export type BrandMetaSlice = CopyOf<{ brandPage: Pick<BrandPageCopy, "title" | "description"> }>;
 
 /** The OG card, rendered at runtime by `app/og`; apex, so it never needs a rewrite. */
 export function ogImageUrl(query: { slug?: string; locale: Locale; page?: PageKey }): string {
@@ -26,23 +29,23 @@ function others(locale: Locale): string[] {
  * always the point's subdomain, so the apex fallback path never competes.
  * An unpublished point answers `noindex` — see `publicationGaps`.
  */
-export function locationMetadata(point: Point, copy: Copy, page: PageKey): Metadata {
+export function locationMetadata(point: PlaceView, copy: PageMetaSlice, page: PageKey): Metadata {
   const p = copy.t.pages[page];
-  const title = page === "home" ? `${BRAND.name} — ${p.title(copy.f)}` : `${p.title(copy.f)} · ${BRAND.name}`;
+  const title = page === "home" ? `${site.brand.name} — ${p.title(copy.f)}` : `${p.title(copy.f)} · ${site.brand.name}`;
   const description = p.description(copy.f);
   const canonical = point.url(PAGES[page]);
-  const image = ogImageUrl({ slug: point.location.slug, locale: copy.locale, page });
+  const image = ogImageUrl({ slug: point.place.slug, locale: copy.locale, page });
   return {
     title,
     description,
-    robots: isPublished(point.location) ? { index: true, follow: true } : { index: false, follow: true },
+    robots: isPublished(point.place) ? { index: true, follow: true } : { index: false, follow: true },
     alternates: {
       canonical,
-      languages: i18n.languageAlternates(PAGES[page] || "/", locationOrigin(point.location.slug)),
+      languages: i18n.languageAlternates(PAGES[page] || "/", placeOrigin(point.place.slug)),
     },
     openGraph: {
       type: "website",
-      siteName: BRAND.name,
+      siteName: site.brand.name,
       title,
       description,
       url: canonical,
@@ -54,7 +57,7 @@ export function locationMetadata(point: Point, copy: Copy, page: PageKey): Metad
   };
 }
 
-export function brandMetadata(copy: Copy): Metadata {
+export function brandMetadata(copy: BrandMetaSlice): Metadata {
   const b = copy.t.brandPage;
   const canonical = `${brandOrigin()}/${copy.locale}`;
   return {
@@ -63,7 +66,7 @@ export function brandMetadata(copy: Copy): Metadata {
     alternates: { canonical, languages: i18n.languageAlternates("/", brandOrigin()) },
     openGraph: {
       type: "website",
-      siteName: BRAND.name,
+      siteName: site.brand.name,
       title: b.title,
       description: b.description,
       url: canonical,
@@ -77,5 +80,5 @@ export function brandMetadata(copy: Copy): Metadata {
 
 /** Status pages must never be indexed nor appear in the sitemap. */
 export function statusMetadata(title: string): Metadata {
-  return { title: `${title} · ${BRAND.name}`, robots: { index: false, follow: false } };
+  return { title: `${title} · ${site.brand.name}`, robots: { index: false, follow: false } };
 }

@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { describe, expect, it } from "vitest";
 import { decide, hostSlug, routeRequest, type RequestFacts } from "@/features/request-routing";
-import { parseLocationParam } from "@/shared/config/routes";
+import { parseLocationParam } from "@/shared/landing/core/routing";
 
 const APEX = "aquafix.top";
 const ROYAT = "royat.aquafix.top";

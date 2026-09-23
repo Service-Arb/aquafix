@@ -1,6 +1,7 @@
 import { Button, Check, Field, FieldLabel, Input, NativeSelect, NativeSelectOption } from "@evinvest/uikit";
-import { JOB_IDS, type Copy } from "@/entities/content";
-import type { Point } from "@/entities/location";
+import type { CopyOf, Text } from "@/entities/content";
+import type { PlaceView } from "@/entities/place";
+import { LEAD } from "@/shared/config/lead";
 import { CTA_FACE } from "@/shared/ui/brand";
 import { HONEYPOT_FIELD, RENDERED_AT_FIELD } from "../model/antispam";
 import { FORM_ID_FIELD, LOCALE_FIELD, LOCATION_FIELD } from "../model/accept";
@@ -18,7 +19,9 @@ const LABEL = "text-[12.5px] font-medium tracking-[0.06em] text-ink-mid";
  * and `Field` mints the label's `for` with `useId`, so both hold with
  * scripting off; the scripted `Select` would not.
  */
-export function QuoteForm({ copy, point, renderedAt }: { copy: Copy; point: Point; renderedAt: number }) {
+export type QuoteFormWidgetCopy = CopyOf<Pick<Text, "quoteForm" | "jobs">>;
+
+export function QuoteForm({ copy, point, renderedAt }: { copy: QuoteFormWidgetCopy; point: PlaceView; renderedAt: number }) {
   const q = copy.t.quoteForm;
   return (
     <form
@@ -28,7 +31,7 @@ export function QuoteForm({ copy, point, renderedAt }: { copy: Copy; point: Poin
       // A light island inside a dark band.
       className="light flex w-full flex-col gap-5 rounded-[var(--corner-float)] bg-background px-6 py-7 text-ink shadow-overlay md:px-[34px] md:pb-[30px] md:pt-8"
     >
-      <input type="hidden" name={LOCATION_FIELD} value={point.location.slug} />
+      <input type="hidden" name={LOCATION_FIELD} value={point.place.slug} />
       <input type="hidden" name={LOCALE_FIELD} value={copy.locale} />
       <input type="hidden" name={FORM_ID_FIELD} value="quote" />
       <input type="hidden" name={RENDERED_AT_FIELD} value={String(renderedAt)} />
@@ -39,8 +42,8 @@ export function QuoteForm({ copy, point, renderedAt }: { copy: Copy; point: Poin
       <Field className={FIELD}>
         <FieldLabel className={LABEL}>{q.jobLabel}</FieldLabel>
         {/* Right padding clears the kit's arrow. */}
-        <NativeSelect name="job" required className={`${CONTROL} pr-11`} defaultValue={JOB_IDS[0]}>
-          {JOB_IDS.map(id => (
+        <NativeSelect name={LEAD.wire.subject} required className={`${CONTROL} pr-11`} defaultValue={LEAD.subjects[0]}>
+          {LEAD.subjects.map(id => (
             <NativeSelectOption key={id} value={id}>
               {copy.t.jobs[id]}
             </NativeSelectOption>
@@ -49,11 +52,11 @@ export function QuoteForm({ copy, point, renderedAt }: { copy: Copy; point: Poin
       </Field>
       <Field className={FIELD}>
         <FieldLabel className={LABEL}>{q.zipLabel}</FieldLabel>
-        <Input className={CONTROL} type="text" name="zip" autoComplete="postal-code" placeholder={q.zipPlaceholder} required />
+        <Input className={CONTROL} type="text" name={LEAD.wire.locality} autoComplete="postal-code" placeholder={q.zipPlaceholder} required />
       </Field>
       <Field className={FIELD}>
         <FieldLabel className={LABEL}>{q.mobileLabel}</FieldLabel>
-        <Input className={CONTROL} type="tel" name="mobile" autoComplete="tel" placeholder={q.mobilePlaceholder} required />
+        <Input className={CONTROL} type="tel" name={LEAD.wire.mobile} autoComplete="tel" placeholder={q.mobilePlaceholder} required />
       </Field>
       {/* Off-screen rather than `display: none`, which some bots skip. */}
       <div aria-hidden="true" className="absolute -left-[10000px] h-px w-px overflow-hidden">

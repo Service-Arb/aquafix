@@ -1,9 +1,17 @@
 import { ldCompact, localBusiness, type JsonLdNode } from "@evinvest/marketing";
 import { PRICE_LIST, type Copy } from "@/entities/content";
-import { brandOrigin, freshRating, locationOrigin, type Location, type Point } from "@/entities/location";
-import { BRAND } from "@/shared/config/brand";
+import {
+  brandOrigin,
+  contactOf,
+  freshRating,
+  placeOrigin,
+  servedLocalities,
+  storefrontOf,
+  type Place,
+  type PlaceView,
+} from "@/entities/place";
+import { PAGES, site, type PageKey } from "@/shared/config/site";
 import { i18n } from "@/shared/config/i18n";
-import { PAGES, type PageKey } from "@/shared/config/routes";
 
 /**
  * schema.org, derived from the copy and the point and never authored. One
@@ -17,11 +25,11 @@ import { PAGES, type PageKey } from "@/shared/config/routes";
  */
 export const organizationId = (): string => `${brandOrigin()}/#organization`;
 // Language-free: the French and the English page describe one business.
-const businessId = (point: Point): string => `${locationOrigin(point.location.slug)}/#business`;
-const websiteId = (point: Point): string => `${locationOrigin(point.location.slug)}/#website`;
+const businessId = (point: PlaceView): string => `${placeOrigin(point.place.slug)}/#business`;
+const websiteId = (point: PlaceView): string => `${placeOrigin(point.place.slug)}/#website`;
 
-function days(location: Location): JsonLdNode[] | undefined {
-  return location.hours?.map(h => ({
+function days(place: Place): JsonLdNode[] | undefined {
+  return place.hours?.map(h => ({
     "@type": "OpeningHoursSpecification",
     dayOfWeek: h.days,
     opens: h.opens,
@@ -29,32 +37,57 @@ function days(location: Location): JsonLdNode[] | undefined {
   }));
 }
 
-export function businessNode(point: Point, now: Date): JsonLdNode {
-  const { location } = point;
-  const rating = freshRating(location, now);
+/** Named communes as `Place`s, a radius as a `GeoCircle`. */
+function areaServed(place: Place): JsonLdNode[] {
+  const named: JsonLdNode[] = servedLocalities(place).map(name => ({ "@type": "Place", name }));
+  const circles: JsonLdNode[] = (place.serviceArea ?? []).flatMap(area =>
+    area.kind === "radius"
+      ? [
+          {
+            "@type": "GeoCircle",
+            geoMidpoint: { "@type": "GeoCoordinates", latitude: area.center.lat, longitude: area.center.lng },
+            geoRadius: area.km * 1000,
+          },
+        ]
+      : [],
+  );
+  return [...named, ...circles];
+}
+
+/**
+ * The business behind one point. A storefront carries its address, pin and
+ * photo; a service-area business has none of the three in its type, so its
+ * node says where it goes (`areaServed`) and nothing about where it is.
+ */
+export function businessNode(point: PlaceView, now: Date): JsonLdNode {
+  const { place } = point;
+  const front = storefrontOf(place);
+  const rating = freshRating(place, now);
   return localBusiness(
     {
       id: businessId(point),
-      type: "Plumber",
-      name: location.gbpName,
+      type: site.brand.businessType,
+      name: place.gbpName,
       url: point.url(""),
-      telephone: location.phone,
-      email: BRAND.email,
-      image: location.storefrontPhoto ?? undefined,
-      address: {
-        streetAddress: location.address.street,
-        postalCode: location.address.postalCode,
-        addressLocality: location.address.locality,
-        addressRegion: location.address.region,
-        addressCountry: location.address.country,
-      },
-      geo: location.geo ?? undefined,
+      telephone: contactOf(place).phone,
+      email: site.brand.email,
+      image: front?.storefrontPhoto ?? undefined,
+      address: front
+        ? {
+            streetAddress: front.address.street,
+            postalCode: front.address.postalCode,
+            addressLocality: front.address.locality,
+            addressRegion: front.address.region,
+            addressCountry: front.address.country,
+          }
+        : undefined,
+      geo: front?.geo ?? undefined,
       parentOrganization: { "@id": organizationId() },
     },
     ldCompact({
-      priceRange: BRAND.priceRange,
-      areaServed: (location.serviceArea ?? [location.address.locality]).map(name => ({ "@type": "Place", name })),
-      openingHoursSpecification: days(location),
+      priceRange: site.brand.priceRange,
+      areaServed: areaServed(place),
+      openingHoursSpecification: days(place),
       aggregateRating: rating
         ? { "@type": "AggregateRating", ratingValue: rating.value, reviewCount: rating.count, bestRating: 5 }
         : undefined,
@@ -66,21 +99,27 @@ export function organizationNode(): JsonLdNode {
   return {
     "@type": "Organization",
     "@id": organizationId(),
-    name: BRAND.name,
-    legalName: BRAND.legalName,
+    name: site.brand.name,
+    legalName: site.brand.legalName,
     url: brandOrigin(),
-    email: BRAND.email,
+    email: site.brand.email,
   };
 }
 
+/** The town an offer is priced for: a storefront's own, or the first commune served. */
+function cityOf(place: Place): JsonLdNode | undefined {
+  const name = storefrontOf(place)?.address.locality ?? servedLocalities(place)[0];
+  return name === undefined ? undefined : { "@type": "City", name };
+}
+
 /** One `Service` + `Offer` per price row: the same integer as the table cell. */
-export function offerNodes(point: Point, copy: Copy): JsonLdNode[] {
+export function offerNodes(point: PlaceView, copy: Copy): JsonLdNode[] {
   return PRICE_LIST.map(row => ({
     "@type": "Service",
     name: copy.t.prices[row.id].job,
     serviceType: copy.t.prices[row.id].job,
     provider: { "@id": businessId(point) },
-    areaServed: { "@type": "City", name: point.location.address.locality },
+    areaServed: cityOf(point.place),
     offers: {
       "@type": "Offer",
       price: row.fromEur,
@@ -108,9 +147,9 @@ function faqNode(copy: Copy): JsonLdNode {
 }
 
 /** Home → page. The chain is the route, so a new page cannot forget it. */
-function breadcrumbs(point: Point, copy: Copy, page: PageKey): JsonLdNode {
+function breadcrumbs(point: PlaceView, copy: Copy, page: PageKey): JsonLdNode {
   const items: JsonLdNode[] = [
-    { "@type": "ListItem", position: 1, name: `${BRAND.name} ${copy.f.place}`, item: point.url(PAGES.home) },
+    { "@type": "ListItem", position: 1, name: `${site.brand.name} ${copy.f.place}`, item: point.url(PAGES.home) },
   ];
   if (page !== "home") {
     items.push({ "@type": "ListItem", position: 2, name: copy.t.pages[page].title(copy.f), item: point.url(PAGES[page]) });
@@ -119,12 +158,12 @@ function breadcrumbs(point: Point, copy: Copy, page: PageKey): JsonLdNode {
 }
 
 /** The `@graph` for one of a point's pages in one language. */
-export function locationGraph(point: Point, copy: Copy, page: PageKey, now: Date): JsonLdNode {
+export function locationGraph(point: PlaceView, copy: Copy, page: PageKey, now: Date): JsonLdNode {
   const url = point.url(PAGES[page]);
   const nodes: JsonLdNode[] = [
     organizationNode(),
     businessNode(point, now),
-    { "@type": "WebSite", "@id": websiteId(point), url: locationOrigin(point.location.slug), name: `${BRAND.name} ${copy.f.place}` },
+    { "@type": "WebSite", "@id": websiteId(point), url: placeOrigin(point.place.slug), name: `${site.brand.name} ${copy.f.place}` },
     {
       "@type": "WebPage",
       "@id": `${url}#page`,

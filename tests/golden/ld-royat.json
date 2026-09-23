@@ -1,0 +1,3406 @@
+{
+  "royat/fr/home": {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://aquafix.top/#organization",
+        "name": "Aquafix",
+        "legalName": "Aquafix SAS",
+        "url": "https://aquafix.top",
+        "email": "val@aquafix.top"
+      },
+      {
+        "@type": "Plumber",
+        "@id": "https://royat.aquafix.top/#business",
+        "name": "Aquafix Plombier Chauffagiste - Clermont-Ferrand, Royat",
+        "url": "https://royat.aquafix.top/fr",
+        "telephone": "+33 4 23 50 06 40",
+        "email": "val@aquafix.top",
+        "parentOrganization": {
+          "@id": "https://aquafix.top/#organization"
+        },
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "2 Av. Abbé Védrine",
+          "postalCode": "63130",
+          "addressLocality": "Royat",
+          "addressRegion": "Auvergne-Rhône-Alpes",
+          "addressCountry": "FR"
+        },
+        "priceRange": "€€",
+        "areaServed": [
+          {
+            "@type": "Place",
+            "name": "Royat"
+          }
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://royat.aquafix.top/#website",
+        "url": "https://royat.aquafix.top",
+        "name": "Aquafix Royat"
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://royat.aquafix.top/fr#page",
+        "url": "https://royat.aquafix.top/fr",
+        "name": "Plombier à Royat — prix fixe, réparé aujourd’hui",
+        "description": "Plombiers à Royat. Tarif fixe écrit avant de commencer, une fenêtre d’arrivée de 2 heures ou le déplacement est offert, et une garantie de 12 mois. Prix publiés pour neuf interventions.",
+        "inLanguage": "fr-FR",
+        "isPartOf": {
+          "@id": "https://royat.aquafix.top/#website"
+        },
+        "about": {
+          "@id": "https://royat.aquafix.top/#business"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Aquafix Royat",
+            "item": "https://royat.aquafix.top/fr"
+          }
+        ]
+      },
+      {
+        "@type": "Service",
+        "name": "Canalisation bouchée — débouchage mécanique",
+        "serviceType": "Canalisation bouchée — débouchage mécanique",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 149,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 149,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Robinet, mitigeur ou chasse d’eau qui fuit",
+        "serviceType": "Robinet, mitigeur ou chasse d’eau qui fuit",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 129,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 129,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Réparation ou remplacement complet de WC",
+        "serviceType": "Réparation ou remplacement complet de WC",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 189,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 189,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Chauffe-eau — réparation",
+        "serviceType": "Chauffe-eau — réparation",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 215,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 215,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Chauffe-eau — remplacement complet",
+        "serviceType": "Chauffe-eau — remplacement complet",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 1290,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 1290,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Réparation de tuyau éclaté ou qui fuit",
+        "serviceType": "Réparation de tuyau éclaté ou qui fuit",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 265,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 265,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Inspection caméra de canalisation",
+        "serviceType": "Inspection caméra de canalisation",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 199,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 199,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Débouchage d’égout et rapport",
+        "serviceType": "Débouchage d’égout et rapport",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 390,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 390,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Réfection de la tuyauterie — maison T4",
+        "serviceType": "Réfection de la tuyauterie — maison T4",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 4800,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 4800,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      }
+    ]
+  },
+  "royat/fr/prices": {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://aquafix.top/#organization",
+        "name": "Aquafix",
+        "legalName": "Aquafix SAS",
+        "url": "https://aquafix.top",
+        "email": "val@aquafix.top"
+      },
+      {
+        "@type": "Plumber",
+        "@id": "https://royat.aquafix.top/#business",
+        "name": "Aquafix Plombier Chauffagiste - Clermont-Ferrand, Royat",
+        "url": "https://royat.aquafix.top/fr",
+        "telephone": "+33 4 23 50 06 40",
+        "email": "val@aquafix.top",
+        "parentOrganization": {
+          "@id": "https://aquafix.top/#organization"
+        },
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "2 Av. Abbé Védrine",
+          "postalCode": "63130",
+          "addressLocality": "Royat",
+          "addressRegion": "Auvergne-Rhône-Alpes",
+          "addressCountry": "FR"
+        },
+        "priceRange": "€€",
+        "areaServed": [
+          {
+            "@type": "Place",
+            "name": "Royat"
+          }
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://royat.aquafix.top/#website",
+        "url": "https://royat.aquafix.top",
+        "name": "Aquafix Royat"
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://royat.aquafix.top/fr/prices#page",
+        "url": "https://royat.aquafix.top/fr/prices",
+        "name": "Chaque intervention, chaque chiffre",
+        "description": "La liste complète des prix Aquafix à Royat : neuf interventions, de vrais tarifs fixes TTC, et les questions que tout le monde pose avant de réserver.",
+        "inLanguage": "fr-FR",
+        "isPartOf": {
+          "@id": "https://royat.aquafix.top/#website"
+        },
+        "about": {
+          "@id": "https://royat.aquafix.top/#business"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Aquafix Royat",
+            "item": "https://royat.aquafix.top/fr"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Chaque intervention, chaque chiffre",
+            "item": "https://royat.aquafix.top/fr/prices"
+          }
+        ]
+      },
+      {
+        "@type": "Service",
+        "name": "Canalisation bouchée — débouchage mécanique",
+        "serviceType": "Canalisation bouchée — débouchage mécanique",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 149,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 149,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Robinet, mitigeur ou chasse d’eau qui fuit",
+        "serviceType": "Robinet, mitigeur ou chasse d’eau qui fuit",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 129,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 129,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Réparation ou remplacement complet de WC",
+        "serviceType": "Réparation ou remplacement complet de WC",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 189,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 189,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Chauffe-eau — réparation",
+        "serviceType": "Chauffe-eau — réparation",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 215,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 215,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Chauffe-eau — remplacement complet",
+        "serviceType": "Chauffe-eau — remplacement complet",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 1290,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 1290,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Réparation de tuyau éclaté ou qui fuit",
+        "serviceType": "Réparation de tuyau éclaté ou qui fuit",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 265,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 265,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Inspection caméra de canalisation",
+        "serviceType": "Inspection caméra de canalisation",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 199,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 199,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Débouchage d’égout et rapport",
+        "serviceType": "Débouchage d’égout et rapport",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 390,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 390,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Réfection de la tuyauterie — maison T4",
+        "serviceType": "Réfection de la tuyauterie — maison T4",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 4800,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 4800,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Les 89 € de déplacement s’ajoutent-ils au prix de l’intervention ?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Non. Ils sont intégralement déduits de tout travail que vous approuvez. Si vous n’approuvez rien, les 89 € couvrent la visite et le diagnostic, et c’est toute la facture."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Et si vous trouvez pire une fois que c’est ouvert ?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Nous arrêtons, nous vous montrons, et nous refaisons un devis avant de toucher à quoi que ce soit. Vous pouvez refuser et ne devez que le montant déjà approuvé. Nous ne faisons jamais de travaux supplémentaires pour les facturer après coup."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Répondez-vous vraiment à 2h du matin ?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Oui, et c’est une personne à Royat plutôt qu’un service de permanence. Les déplacements d’urgence entre 21h et 7h comportent un supplément de 60 €, annoncé avant que nous envoyions quelqu’un."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Êtes-vous immatriculés et assurés ?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "SIRET 000 000 000 00000, et chaque intervention est couverte par notre assurance décennale (—, contrat —). Nous vous envoyons l’attestation par e-mail avant la visite si vous voulez la voir d’abord."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "En combien de temps pouvez-vous vraiment arriver ?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Sur nos 500 dernières interventions, l’arrivée d’urgence moyenne était de 43 minutes. Pour les travaux non urgents, 96 % des réservations ont été honorées sous 24 heures."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Quels moyens de paiement acceptez-vous ?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Carte, virement ou espèces à la fin. Tous nos prix sont TTC — le chiffre inscrit sur le bon est celui que vous payez."
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "royat/fr/guarantee": {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://aquafix.top/#organization",
+        "name": "Aquafix",
+        "legalName": "Aquafix SAS",
+        "url": "https://aquafix.top",
+        "email": "val@aquafix.top"
+      },
+      {
+        "@type": "Plumber",
+        "@id": "https://royat.aquafix.top/#business",
+        "name": "Aquafix Plombier Chauffagiste - Clermont-Ferrand, Royat",
+        "url": "https://royat.aquafix.top/fr",
+        "telephone": "+33 4 23 50 06 40",
+        "email": "val@aquafix.top",
+        "parentOrganization": {
+          "@id": "https://aquafix.top/#organization"
+        },
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "2 Av. Abbé Védrine",
+          "postalCode": "63130",
+          "addressLocality": "Royat",
+          "addressRegion": "Auvergne-Rhône-Alpes",
+          "addressCountry": "FR"
+        },
+        "priceRange": "€€",
+        "areaServed": [
+          {
+            "@type": "Place",
+            "name": "Royat"
+          }
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://royat.aquafix.top/#website",
+        "url": "https://royat.aquafix.top",
+        "name": "Aquafix Royat"
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://royat.aquafix.top/fr/guarantee#page",
+        "url": "https://royat.aquafix.top/fr/guarantee",
+        "name": "Ce que nous promettons vraiment",
+        "description": "Les quatre craintes que l’on a en appelant un plombier, les conditions écrites qui suppriment chacune d’elles, et le déroulement d’une intervention Aquafix du début à la fin.",
+        "inLanguage": "fr-FR",
+        "isPartOf": {
+          "@id": "https://royat.aquafix.top/#website"
+        },
+        "about": {
+          "@id": "https://royat.aquafix.top/#business"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Aquafix Royat",
+            "item": "https://royat.aquafix.top/fr"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Ce que nous promettons vraiment",
+            "item": "https://royat.aquafix.top/fr/guarantee"
+          }
+        ]
+      }
+    ]
+  },
+  "royat/fr/about": {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://aquafix.top/#organization",
+        "name": "Aquafix",
+        "legalName": "Aquafix SAS",
+        "url": "https://aquafix.top",
+        "email": "val@aquafix.top"
+      },
+      {
+        "@type": "Plumber",
+        "@id": "https://royat.aquafix.top/#business",
+        "name": "Aquafix Plombier Chauffagiste - Clermont-Ferrand, Royat",
+        "url": "https://royat.aquafix.top/fr",
+        "telephone": "+33 4 23 50 06 40",
+        "email": "val@aquafix.top",
+        "parentOrganization": {
+          "@id": "https://aquafix.top/#organization"
+        },
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "2 Av. Abbé Védrine",
+          "postalCode": "63130",
+          "addressLocality": "Royat",
+          "addressRegion": "Auvergne-Rhône-Alpes",
+          "addressCountry": "FR"
+        },
+        "priceRange": "€€",
+        "areaServed": [
+          {
+            "@type": "Place",
+            "name": "Royat"
+          }
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://royat.aquafix.top/#website",
+        "url": "https://royat.aquafix.top",
+        "name": "Aquafix Royat"
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://royat.aquafix.top/fr/about#page",
+        "url": "https://royat.aquafix.top/fr/about",
+        "name": "Quatre plombiers et un rayon de 30 km",
+        "description": "Qui se présente chez vous, comment ils sont assurés, et exactement où autour de Royat nous acceptons — ou refusons — de nous déplacer.",
+        "inLanguage": "fr-FR",
+        "isPartOf": {
+          "@id": "https://royat.aquafix.top/#website"
+        },
+        "about": {
+          "@id": "https://royat.aquafix.top/#business"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Aquafix Royat",
+            "item": "https://royat.aquafix.top/fr"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Quatre plombiers et un rayon de 30 km",
+            "item": "https://royat.aquafix.top/fr/about"
+          }
+        ]
+      }
+    ]
+  },
+  "royat/en/home": {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://aquafix.top/#organization",
+        "name": "Aquafix",
+        "legalName": "Aquafix SAS",
+        "url": "https://aquafix.top",
+        "email": "val@aquafix.top"
+      },
+      {
+        "@type": "Plumber",
+        "@id": "https://royat.aquafix.top/#business",
+        "name": "Aquafix Plombier Chauffagiste - Clermont-Ferrand, Royat",
+        "url": "https://royat.aquafix.top/en",
+        "telephone": "+33 4 23 50 06 40",
+        "email": "val@aquafix.top",
+        "parentOrganization": {
+          "@id": "https://aquafix.top/#organization"
+        },
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "2 Av. Abbé Védrine",
+          "postalCode": "63130",
+          "addressLocality": "Royat",
+          "addressRegion": "Auvergne-Rhône-Alpes",
+          "addressCountry": "FR"
+        },
+        "priceRange": "€€",
+        "areaServed": [
+          {
+            "@type": "Place",
+            "name": "Royat"
+          }
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://royat.aquafix.top/#website",
+        "url": "https://royat.aquafix.top",
+        "name": "Aquafix Royat"
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://royat.aquafix.top/en#page",
+        "url": "https://royat.aquafix.top/en",
+        "name": "Plumber in Royat — fixed price, fixed today",
+        "description": "Plumbers in Royat. A written flat rate before we start, a 2-hour arrival window or the call-out is free, and a 12-month warranty. Published prices for nine jobs.",
+        "inLanguage": "en",
+        "isPartOf": {
+          "@id": "https://royat.aquafix.top/#website"
+        },
+        "about": {
+          "@id": "https://royat.aquafix.top/#business"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Aquafix Royat",
+            "item": "https://royat.aquafix.top/en"
+          }
+        ]
+      },
+      {
+        "@type": "Service",
+        "name": "Blocked drain — machine cleared",
+        "serviceType": "Blocked drain — machine cleared",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 149,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 149,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Leaking tap, mixer or cistern",
+        "serviceType": "Leaking tap, mixer or cistern",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 129,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 129,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Toilet repair or full replacement",
+        "serviceType": "Toilet repair or full replacement",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 189,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 189,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Water heater — repair",
+        "serviceType": "Water heater — repair",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 215,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 215,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Water heater — full replacement",
+        "serviceType": "Water heater — full replacement",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 1290,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 1290,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Burst or leaking pipe repair",
+        "serviceType": "Burst or leaking pipe repair",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 265,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 265,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Drain camera inspection",
+        "serviceType": "Drain camera inspection",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 199,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 199,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Sewer line clear and report",
+        "serviceType": "Sewer line clear and report",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 390,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 390,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Full repipe — 3 bedroom house",
+        "serviceType": "Full repipe — 3 bedroom house",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 4800,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 4800,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      }
+    ]
+  },
+  "royat/en/prices": {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://aquafix.top/#organization",
+        "name": "Aquafix",
+        "legalName": "Aquafix SAS",
+        "url": "https://aquafix.top",
+        "email": "val@aquafix.top"
+      },
+      {
+        "@type": "Plumber",
+        "@id": "https://royat.aquafix.top/#business",
+        "name": "Aquafix Plombier Chauffagiste - Clermont-Ferrand, Royat",
+        "url": "https://royat.aquafix.top/en",
+        "telephone": "+33 4 23 50 06 40",
+        "email": "val@aquafix.top",
+        "parentOrganization": {
+          "@id": "https://aquafix.top/#organization"
+        },
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "2 Av. Abbé Védrine",
+          "postalCode": "63130",
+          "addressLocality": "Royat",
+          "addressRegion": "Auvergne-Rhône-Alpes",
+          "addressCountry": "FR"
+        },
+        "priceRange": "€€",
+        "areaServed": [
+          {
+            "@type": "Place",
+            "name": "Royat"
+          }
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://royat.aquafix.top/#website",
+        "url": "https://royat.aquafix.top",
+        "name": "Aquafix Royat"
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://royat.aquafix.top/en/prices#page",
+        "url": "https://royat.aquafix.top/en/prices",
+        "name": "Every job, every number",
+        "description": "The full Aquafix price list in Royat: nine jobs, real flat rates including TVA, and the questions everybody asks before booking.",
+        "inLanguage": "en",
+        "isPartOf": {
+          "@id": "https://royat.aquafix.top/#website"
+        },
+        "about": {
+          "@id": "https://royat.aquafix.top/#business"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Aquafix Royat",
+            "item": "https://royat.aquafix.top/en"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Every job, every number",
+            "item": "https://royat.aquafix.top/en/prices"
+          }
+        ]
+      },
+      {
+        "@type": "Service",
+        "name": "Blocked drain — machine cleared",
+        "serviceType": "Blocked drain — machine cleared",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 149,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 149,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Leaking tap, mixer or cistern",
+        "serviceType": "Leaking tap, mixer or cistern",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 129,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 129,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Toilet repair or full replacement",
+        "serviceType": "Toilet repair or full replacement",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 189,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 189,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Water heater — repair",
+        "serviceType": "Water heater — repair",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 215,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 215,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Water heater — full replacement",
+        "serviceType": "Water heater — full replacement",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 1290,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 1290,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Burst or leaking pipe repair",
+        "serviceType": "Burst or leaking pipe repair",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 265,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 265,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Drain camera inspection",
+        "serviceType": "Drain camera inspection",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 199,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 199,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Sewer line clear and report",
+        "serviceType": "Sewer line clear and report",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 390,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 390,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Full repipe — 3 bedroom house",
+        "serviceType": "Full repipe — 3 bedroom house",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 4800,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 4800,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Is the €89 call-out on top of the job price?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. It is credited in full against any work you approve. If you approve nothing, the €89 covers the visit and the diagnosis, and that is the entire bill."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What if you find something worse once it is open?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "We stop, show you, and requote before touching anything. You can decline and owe only the amount you already approved. We never do extra work and bill for it afterwards."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Do you actually answer at 2am?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes, and it is a person in Royat rather than an answering service. Emergency call-outs between 9pm and 7am carry a €60 surcharge, quoted to you before we dispatch anyone."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Are you registered and insured?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "SIRET 000 000 000 00000, and every job is covered by our assurance décennale (—, policy —). We will email you the certificate before the visit if you want to see it first."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How fast can you really get here?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Across our last 500 jobs the average emergency arrival was 43 minutes. For non-urgent work, 96% of bookings were attended within 24 hours."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What payment do you take?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Card, bank transfer or cash on completion. Every price we quote includes TVA — the number on the sheet is the number you pay."
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "royat/en/guarantee": {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://aquafix.top/#organization",
+        "name": "Aquafix",
+        "legalName": "Aquafix SAS",
+        "url": "https://aquafix.top",
+        "email": "val@aquafix.top"
+      },
+      {
+        "@type": "Plumber",
+        "@id": "https://royat.aquafix.top/#business",
+        "name": "Aquafix Plombier Chauffagiste - Clermont-Ferrand, Royat",
+        "url": "https://royat.aquafix.top/en",
+        "telephone": "+33 4 23 50 06 40",
+        "email": "val@aquafix.top",
+        "parentOrganization": {
+          "@id": "https://aquafix.top/#organization"
+        },
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "2 Av. Abbé Védrine",
+          "postalCode": "63130",
+          "addressLocality": "Royat",
+          "addressRegion": "Auvergne-Rhône-Alpes",
+          "addressCountry": "FR"
+        },
+        "priceRange": "€€",
+        "areaServed": [
+          {
+            "@type": "Place",
+            "name": "Royat"
+          }
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://royat.aquafix.top/#website",
+        "url": "https://royat.aquafix.top",
+        "name": "Aquafix Royat"
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://royat.aquafix.top/en/guarantee#page",
+        "url": "https://royat.aquafix.top/en/guarantee",
+        "name": "What we actually promise",
+        "description": "The four things people fear about calling a plumber, the written terms that remove each one, and how an Aquafix job runs start to finish.",
+        "inLanguage": "en",
+        "isPartOf": {
+          "@id": "https://royat.aquafix.top/#website"
+        },
+        "about": {
+          "@id": "https://royat.aquafix.top/#business"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Aquafix Royat",
+            "item": "https://royat.aquafix.top/en"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "What we actually promise",
+            "item": "https://royat.aquafix.top/en/guarantee"
+          }
+        ]
+      }
+    ]
+  },
+  "royat/en/about": {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://aquafix.top/#organization",
+        "name": "Aquafix",
+        "legalName": "Aquafix SAS",
+        "url": "https://aquafix.top",
+        "email": "val@aquafix.top"
+      },
+      {
+        "@type": "Plumber",
+        "@id": "https://royat.aquafix.top/#business",
+        "name": "Aquafix Plombier Chauffagiste - Clermont-Ferrand, Royat",
+        "url": "https://royat.aquafix.top/en",
+        "telephone": "+33 4 23 50 06 40",
+        "email": "val@aquafix.top",
+        "parentOrganization": {
+          "@id": "https://aquafix.top/#organization"
+        },
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "2 Av. Abbé Védrine",
+          "postalCode": "63130",
+          "addressLocality": "Royat",
+          "addressRegion": "Auvergne-Rhône-Alpes",
+          "addressCountry": "FR"
+        },
+        "priceRange": "€€",
+        "areaServed": [
+          {
+            "@type": "Place",
+            "name": "Royat"
+          }
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://royat.aquafix.top/#website",
+        "url": "https://royat.aquafix.top",
+        "name": "Aquafix Royat"
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://royat.aquafix.top/en/about#page",
+        "url": "https://royat.aquafix.top/en/about",
+        "name": "Four plumbers and a 30 km radius",
+        "description": "Who turns up, how they are insured, and exactly where around Royat we will and will not drive.",
+        "inLanguage": "en",
+        "isPartOf": {
+          "@id": "https://royat.aquafix.top/#website"
+        },
+        "about": {
+          "@id": "https://royat.aquafix.top/#business"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Aquafix Royat",
+            "item": "https://royat.aquafix.top/en"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Four plumbers and a 30 km radius",
+            "item": "https://royat.aquafix.top/en/about"
+          }
+        ]
+      }
+    ]
+  },
+  "royat-published/fr/home": {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://aquafix.top/#organization",
+        "name": "Aquafix",
+        "legalName": "Aquafix SAS",
+        "url": "https://aquafix.top",
+        "email": "val@aquafix.top"
+      },
+      {
+        "@type": "Plumber",
+        "@id": "https://royat.aquafix.top/#business",
+        "name": "Aquafix Plombier Chauffagiste - Clermont-Ferrand, Royat",
+        "url": "https://royat.aquafix.top/fr",
+        "telephone": "+33 4 23 50 06 40",
+        "email": "val@aquafix.top",
+        "image": "https://cdn.example/royat.jpg",
+        "parentOrganization": {
+          "@id": "https://aquafix.top/#organization"
+        },
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "2 Av. Abbé Védrine",
+          "postalCode": "63130",
+          "addressLocality": "Royat",
+          "addressRegion": "Auvergne-Rhône-Alpes",
+          "addressCountry": "FR"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": 45.7667,
+          "longitude": 3.0514
+        },
+        "priceRange": "€€",
+        "areaServed": [
+          {
+            "@type": "Place",
+            "name": "Royat"
+          },
+          {
+            "@type": "Place",
+            "name": "Chamalières"
+          },
+          {
+            "@type": "Place",
+            "name": "Ceyrat"
+          }
+        ],
+        "openingHoursSpecification": [
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": [
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday"
+            ],
+            "opens": "07:00",
+            "closes": "21:00"
+          }
+        ],
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": 4.7,
+          "reviewCount": 31,
+          "bestRating": 5
+        }
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://royat.aquafix.top/#website",
+        "url": "https://royat.aquafix.top",
+        "name": "Aquafix Royat"
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://royat.aquafix.top/fr#page",
+        "url": "https://royat.aquafix.top/fr",
+        "name": "Plombier à Royat — prix fixe, réparé aujourd’hui",
+        "description": "Plombiers à Royat. Tarif fixe écrit avant de commencer, une fenêtre d’arrivée de 2 heures ou le déplacement est offert, et une garantie de 12 mois. Prix publiés pour neuf interventions.",
+        "inLanguage": "fr-FR",
+        "isPartOf": {
+          "@id": "https://royat.aquafix.top/#website"
+        },
+        "about": {
+          "@id": "https://royat.aquafix.top/#business"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Aquafix Royat",
+            "item": "https://royat.aquafix.top/fr"
+          }
+        ]
+      },
+      {
+        "@type": "Service",
+        "name": "Canalisation bouchée — débouchage mécanique",
+        "serviceType": "Canalisation bouchée — débouchage mécanique",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 149,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 149,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Robinet, mitigeur ou chasse d’eau qui fuit",
+        "serviceType": "Robinet, mitigeur ou chasse d’eau qui fuit",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 129,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 129,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Réparation ou remplacement complet de WC",
+        "serviceType": "Réparation ou remplacement complet de WC",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 189,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 189,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Chauffe-eau — réparation",
+        "serviceType": "Chauffe-eau — réparation",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 215,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 215,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Chauffe-eau — remplacement complet",
+        "serviceType": "Chauffe-eau — remplacement complet",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 1290,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 1290,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Réparation de tuyau éclaté ou qui fuit",
+        "serviceType": "Réparation de tuyau éclaté ou qui fuit",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 265,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 265,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Inspection caméra de canalisation",
+        "serviceType": "Inspection caméra de canalisation",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 199,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 199,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Débouchage d’égout et rapport",
+        "serviceType": "Débouchage d’égout et rapport",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 390,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 390,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Réfection de la tuyauterie — maison T4",
+        "serviceType": "Réfection de la tuyauterie — maison T4",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 4800,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 4800,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      }
+    ]
+  },
+  "royat-published/fr/prices": {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://aquafix.top/#organization",
+        "name": "Aquafix",
+        "legalName": "Aquafix SAS",
+        "url": "https://aquafix.top",
+        "email": "val@aquafix.top"
+      },
+      {
+        "@type": "Plumber",
+        "@id": "https://royat.aquafix.top/#business",
+        "name": "Aquafix Plombier Chauffagiste - Clermont-Ferrand, Royat",
+        "url": "https://royat.aquafix.top/fr",
+        "telephone": "+33 4 23 50 06 40",
+        "email": "val@aquafix.top",
+        "image": "https://cdn.example/royat.jpg",
+        "parentOrganization": {
+          "@id": "https://aquafix.top/#organization"
+        },
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "2 Av. Abbé Védrine",
+          "postalCode": "63130",
+          "addressLocality": "Royat",
+          "addressRegion": "Auvergne-Rhône-Alpes",
+          "addressCountry": "FR"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": 45.7667,
+          "longitude": 3.0514
+        },
+        "priceRange": "€€",
+        "areaServed": [
+          {
+            "@type": "Place",
+            "name": "Royat"
+          },
+          {
+            "@type": "Place",
+            "name": "Chamalières"
+          },
+          {
+            "@type": "Place",
+            "name": "Ceyrat"
+          }
+        ],
+        "openingHoursSpecification": [
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": [
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday"
+            ],
+            "opens": "07:00",
+            "closes": "21:00"
+          }
+        ],
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": 4.7,
+          "reviewCount": 31,
+          "bestRating": 5
+        }
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://royat.aquafix.top/#website",
+        "url": "https://royat.aquafix.top",
+        "name": "Aquafix Royat"
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://royat.aquafix.top/fr/prices#page",
+        "url": "https://royat.aquafix.top/fr/prices",
+        "name": "Chaque intervention, chaque chiffre",
+        "description": "La liste complète des prix Aquafix à Royat : neuf interventions, de vrais tarifs fixes TTC, et les questions que tout le monde pose avant de réserver.",
+        "inLanguage": "fr-FR",
+        "isPartOf": {
+          "@id": "https://royat.aquafix.top/#website"
+        },
+        "about": {
+          "@id": "https://royat.aquafix.top/#business"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Aquafix Royat",
+            "item": "https://royat.aquafix.top/fr"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Chaque intervention, chaque chiffre",
+            "item": "https://royat.aquafix.top/fr/prices"
+          }
+        ]
+      },
+      {
+        "@type": "Service",
+        "name": "Canalisation bouchée — débouchage mécanique",
+        "serviceType": "Canalisation bouchée — débouchage mécanique",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 149,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 149,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Robinet, mitigeur ou chasse d’eau qui fuit",
+        "serviceType": "Robinet, mitigeur ou chasse d’eau qui fuit",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 129,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 129,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Réparation ou remplacement complet de WC",
+        "serviceType": "Réparation ou remplacement complet de WC",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 189,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 189,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Chauffe-eau — réparation",
+        "serviceType": "Chauffe-eau — réparation",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 215,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 215,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Chauffe-eau — remplacement complet",
+        "serviceType": "Chauffe-eau — remplacement complet",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 1290,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 1290,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Réparation de tuyau éclaté ou qui fuit",
+        "serviceType": "Réparation de tuyau éclaté ou qui fuit",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 265,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 265,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Inspection caméra de canalisation",
+        "serviceType": "Inspection caméra de canalisation",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 199,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 199,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Débouchage d’égout et rapport",
+        "serviceType": "Débouchage d’égout et rapport",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 390,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 390,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Réfection de la tuyauterie — maison T4",
+        "serviceType": "Réfection de la tuyauterie — maison T4",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 4800,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 4800,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Les 89 € de déplacement s’ajoutent-ils au prix de l’intervention ?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Non. Ils sont intégralement déduits de tout travail que vous approuvez. Si vous n’approuvez rien, les 89 € couvrent la visite et le diagnostic, et c’est toute la facture."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Et si vous trouvez pire une fois que c’est ouvert ?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Nous arrêtons, nous vous montrons, et nous refaisons un devis avant de toucher à quoi que ce soit. Vous pouvez refuser et ne devez que le montant déjà approuvé. Nous ne faisons jamais de travaux supplémentaires pour les facturer après coup."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Répondez-vous vraiment à 2h du matin ?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Oui, et c’est une personne à Royat plutôt qu’un service de permanence. Les déplacements d’urgence entre 21h et 7h comportent un supplément de 60 €, annoncé avant que nous envoyions quelqu’un."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Êtes-vous immatriculés et assurés ?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "SIRET 000 000 000 00000, et chaque intervention est couverte par notre assurance décennale (—, contrat —). Nous vous envoyons l’attestation par e-mail avant la visite si vous voulez la voir d’abord."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "En combien de temps pouvez-vous vraiment arriver ?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Sur nos 500 dernières interventions, l’arrivée d’urgence moyenne était de 43 minutes. Pour les travaux non urgents, 96 % des réservations ont été honorées sous 24 heures."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Quels moyens de paiement acceptez-vous ?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Carte, virement ou espèces à la fin. Tous nos prix sont TTC — le chiffre inscrit sur le bon est celui que vous payez."
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "royat-published/fr/guarantee": {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://aquafix.top/#organization",
+        "name": "Aquafix",
+        "legalName": "Aquafix SAS",
+        "url": "https://aquafix.top",
+        "email": "val@aquafix.top"
+      },
+      {
+        "@type": "Plumber",
+        "@id": "https://royat.aquafix.top/#business",
+        "name": "Aquafix Plombier Chauffagiste - Clermont-Ferrand, Royat",
+        "url": "https://royat.aquafix.top/fr",
+        "telephone": "+33 4 23 50 06 40",
+        "email": "val@aquafix.top",
+        "image": "https://cdn.example/royat.jpg",
+        "parentOrganization": {
+          "@id": "https://aquafix.top/#organization"
+        },
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "2 Av. Abbé Védrine",
+          "postalCode": "63130",
+          "addressLocality": "Royat",
+          "addressRegion": "Auvergne-Rhône-Alpes",
+          "addressCountry": "FR"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": 45.7667,
+          "longitude": 3.0514
+        },
+        "priceRange": "€€",
+        "areaServed": [
+          {
+            "@type": "Place",
+            "name": "Royat"
+          },
+          {
+            "@type": "Place",
+            "name": "Chamalières"
+          },
+          {
+            "@type": "Place",
+            "name": "Ceyrat"
+          }
+        ],
+        "openingHoursSpecification": [
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": [
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday"
+            ],
+            "opens": "07:00",
+            "closes": "21:00"
+          }
+        ],
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": 4.7,
+          "reviewCount": 31,
+          "bestRating": 5
+        }
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://royat.aquafix.top/#website",
+        "url": "https://royat.aquafix.top",
+        "name": "Aquafix Royat"
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://royat.aquafix.top/fr/guarantee#page",
+        "url": "https://royat.aquafix.top/fr/guarantee",
+        "name": "Ce que nous promettons vraiment",
+        "description": "Les quatre craintes que l’on a en appelant un plombier, les conditions écrites qui suppriment chacune d’elles, et le déroulement d’une intervention Aquafix du début à la fin.",
+        "inLanguage": "fr-FR",
+        "isPartOf": {
+          "@id": "https://royat.aquafix.top/#website"
+        },
+        "about": {
+          "@id": "https://royat.aquafix.top/#business"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Aquafix Royat",
+            "item": "https://royat.aquafix.top/fr"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Ce que nous promettons vraiment",
+            "item": "https://royat.aquafix.top/fr/guarantee"
+          }
+        ]
+      }
+    ]
+  },
+  "royat-published/fr/about": {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://aquafix.top/#organization",
+        "name": "Aquafix",
+        "legalName": "Aquafix SAS",
+        "url": "https://aquafix.top",
+        "email": "val@aquafix.top"
+      },
+      {
+        "@type": "Plumber",
+        "@id": "https://royat.aquafix.top/#business",
+        "name": "Aquafix Plombier Chauffagiste - Clermont-Ferrand, Royat",
+        "url": "https://royat.aquafix.top/fr",
+        "telephone": "+33 4 23 50 06 40",
+        "email": "val@aquafix.top",
+        "image": "https://cdn.example/royat.jpg",
+        "parentOrganization": {
+          "@id": "https://aquafix.top/#organization"
+        },
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "2 Av. Abbé Védrine",
+          "postalCode": "63130",
+          "addressLocality": "Royat",
+          "addressRegion": "Auvergne-Rhône-Alpes",
+          "addressCountry": "FR"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": 45.7667,
+          "longitude": 3.0514
+        },
+        "priceRange": "€€",
+        "areaServed": [
+          {
+            "@type": "Place",
+            "name": "Royat"
+          },
+          {
+            "@type": "Place",
+            "name": "Chamalières"
+          },
+          {
+            "@type": "Place",
+            "name": "Ceyrat"
+          }
+        ],
+        "openingHoursSpecification": [
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": [
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday"
+            ],
+            "opens": "07:00",
+            "closes": "21:00"
+          }
+        ],
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": 4.7,
+          "reviewCount": 31,
+          "bestRating": 5
+        }
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://royat.aquafix.top/#website",
+        "url": "https://royat.aquafix.top",
+        "name": "Aquafix Royat"
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://royat.aquafix.top/fr/about#page",
+        "url": "https://royat.aquafix.top/fr/about",
+        "name": "Quatre plombiers et un rayon de 30 km",
+        "description": "Qui se présente chez vous, comment ils sont assurés, et exactement où autour de Royat nous acceptons — ou refusons — de nous déplacer.",
+        "inLanguage": "fr-FR",
+        "isPartOf": {
+          "@id": "https://royat.aquafix.top/#website"
+        },
+        "about": {
+          "@id": "https://royat.aquafix.top/#business"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Aquafix Royat",
+            "item": "https://royat.aquafix.top/fr"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Quatre plombiers et un rayon de 30 km",
+            "item": "https://royat.aquafix.top/fr/about"
+          }
+        ]
+      }
+    ]
+  },
+  "royat-published/en/home": {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://aquafix.top/#organization",
+        "name": "Aquafix",
+        "legalName": "Aquafix SAS",
+        "url": "https://aquafix.top",
+        "email": "val@aquafix.top"
+      },
+      {
+        "@type": "Plumber",
+        "@id": "https://royat.aquafix.top/#business",
+        "name": "Aquafix Plombier Chauffagiste - Clermont-Ferrand, Royat",
+        "url": "https://royat.aquafix.top/en",
+        "telephone": "+33 4 23 50 06 40",
+        "email": "val@aquafix.top",
+        "image": "https://cdn.example/royat.jpg",
+        "parentOrganization": {
+          "@id": "https://aquafix.top/#organization"
+        },
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "2 Av. Abbé Védrine",
+          "postalCode": "63130",
+          "addressLocality": "Royat",
+          "addressRegion": "Auvergne-Rhône-Alpes",
+          "addressCountry": "FR"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": 45.7667,
+          "longitude": 3.0514
+        },
+        "priceRange": "€€",
+        "areaServed": [
+          {
+            "@type": "Place",
+            "name": "Royat"
+          },
+          {
+            "@type": "Place",
+            "name": "Chamalières"
+          },
+          {
+            "@type": "Place",
+            "name": "Ceyrat"
+          }
+        ],
+        "openingHoursSpecification": [
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": [
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday"
+            ],
+            "opens": "07:00",
+            "closes": "21:00"
+          }
+        ],
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": 4.7,
+          "reviewCount": 31,
+          "bestRating": 5
+        }
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://royat.aquafix.top/#website",
+        "url": "https://royat.aquafix.top",
+        "name": "Aquafix Royat"
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://royat.aquafix.top/en#page",
+        "url": "https://royat.aquafix.top/en",
+        "name": "Plumber in Royat — fixed price, fixed today",
+        "description": "Plumbers in Royat. A written flat rate before we start, a 2-hour arrival window or the call-out is free, and a 12-month warranty. Published prices for nine jobs.",
+        "inLanguage": "en",
+        "isPartOf": {
+          "@id": "https://royat.aquafix.top/#website"
+        },
+        "about": {
+          "@id": "https://royat.aquafix.top/#business"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Aquafix Royat",
+            "item": "https://royat.aquafix.top/en"
+          }
+        ]
+      },
+      {
+        "@type": "Service",
+        "name": "Blocked drain — machine cleared",
+        "serviceType": "Blocked drain — machine cleared",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 149,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 149,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Leaking tap, mixer or cistern",
+        "serviceType": "Leaking tap, mixer or cistern",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 129,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 129,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Toilet repair or full replacement",
+        "serviceType": "Toilet repair or full replacement",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 189,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 189,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Water heater — repair",
+        "serviceType": "Water heater — repair",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 215,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 215,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Water heater — full replacement",
+        "serviceType": "Water heater — full replacement",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 1290,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 1290,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Burst or leaking pipe repair",
+        "serviceType": "Burst or leaking pipe repair",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 265,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 265,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Drain camera inspection",
+        "serviceType": "Drain camera inspection",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 199,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 199,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Sewer line clear and report",
+        "serviceType": "Sewer line clear and report",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 390,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 390,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Full repipe — 3 bedroom house",
+        "serviceType": "Full repipe — 3 bedroom house",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 4800,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 4800,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      }
+    ]
+  },
+  "royat-published/en/prices": {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://aquafix.top/#organization",
+        "name": "Aquafix",
+        "legalName": "Aquafix SAS",
+        "url": "https://aquafix.top",
+        "email": "val@aquafix.top"
+      },
+      {
+        "@type": "Plumber",
+        "@id": "https://royat.aquafix.top/#business",
+        "name": "Aquafix Plombier Chauffagiste - Clermont-Ferrand, Royat",
+        "url": "https://royat.aquafix.top/en",
+        "telephone": "+33 4 23 50 06 40",
+        "email": "val@aquafix.top",
+        "image": "https://cdn.example/royat.jpg",
+        "parentOrganization": {
+          "@id": "https://aquafix.top/#organization"
+        },
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "2 Av. Abbé Védrine",
+          "postalCode": "63130",
+          "addressLocality": "Royat",
+          "addressRegion": "Auvergne-Rhône-Alpes",
+          "addressCountry": "FR"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": 45.7667,
+          "longitude": 3.0514
+        },
+        "priceRange": "€€",
+        "areaServed": [
+          {
+            "@type": "Place",
+            "name": "Royat"
+          },
+          {
+            "@type": "Place",
+            "name": "Chamalières"
+          },
+          {
+            "@type": "Place",
+            "name": "Ceyrat"
+          }
+        ],
+        "openingHoursSpecification": [
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": [
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday"
+            ],
+            "opens": "07:00",
+            "closes": "21:00"
+          }
+        ],
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": 4.7,
+          "reviewCount": 31,
+          "bestRating": 5
+        }
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://royat.aquafix.top/#website",
+        "url": "https://royat.aquafix.top",
+        "name": "Aquafix Royat"
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://royat.aquafix.top/en/prices#page",
+        "url": "https://royat.aquafix.top/en/prices",
+        "name": "Every job, every number",
+        "description": "The full Aquafix price list in Royat: nine jobs, real flat rates including TVA, and the questions everybody asks before booking.",
+        "inLanguage": "en",
+        "isPartOf": {
+          "@id": "https://royat.aquafix.top/#website"
+        },
+        "about": {
+          "@id": "https://royat.aquafix.top/#business"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Aquafix Royat",
+            "item": "https://royat.aquafix.top/en"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Every job, every number",
+            "item": "https://royat.aquafix.top/en/prices"
+          }
+        ]
+      },
+      {
+        "@type": "Service",
+        "name": "Blocked drain — machine cleared",
+        "serviceType": "Blocked drain — machine cleared",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 149,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 149,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Leaking tap, mixer or cistern",
+        "serviceType": "Leaking tap, mixer or cistern",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 129,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 129,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Toilet repair or full replacement",
+        "serviceType": "Toilet repair or full replacement",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 189,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 189,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Water heater — repair",
+        "serviceType": "Water heater — repair",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 215,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 215,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Water heater — full replacement",
+        "serviceType": "Water heater — full replacement",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 1290,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 1290,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Burst or leaking pipe repair",
+        "serviceType": "Burst or leaking pipe repair",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 265,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 265,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Drain camera inspection",
+        "serviceType": "Drain camera inspection",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 199,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 199,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Sewer line clear and report",
+        "serviceType": "Sewer line clear and report",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 390,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 390,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "Service",
+        "name": "Full repipe — 3 bedroom house",
+        "serviceType": "Full repipe — 3 bedroom house",
+        "provider": {
+          "@id": "https://royat.aquafix.top/#business"
+        },
+        "areaServed": {
+          "@type": "City",
+          "name": "Royat"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": 4800,
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock",
+          "priceSpecification": {
+            "@type": "PriceSpecification",
+            "minPrice": 4800,
+            "priceCurrency": "EUR",
+            "valueAddedTaxIncluded": true
+          }
+        }
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Is the €89 call-out on top of the job price?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. It is credited in full against any work you approve. If you approve nothing, the €89 covers the visit and the diagnosis, and that is the entire bill."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What if you find something worse once it is open?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "We stop, show you, and requote before touching anything. You can decline and owe only the amount you already approved. We never do extra work and bill for it afterwards."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Do you actually answer at 2am?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes, and it is a person in Royat rather than an answering service. Emergency call-outs between 9pm and 7am carry a €60 surcharge, quoted to you before we dispatch anyone."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Are you registered and insured?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "SIRET 000 000 000 00000, and every job is covered by our assurance décennale (—, policy —). We will email you the certificate before the visit if you want to see it first."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How fast can you really get here?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Across our last 500 jobs the average emergency arrival was 43 minutes. For non-urgent work, 96% of bookings were attended within 24 hours."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What payment do you take?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Card, bank transfer or cash on completion. Every price we quote includes TVA — the number on the sheet is the number you pay."
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "royat-published/en/guarantee": {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://aquafix.top/#organization",
+        "name": "Aquafix",
+        "legalName": "Aquafix SAS",
+        "url": "https://aquafix.top",
+        "email": "val@aquafix.top"
+      },
+      {
+        "@type": "Plumber",
+        "@id": "https://royat.aquafix.top/#business",
+        "name": "Aquafix Plombier Chauffagiste - Clermont-Ferrand, Royat",
+        "url": "https://royat.aquafix.top/en",
+        "telephone": "+33 4 23 50 06 40",
+        "email": "val@aquafix.top",
+        "image": "https://cdn.example/royat.jpg",
+        "parentOrganization": {
+          "@id": "https://aquafix.top/#organization"
+        },
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "2 Av. Abbé Védrine",
+          "postalCode": "63130",
+          "addressLocality": "Royat",
+          "addressRegion": "Auvergne-Rhône-Alpes",
+          "addressCountry": "FR"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": 45.7667,
+          "longitude": 3.0514
+        },
+        "priceRange": "€€",
+        "areaServed": [
+          {
+            "@type": "Place",
+            "name": "Royat"
+          },
+          {
+            "@type": "Place",
+            "name": "Chamalières"
+          },
+          {
+            "@type": "Place",
+            "name": "Ceyrat"
+          }
+        ],
+        "openingHoursSpecification": [
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": [
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday"
+            ],
+            "opens": "07:00",
+            "closes": "21:00"
+          }
+        ],
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": 4.7,
+          "reviewCount": 31,
+          "bestRating": 5
+        }
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://royat.aquafix.top/#website",
+        "url": "https://royat.aquafix.top",
+        "name": "Aquafix Royat"
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://royat.aquafix.top/en/guarantee#page",
+        "url": "https://royat.aquafix.top/en/guarantee",
+        "name": "What we actually promise",
+        "description": "The four things people fear about calling a plumber, the written terms that remove each one, and how an Aquafix job runs start to finish.",
+        "inLanguage": "en",
+        "isPartOf": {
+          "@id": "https://royat.aquafix.top/#website"
+        },
+        "about": {
+          "@id": "https://royat.aquafix.top/#business"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Aquafix Royat",
+            "item": "https://royat.aquafix.top/en"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "What we actually promise",
+            "item": "https://royat.aquafix.top/en/guarantee"
+          }
+        ]
+      }
+    ]
+  },
+  "royat-published/en/about": {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://aquafix.top/#organization",
+        "name": "Aquafix",
+        "legalName": "Aquafix SAS",
+        "url": "https://aquafix.top",
+        "email": "val@aquafix.top"
+      },
+      {
+        "@type": "Plumber",
+        "@id": "https://royat.aquafix.top/#business",
+        "name": "Aquafix Plombier Chauffagiste - Clermont-Ferrand, Royat",
+        "url": "https://royat.aquafix.top/en",
+        "telephone": "+33 4 23 50 06 40",
+        "email": "val@aquafix.top",
+        "image": "https://cdn.example/royat.jpg",
+        "parentOrganization": {
+          "@id": "https://aquafix.top/#organization"
+        },
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "2 Av. Abbé Védrine",
+          "postalCode": "63130",
+          "addressLocality": "Royat",
+          "addressRegion": "Auvergne-Rhône-Alpes",
+          "addressCountry": "FR"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": 45.7667,
+          "longitude": 3.0514
+        },
+        "priceRange": "€€",
+        "areaServed": [
+          {
+            "@type": "Place",
+            "name": "Royat"
+          },
+          {
+            "@type": "Place",
+            "name": "Chamalières"
+          },
+          {
+            "@type": "Place",
+            "name": "Ceyrat"
+          }
+        ],
+        "openingHoursSpecification": [
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": [
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday"
+            ],
+            "opens": "07:00",
+            "closes": "21:00"
+          }
+        ],
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": 4.7,
+          "reviewCount": 31,
+          "bestRating": 5
+        }
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://royat.aquafix.top/#website",
+        "url": "https://royat.aquafix.top",
+        "name": "Aquafix Royat"
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://royat.aquafix.top/en/about#page",
+        "url": "https://royat.aquafix.top/en/about",
+        "name": "Four plumbers and a 30 km radius",
+        "description": "Who turns up, how they are insured, and exactly where around Royat we will and will not drive.",
+        "inLanguage": "en",
+        "isPartOf": {
+          "@id": "https://royat.aquafix.top/#website"
+        },
+        "about": {
+          "@id": "https://royat.aquafix.top/#business"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Aquafix Royat",
+            "item": "https://royat.aquafix.top/en"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Four plumbers and a 30 km radius",
+            "item": "https://royat.aquafix.top/en/about"
+          }
+        ]
+      }
+    ]
+  }
+}

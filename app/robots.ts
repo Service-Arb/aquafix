@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { headers } from "next/headers";
-import { brandOrigin, locationOrigin } from "@/entities/location";
+import { brandOrigin, placeOrigin } from "@/entities/place";
 import { hostSlug } from "@/features/request-routing";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
  */
 export default async function robots(): Promise<MetadataRoute.Robots> {
   const slug = hostSlug((await headers()).get("host") ?? "");
-  const origin = slug ? locationOrigin(slug) : brandOrigin();
+  const origin = slug ? placeOrigin(slug) : brandOrigin();
   return {
     rules: [
       { userAgent: "*", allow: "/" },

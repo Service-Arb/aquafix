@@ -1,6 +1,6 @@
 import { Eyebrow, Section } from "@evinvest/uikit";
 import type { Copy } from "@/entities/content";
-import type { PageKey } from "@/shared/config/routes";
+import type { PageKey } from "@/shared/config/site";
 
 /**
  * The sub-pages' one parameterised head, not three. An `<h1>` of its own

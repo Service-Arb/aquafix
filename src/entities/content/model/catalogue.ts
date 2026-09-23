@@ -5,19 +5,8 @@
  * price that drifts from its English twin cannot exist — there is one number.
  */
 
-/** Values the quote form's `<select>` posts and the lead store keeps. */
-export const JOB_IDS = [
-  "blocked_drain",
-  "burst_pipe",
-  "hot_water",
-  "tap_toilet",
-  "sewer_line",
-  "leak_detection",
-  "repipe",
-  "fit_out",
-  "other",
-] as const;
-export type JobId = (typeof JOB_IDS)[number];
+// The jobs are the lead schema's subjects, so they live with it in the site config.
+export { JOB_IDS, type JobId } from "@/shared/config/lead";
 
 export type PriceId =
   | "drain"

@@ -1,14 +1,14 @@
 import { after } from "next/server";
 import { copyFor } from "@/entities/content";
 import { leadNotifier, openLeadStore, type LeadStore } from "@/entities/lead/server";
-import { bakedLocation, pointFor } from "@/entities/location";
+import { bakedPlace, contactOf, placeView } from "@/entities/place";
 import { analyticsSink, EVENTS } from "@/features/analytics/events";
 import { acceptLead, clientKey, RateLimiter } from "@/features/quote-form";
 import { hostSlug } from "@/features/request-routing";
-import { BRAND } from "@/shared/config/brand";
+import { site } from "@/shared/config/site";
 import { serverEnv } from "@/shared/config/env";
 import type { Locale } from "@/shared/config/i18n";
-import { THANKS } from "@/shared/config/routes";
+import { THANKS } from "@/shared/landing/core/routing";
 
 /**
  * The no-JS path, and the one that has to keep working: a plain form POST
@@ -23,7 +23,7 @@ const limiter = new RateLimiter(5, 10 * 60_000);
 let store: LeadStore | undefined;
 function leadStore(): LeadStore {
   // Opened on first use rather than at import: `next build` imports this file.
-  store ??= openLeadStore(serverEnv().leadsDbPath);
+  store ??= openLeadStore(serverEnv().leadsDb);
   return store;
 }
 
@@ -33,17 +33,18 @@ function seeOther(location: string): Response {
 
 /** Where a page of the submitting point is — or of the brand, with no point. */
 function href(request: Request, slug: string | null, locale: Locale, suffix: string): string {
-  const location = slug ? bakedLocation(slug) : undefined;
+  const location = slug ? bakedPlace(slug) : undefined;
   if (!location) return `/${locale}${suffix}`;
   // Links follow the host the form was posted from: the point's subdomain, or
   // the apex fallback path.
   const mode = hostSlug(request.headers.get("host") ?? "") === location.slug ? "host" : "path";
-  return pointFor(location, locale, mode).href(suffix);
+  return placeView(location, locale, mode).href(suffix);
 }
 
 function unavailable(slug: string | null, locale: Locale): Response {
-  const location = slug ? bakedLocation(slug) : undefined;
-  const copy = copyFor({ locale, place: location?.place[locale] ?? BRAND.name, phone: location?.phone ?? BRAND.phone });
+  const location = slug ? bakedPlace(slug) : undefined;
+  const phone = location ? contactOf(location).phone : site.brand.phone;
+  const copy = copyFor({ locale, place: location?.name[locale] ?? site.brand.name, phone });
   const s = copy.t.serverError;
   const tel = `tel:${copy.f.phone.replace(/[^\d+]/g, "")}`;
   // Self-contained: the thing that failed may be the thing that renders pages.
@@ -61,14 +62,15 @@ export async function POST(request: Request): Promise<Response> {
   }
   const env = serverEnv();
   const notifier = leadNotifier(env);
-  const outcome = acceptLead(form, clientKey(request.headers), {
+  const outcome = await acceptLead(form, clientKey(request.headers), {
     insert: lead => leadStore().insert(lead),
     defer: task => after(task),
     notify: (lead, id) => notifier.notify(lead, id),
     capture: (lead, formId) =>
-      analyticsSink({ key: env.posthogKey, host: env.posthogHost }, lead.locationId).capture(EVENTS.leadSubmit, {
-        form_id: formId,
-      }),
+      analyticsSink({ key: env.posthogKey, host: env.posthogHost, brandId: site.brand.id }, lead.placeSlug).capture(
+        EVENTS.leadSubmit,
+        { form_id: formId },
+      ),
     limiter,
     now: Date.now(),
     log: console,
@@ -77,7 +79,7 @@ export async function POST(request: Request): Promise<Response> {
   switch (outcome.kind) {
     // A suspected bot is answered exactly as a person is.
     case "stored":
-      return seeOther(href(request, outcome.lead.locationId, outcome.locale, THANKS));
+      return seeOther(href(request, outcome.lead.placeSlug, outcome.locale, THANKS));
     case "invalid":
       return seeOther(href(request, outcome.slug, outcome.locale, outcome.slug ? "#quote" : ""));
     case "failed":

@@ -1,17 +1,18 @@
 import { telHref } from "@evinvest/marketing";
 import { SERVICE_LIST, type Copy } from "@/entities/content";
-import type { Point } from "@/entities/location";
-import { BRAND } from "@/shared/config/brand";
+import { contactOf, servedLocalities, storefrontOf, type PlaceView } from "@/entities/place";
+import { site } from "@/shared/config/site";
 import { Lockup } from "@/shared/ui/brand";
 import type { ReactNode } from "react";
 
 /** The sub-pages' footer. Local, not the kit's `Footer`: that one is EV-shaped. */
-export function Footer({ copy, point }: { copy: Copy; point: Point }) {
+export function Footer({ copy, point }: { copy: Copy; point: PlaceView }) {
   const { t, f } = copy;
-  const { location } = point;
+  const { phone } = contactOf(point.place);
+  const front = storefrontOf(point.place);
   const cols = t.footer.columns;
   const company = t.footer.company;
-  const areas = location.serviceArea ?? [location.address.locality];
+  const areas = servedLocalities(point.place);
   return (
     <footer id="footer" className="dark bg-background px-[var(--page-px)] pt-9 md:pt-14">
       <div className="flex flex-col gap-8 md:flex-row md:gap-12">
@@ -47,21 +48,23 @@ export function Footer({ copy, point }: { copy: Copy; point: Point }) {
             <a href={point.href("#quote")}>{company.contact}</a>
           </Column>
           <Column heading={cols.contact}>
-            <a href={telHref(location.phone)} className="whitespace-nowrap font-display text-[22px] font-bold text-primary-ink">
-              {location.phone}
+            <a href={telHref(phone)} className="whitespace-nowrap font-display text-[22px] font-bold text-primary-ink">
+              {phone}
             </a>
             <p>{t.emergencyHours}</p>
             <p>{t.bookingHours}</p>
-            <a href={`mailto:${BRAND.email}`}>{BRAND.email}</a>
-            <address className="not-italic">
-              {location.address.street}, {location.address.postalCode} {location.address.locality}
-            </address>
+            <a href={`mailto:${site.brand.email}`}>{site.brand.email}</a>
+            {front && (
+              <address className="not-italic">
+                {front.address.street}, {front.address.postalCode} {front.address.locality}
+              </address>
+            )}
           </Column>
         </div>
       </div>
       <div className="mt-8 flex flex-col gap-3 border-t border-border pb-7 pt-6 text-[13px] text-ink-soft md:mt-9 md:flex-row md:items-center md:gap-6">
         <p>
-          © {BRAND.legalName} · {f.siret}
+          © {site.brand.legalName} · {f.siret}
         </p>
         <div className="flex-1" />
         {t.footer.legal.map(label => (

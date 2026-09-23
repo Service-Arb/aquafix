@@ -103,10 +103,10 @@ export function readOgPalette(root: string): OgPalette {
 export function buildEnv(root: string): Record<string, string> {
   const card = readCard(root);
   return {
-    AQUAFIX_CARD_PHONE: card.phone,
-    AQUAFIX_CARD_EMAIL: card.email,
-    AQUAFIX_CARD_SITE: card.site,
-    AQUAFIX_MARK_PATH: readMarkPath(root),
-    AQUAFIX_OG_PALETTE: JSON.stringify(readOgPalette(root)),
+    SITE_CARD_PHONE: card.phone,
+    SITE_CARD_EMAIL: card.email,
+    SITE_CARD_SITE: card.site,
+    SITE_MARK_PATH: readMarkPath(root),
+    SITE_OG_PALETTE: JSON.stringify(readOgPalette(root)),
   };
 }

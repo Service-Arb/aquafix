@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
+import { site } from "@/shared/config/site";
 import { StatusScreen } from "@/widgets/status-screen";
 import { notFoundView } from "../model/view";
 
@@ -17,7 +18,7 @@ export function NotFound() {
   const { copy, target } = notFoundView(useParams<{ locale?: string; location?: string }>() ?? {});
   return (
     <>
-      <title>{`${copy.t.notFound.title} · Aquafix`}</title>
+      <title>{`${copy.t.notFound.title} · ${site.brand.name}`}</title>
       <StatusScreen copy={copy} status={copy.t.notFound} target={target} />
     </>
   );

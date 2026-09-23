@@ -1,27 +1,7 @@
-/**
- * The pages a location has, as locale- and location-free suffixes. The proxy,
- * the sitemap, the breadcrumbs and the route tree all read this one list, so a
- * page cannot exist in one and be forgotten by another.
- */
-export const PAGES = {
-  home: "",
-  prices: "/prices",
-  guarantee: "/guarantee",
-  about: "/about",
-} as const;
-
-export type PageKey = keyof typeof PAGES;
-
-export const PAGE_KEYS = Object.keys(PAGES) as PageKey[];
-
-/** Not indexable, not in the sitemap, but negotiated like any other page. */
-export const THANKS = "/thanks";
-
-/** Every suffix the proxy treats as a page of a location. */
-export const LOCATION_SUFFIXES: readonly string[] = [...Object.values(PAGES), THANKS];
+import type { BrandFacts, Site } from "./site";
 
 /**
- * How links are written on a location's pages. On its own subdomain a page is
+ * How links are written on a point's pages. On its own subdomain a page is
  * `/fr/prices`; reached through the apex fallback it is `/fr/<slug>/prices`.
  */
 export type LinkMode = "host" | "path";
@@ -43,4 +23,12 @@ export function locationParam(slug: string, mode: LinkMode): string {
 /** Inverse of {@link locationParam}. */
 export function parseLocationParam(param: string): { slug: string; mode: LinkMode } {
   return param.startsWith(HOST_MARK) ? { slug: param.slice(HOST_MARK.length), mode: "host" } : { slug: param, mode: "path" };
+}
+
+/** Not indexable, not in the sitemap, but negotiated like any other page. */
+export const THANKS = "/thanks";
+
+/** Every suffix the proxy treats as a page of a point. */
+export function pointSuffixes<L extends string, P extends string, B extends BrandFacts>(site: Site<L, P, B>): string[] {
+  return [...site.pageKeys.map(k => site.pages[k]), THANKS];
 }

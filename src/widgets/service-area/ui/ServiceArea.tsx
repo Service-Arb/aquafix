@@ -1,16 +1,15 @@
 import { Badge, Display, Eyebrow, Section } from "@evinvest/uikit";
 import type { Copy } from "@/entities/content";
-import type { Point } from "@/entities/location";
+import { servedLocalities, type PlaceView } from "@/entities/place";
 
 /**
  * The refusal is the point: a window we cannot hit is worth nothing, so the
  * radius is published and everything past it is turned down.
  */
-export function ServiceArea({ copy, point }: { copy: Copy; point: Point }) {
+export function ServiceArea({ copy, point }: { copy: Copy; point: PlaceView }) {
   const { t, f } = copy;
   const head = t.areaHead;
-  const { location } = point;
-  const areas = location.serviceArea ?? [location.address.locality];
+  const areas = servedLocalities(point.place);
   return (
     <Section tight id="areas">
       <div className="flex flex-col gap-6 md:flex-row md:gap-14">

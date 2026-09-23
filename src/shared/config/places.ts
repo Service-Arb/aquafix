@@ -1,5 +1,5 @@
-import { BRAND } from "@/shared/config/brand";
-import type { Location, PostalAddress } from "../model/types";
+import type { Place, PostalAddress } from "@/shared/landing/core/place";
+import type { Locale } from "./i18n";
 
 /**
  * The baked half of every point: what the site says when the live source is
@@ -12,64 +12,61 @@ import type { Location, PostalAddress } from "../model/types";
  */
 const ARA = "Auvergne-Rhône-Alpes";
 
-function point(
+function storefront(
   slug: string,
   gbpName: string,
-  place: string,
+  name: string,
   address: Omit<PostalAddress, "region" | "country">,
-): Location {
+): Place<Locale> {
   return {
     slug,
     gbpName,
-    place: { fr: place, en: place },
-    address: { ...address, region: ARA, country: "FR" },
-    phone: BRAND.phone,
-    // The card's number until a point has its own WhatsApp Business line.
-    whatsapp: BRAND.phone,
-    geo: null,
-    storefrontPhoto: null,
-    landmark: null,
+    name: { fr: name, en: name },
+    presence: {
+      kind: "storefront",
+      address: { ...address, region: ARA, country: "FR" },
+      geo: null,
+      storefrontPhoto: null,
+      landmark: null,
+    },
     serviceArea: null,
+    // The card's number for both until a point has its own line and its own
+    // WhatsApp Business account; `null` reads the brand's.
+    channels: { phone: null, whatsapp: null },
     hours: null,
     rating: null,
   };
 }
 
-export const LOCATIONS: readonly Location[] = [
-  point("royat", "Aquafix Plombier Chauffagiste - Clermont-Ferrand, Royat", "Royat", {
+export const PLACES: readonly Place<Locale>[] = [
+  storefront("royat", "Aquafix Plombier Chauffagiste - Clermont-Ferrand, Royat", "Royat", {
     street: "2 Av. Abbé Védrine",
     postalCode: "63130",
     locality: "Royat",
   }),
-  point("clermont-ferrand", "Aquafix — Plombier Chauffagiste Clermont-Ferrand", "Clermont-Ferrand", {
+  storefront("clermont-ferrand", "Aquafix — Plombier Chauffagiste Clermont-Ferrand", "Clermont-Ferrand", {
     street: "36 Rue des Chanelles",
     postalCode: "63100",
     locality: "Clermont-Ferrand",
   }),
-  point("desgenettes", "Aquafix Plombier Chauffagiste - Lyon, Desgenettes", "Lyon Desgenettes", {
+  storefront("desgenettes", "Aquafix Plombier Chauffagiste - Lyon, Desgenettes", "Lyon Desgenettes", {
     street: "9 Rue Professeur Florence",
     postalCode: "69003",
     locality: "Lyon",
   }),
-  point("lyon-est", "Aquafix Plombier Chauffagiste - Lyon, Est", "Lyon Est", {
+  storefront("lyon-est", "Aquafix Plombier Chauffagiste - Lyon, Est", "Lyon Est", {
     street: "9 Rue Philippe Fabia",
     postalCode: "69008",
     locality: "Lyon",
   }),
-  point("la-mouche", "Aquafix Plombier Chauffagiste - Lyon, la Mouche", "Lyon La Mouche", {
+  storefront("la-mouche", "Aquafix Plombier Chauffagiste - Lyon, la Mouche", "Lyon La Mouche", {
     street: "44 Rue Michel Félizat",
     postalCode: "69007",
     locality: "Lyon",
   }),
-  point("lyon-nord", "Aquafix Plombier Chauffagiste - Lyon, Nord", "Lyon Nord", {
+  storefront("lyon-nord", "Aquafix Plombier Chauffagiste - Lyon, Nord", "Lyon Nord", {
     street: "21 Rue Neyret",
     postalCode: "69001",
     locality: "Lyon",
   }),
 ];
-
-export const LOCATION_SLUGS: readonly string[] = LOCATIONS.map(l => l.slug);
-
-export function bakedLocation(slug: string): Location | undefined {
-  return LOCATIONS.find(l => l.slug === slug);
-}

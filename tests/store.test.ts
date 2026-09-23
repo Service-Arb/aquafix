@@ -1,9 +1,9 @@
-import { mkdtempSync } from "node:fs";
+import { existsSync, mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import type { Lead } from "@/entities/lead";
-import { openLeadStore } from "@/entities/lead/server";
+import { LEAD_SCHEMA_VERSION, openSqliteLeadStore } from "@/entities/lead/server";
 import { acceptLead, RateLimiter, type AcceptDeps } from "@/features/quote-form";
 
 const NOW = 1_800_000_000_000;
@@ -18,13 +18,21 @@ function form(fields: Record<string, string>, omit: string[] = []): FormData {
 }
 
 const good = { job: "blocked_drain", zip: "63130", mobile: "06 12 34 56 78" };
-const lead = (over: Partial<Lead> = {}): Lead => ({ ...good, locationId: "royat", spamVerdict: null, ...over });
+const lead = (over: Partial<Lead> = {}): Lead => ({
+  subject: good.job,
+  locality: good.zip,
+  mobile: good.mobile,
+  extras: {},
+  placeSlug: "royat",
+  spamVerdict: null,
+  ...over,
+});
 
 function deps(over: Partial<AcceptDeps> = {}) {
   const deferred: (() => Promise<void> | void)[] = [];
   const log = { warn: vi.fn(), error: vi.fn() };
   const d: AcceptDeps = {
-    insert: () => 1,
+    insert: async () => 1,
     defer: task => void deferred.push(task),
     notify: async () => undefined,
     capture: () => undefined,
@@ -37,15 +45,15 @@ function deps(over: Partial<AcceptDeps> = {}) {
 }
 
 describe("the lead store", () => {
-  it("inserts a lead with its point and counts it", () => {
-    const store = openLeadStore(tmp());
-    expect(store.insert(lead())).toBe(1);
-    expect(store.insert(lead({ locationId: null, spamVerdict: "too-fast" }))).toBe(2);
-    expect(store.count()).toBe(2);
-    store.close();
+  it("inserts a lead with its point and counts it", async () => {
+    const store = openSqliteLeadStore(tmp());
+    expect(await store.insert(lead())).toBe(1);
+    expect(await store.insert(lead({ placeSlug: null, spamVerdict: "too-fast" }))).toBe(2);
+    expect(await store.count()).toBe(2);
+    await store.close();
   });
 
-  it("brings the Rust server's table forward in place, keeping its rows", () => {
+  it("brings the Rust server's table forward in place, keeping its rows", async () => {
     const path = tmp();
     const legacy = new (sqlite().DatabaseSync)(path);
     legacy.exec(`CREATE TABLE leads (id INTEGER PRIMARY KEY AUTOINCREMENT, job TEXT NOT NULL, zip TEXT NOT NULL,
@@ -53,9 +61,9 @@ describe("the lead store", () => {
     legacy.exec("INSERT INTO leads (job, zip, mobile) VALUES ('hot_water', '97210', '5035550148')");
     legacy.close();
 
-    const store = openLeadStore(path);
-    expect(store.insert(lead({ locationId: "lyon-nord", spamVerdict: "honeypot" }))).toBe(2);
-    store.close();
+    const store = openSqliteLeadStore(path);
+    expect(await store.insert(lead({ placeSlug: "lyon-nord", spamVerdict: "honeypot" }))).toBe(2);
+    await store.close();
     const check = new (sqlite().DatabaseSync)(path);
     expect(check.prepare("SELECT location_id, spam_verdict FROM leads ORDER BY id").all()).toEqual([
       { location_id: null, spam_verdict: null },
@@ -65,60 +73,157 @@ describe("the lead store", () => {
   });
 });
 
+/**
+ * The store as it shipped before its schema was versioned (71045d0): the Rust
+ * table created if absent, then each column added if missing, `user_version`
+ * never touched. Every prod volume the Node port has written looks like this.
+ */
+function openWithUnversionedStore(path: string, columns: readonly ("location_id" | "spam_verdict")[]): void {
+  const db = new (sqlite().DatabaseSync)(path);
+  db.exec("PRAGMA journal_mode = WAL");
+  db.exec(`CREATE TABLE IF NOT EXISTS leads (
+    id      INTEGER PRIMARY KEY AUTOINCREMENT,
+    job     TEXT NOT NULL,
+    zip     TEXT NOT NULL,
+    mobile  TEXT NOT NULL,
+    at      TEXT NOT NULL DEFAULT (datetime('now'))
+  )`);
+  for (const column of columns) db.exec(`ALTER TABLE leads ADD COLUMN ${column} TEXT`);
+  if (columns.includes("location_id") && columns.includes("spam_verdict")) {
+    db.prepare("INSERT INTO leads (job, zip, mobile, location_id, spam_verdict) VALUES (?, ?, ?, ?, ?)").run(
+      "tap_toilet",
+      "69003",
+      "0612345678",
+      "desgenettes",
+      "too-fast",
+    );
+  } else {
+    db.prepare("INSERT INTO leads (job, zip, mobile) VALUES (?, ?, ?)").run("tap_toilet", "69003", "0612345678");
+  }
+  db.close();
+}
+
+const columnsOf = (path: string): unknown[] => {
+  const db = new (sqlite().DatabaseSync)(path);
+  const names = db
+    .prepare("PRAGMA table_info(leads)")
+    .all()
+    .map(r => (typeof r === "object" && r !== null ? Reflect.get(r, "name") : undefined));
+  db.close();
+  return names;
+};
+
+describe("the lead store's migrations", () => {
+  it("creates a fresh file at the latest version", async () => {
+    const path = tmp();
+    const store = openSqliteLeadStore(path);
+    expect(store.version()).toBe(LEAD_SCHEMA_VERSION);
+    await store.close();
+    expect(columnsOf(path)).toEqual(["id", "job", "zip", "mobile", "at", "location_id", "spam_verdict", "extras"]);
+  });
+
+  it("recognises a file the unversioned Node store wrote, and keeps its rows", async () => {
+    const path = tmp();
+    openWithUnversionedStore(path, ["location_id", "spam_verdict"]);
+
+    const store = openSqliteLeadStore(path);
+    expect(store.version()).toBe(LEAD_SCHEMA_VERSION);
+    expect(await store.insert(lead({ extras: { surface_m2: "40" } }))).toBe(2);
+    expect(await store.count()).toBe(2);
+    await store.close();
+
+    const check = new (sqlite().DatabaseSync)(path);
+    expect(check.prepare("SELECT job, zip, location_id, spam_verdict, extras FROM leads ORDER BY id").all()).toEqual([
+      { job: "tap_toilet", zip: "69003", location_id: "desgenettes", spam_verdict: "too-fast", extras: null },
+      { job: "blocked_drain", zip: "63130", location_id: "royat", spam_verdict: null, extras: '{"surface_m2":"40"}' },
+    ]);
+    check.close();
+  });
+
+  it("finishes a file the unversioned store left halfway (location_id only)", async () => {
+    const path = tmp();
+    openWithUnversionedStore(path, ["location_id"]);
+    const store = openSqliteLeadStore(path);
+    expect(store.version()).toBe(LEAD_SCHEMA_VERSION);
+    await store.close();
+    expect(columnsOf(path)).toEqual(["id", "job", "zip", "mobile", "at", "location_id", "spam_verdict", "extras"]);
+  });
+
+  it("opens a migrated file again without touching it", async () => {
+    const path = tmp();
+    await openSqliteLeadStore(path).close();
+    const again = openSqliteLeadStore(path);
+    expect(again.version()).toBe(LEAD_SCHEMA_VERSION);
+    expect(await again.insert(lead())).toBe(1);
+    await again.close();
+  });
+
+  it("refuses a `leads` table it does not recognise instead of altering it", async () => {
+    const path = tmp();
+    const db = new (sqlite().DatabaseSync)(path);
+    db.exec("CREATE TABLE leads (id INTEGER PRIMARY KEY, name TEXT)");
+    db.close();
+    expect(() => openSqliteLeadStore(path)).toThrow(/unrecognised table/);
+    // Closed behind the error: the last connection to a WAL file removes its `-wal`.
+    expect(existsSync(`${path}-wal`)).toBe(false);
+    expect(columnsOf(path)).toEqual(["id", "name"]);
+  });
+});
+
 describe("accepting a lead", () => {
   it("stores the lead before anything else, and a failed notification does not lose it", async () => {
-    const store = openLeadStore(tmp());
+    const store = openSqliteLeadStore(tmp());
     const { d, flush, log } = deps({
       insert: l => store.insert(l),
       notify: async () => {
         throw new Error("SMTP down");
       },
     });
-    const outcome = acceptLead(form(good), "1.2.3.4", d);
-    expect(outcome).toMatchObject({ kind: "stored", id: 1, lead: { locationId: "royat", spamVerdict: null } });
+    const outcome = await acceptLead(form(good), "1.2.3.4", d);
+    expect(outcome).toMatchObject({ kind: "stored", id: 1, lead: { placeSlug: "royat", spamVerdict: null } });
     // Durable already — the notification has not even run yet.
-    expect(store.count()).toBe(1);
+    expect(await store.count()).toBe(1);
     await flush();
-    expect(store.count()).toBe(1);
+    expect(await store.count()).toBe(1);
     expect(log.error).toHaveBeenCalledWith(expect.stringContaining("notification failed"), expect.any(Error));
-    store.close();
+    await store.close();
   });
 
-  it("never reports a stored lead the store refused", () => {
+  it("never reports a stored lead the store refused", async () => {
     const { d, deferred } = deps({
-      insert: () => {
+      insert: async () => {
         throw new Error("disk full");
       },
     });
-    expect(acceptLead(form(good), "1.2.3.4", d)).toMatchObject({ kind: "failed" });
+    expect(await acceptLead(form(good), "1.2.3.4", d)).toMatchObject({ kind: "failed" });
     expect(deferred).toHaveLength(0);
   });
 
-  it("rejects a lead with no reachable number without storing it, and without spending the limit", () => {
-    const insert = vi.fn(() => 1);
+  it("rejects a lead with no reachable number without storing it, and without spending the limit", async () => {
+    const insert = vi.fn(async () => 1);
     const limiter = new RateLimiter(1, 60_000);
     const { d } = deps({ insert, limiter });
-    expect(acceptLead(form({ ...good, mobile: "0612" }), "1.2.3.4", d)).toMatchObject({ kind: "invalid" });
-    expect(acceptLead(form({ ...good, zip: " " }), "1.2.3.4", d)).toMatchObject({ kind: "invalid" });
+    expect(await acceptLead(form({ ...good, mobile: "0612" }), "1.2.3.4", d)).toMatchObject({ kind: "invalid" });
+    expect(await acceptLead(form({ ...good, zip: " " }), "1.2.3.4", d)).toMatchObject({ kind: "invalid" });
     expect(insert).not.toHaveBeenCalled();
     // The corrected form is the address's first counted submission.
-    expect(acceptLead(form(good), "1.2.3.4", d)).toMatchObject({ kind: "stored", lead: { spamVerdict: null } });
+    expect(await acceptLead(form(good), "1.2.3.4", d)).toMatchObject({ kind: "stored", lead: { spamVerdict: null } });
   });
 
   it("keeps a honeypot submission, flagged and not notified", async () => {
-    const store = openLeadStore(tmp());
+    const store = openSqliteLeadStore(tmp());
     const notify = vi.fn(async () => undefined);
     const capture = vi.fn();
     const { d, flush } = deps({ insert: l => store.insert(l), notify, capture });
-    expect(acceptLead(form({ ...good, website: "http://spam" }), "1.2.3.4", d)).toMatchObject({
+    expect(await acceptLead(form({ ...good, website: "http://spam" }), "1.2.3.4", d)).toMatchObject({
       kind: "stored",
       lead: { spamVerdict: "honeypot" },
     });
     await flush();
-    expect(store.count()).toBe(1);
+    expect(await store.count()).toBe(1);
     expect(notify).not.toHaveBeenCalled();
     expect(capture).not.toHaveBeenCalled();
-    store.close();
+    await store.close();
   });
 
   // The stamp is the client's word, so it marks and never withholds.
@@ -129,7 +234,7 @@ describe("accepting a lead", () => {
   ] as const)("flags %s as too-fast and still notifies", async (_, fields, omit) => {
     const notify = vi.fn(async () => undefined);
     const { d, flush } = deps({ notify });
-    expect(acceptLead(form({ ...good, ...fields }, [...omit]), "1.2.3.4", d)).toMatchObject({
+    expect(await acceptLead(form({ ...good, ...fields }, [...omit]), "1.2.3.4", d)).toMatchObject({
       kind: "stored",
       lead: { spamVerdict: "too-fast" },
     });
@@ -137,33 +242,33 @@ describe("accepting a lead", () => {
     expect(notify).toHaveBeenCalledWith(expect.objectContaining({ spamVerdict: "too-fast" }), 1);
   });
 
-  it("keeps a rate-limited submission flagged, per client key", () => {
+  it("keeps a rate-limited submission flagged, per client key", async () => {
     const { d } = deps({ limiter: new RateLimiter(1, 60_000) });
-    expect(acceptLead(form(good), "1.2.3.4", d)).toMatchObject({ lead: { spamVerdict: null } });
-    expect(acceptLead(form(good), "1.2.3.4", d)).toMatchObject({ kind: "stored", lead: { spamVerdict: "rate-limited" } });
-    expect(acceptLead(form(good), "5.6.7.8", d)).toMatchObject({ lead: { spamVerdict: null } });
+    expect(await acceptLead(form(good), "1.2.3.4", d)).toMatchObject({ lead: { spamVerdict: null } });
+    expect(await acceptLead(form(good), "1.2.3.4", d)).toMatchObject({ kind: "stored", lead: { spamVerdict: "rate-limited" } });
+    expect(await acceptLead(form(good), "5.6.7.8", d)).toMatchObject({ lead: { spamVerdict: null } });
   });
 
   it.each([
     ["an unknown point", { location: "paris" }, []],
     ["no point at all", {}, ["location"]],
-  ] as const)("stores a lead from %s with no location", (_, fields, omit) => {
-    const insert = vi.fn(() => 7);
+  ] as const)("stores a lead from %s with no location", async (_, fields, omit) => {
+    const insert = vi.fn(async () => 7);
     const { d } = deps({ insert });
-    expect(acceptLead(form({ ...good, ...fields }, [...omit]), "1.2.3.4", d)).toMatchObject({
+    expect(await acceptLead(form({ ...good, ...fields }, [...omit]), "1.2.3.4", d)).toMatchObject({
       kind: "stored",
       id: 7,
-      lead: { locationId: null },
+      lead: { placeSlug: null },
     });
-    expect(insert).toHaveBeenCalledWith(expect.objectContaining({ locationId: null }));
+    expect(insert).toHaveBeenCalledWith(expect.objectContaining({ placeSlug: null }));
   });
 
   it("records the submission for analytics only after it is stored", async () => {
     const capture = vi.fn();
     const { d, flush } = deps({ capture });
-    acceptLead(form(good), "1.2.3.4", d);
+    await acceptLead(form(good), "1.2.3.4", d);
     expect(capture).not.toHaveBeenCalled();
     await flush();
-    expect(capture).toHaveBeenCalledWith(expect.objectContaining({ locationId: "royat" }), "quote");
+    expect(capture).toHaveBeenCalledWith(expect.objectContaining({ placeSlug: "royat" }), "quote");
   });
 });

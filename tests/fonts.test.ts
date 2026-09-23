@@ -23,7 +23,7 @@ function sources(dir: string): string[] {
 
 // A character outside the subset still renders — in a fallback face, a
 // mismatched glyph in the middle of a headline. Everything a visitor can read
-// is written in these trees; entities/lead and entities/location only carry
+// is written in these trees; entities/lead and entities/place only carry
 // the odd ≥ or ─ in comments.
 const RENDERED = ["src/entities/content", "src/widgets", "src/views", "src/shared/ui"];
 

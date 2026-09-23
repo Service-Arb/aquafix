@@ -1,6 +1,6 @@
 import { Button } from "@evinvest/uikit";
 import { NAV_IDS, NAV_SUFFIX, type Copy } from "@/entities/content";
-import type { Point } from "@/entities/location";
+import type { PlaceView } from "@/entities/place";
 import { perLocale } from "@/shared/config/i18n";
 import { CTA_FACE, Lockup } from "@/shared/ui/brand";
 import { LangSwitch } from "@/shared/ui/LangSwitch";
@@ -10,7 +10,7 @@ import { LangSwitch } from "@/shared/ui/LangSwitch";
  * hero owns the whole first screen. It scrolls away with the hero; the bottom
  * bar carries the contact channels on mobile from there.
  */
-export function OverlayHeader({ copy, point }: { copy: Copy; point: Point }) {
+export function OverlayHeader({ copy, point }: { copy: Copy; point: PlaceView }) {
   const { t } = copy;
   return (
     <header className="dark absolute inset-x-0 top-0 z-20 bg-gradient-to-b from-background/75 to-transparent">

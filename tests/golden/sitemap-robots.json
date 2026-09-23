@@ -1,0 +1,263 @@
+{
+  "baked aquafix.top": {
+    "sitemap": [
+      {
+        "url": "https://aquafix.top/fr",
+        "priority": 1,
+        "alternates": {
+          "languages": {
+            "fr-FR": "https://aquafix.top/fr",
+            "en": "https://aquafix.top/en",
+            "x-default": "https://aquafix.top/fr"
+          }
+        }
+      },
+      {
+        "url": "https://aquafix.top/en",
+        "priority": 1,
+        "alternates": {
+          "languages": {
+            "fr-FR": "https://aquafix.top/fr",
+            "en": "https://aquafix.top/en",
+            "x-default": "https://aquafix.top/fr"
+          }
+        }
+      }
+    ],
+    "robots": {
+      "rules": [
+        {
+          "userAgent": "*",
+          "allow": "/"
+        },
+        {
+          "userAgent": [
+            "GPTBot",
+            "ClaudeBot",
+            "PerplexityBot",
+            "Google-Extended"
+          ],
+          "allow": "/"
+        }
+      ],
+      "sitemap": "https://aquafix.top/sitemap.xml"
+    }
+  },
+  "baked royat.aquafix.top": {
+    "sitemap": [],
+    "robots": {
+      "rules": [
+        {
+          "userAgent": "*",
+          "allow": "/"
+        },
+        {
+          "userAgent": [
+            "GPTBot",
+            "ClaudeBot",
+            "PerplexityBot",
+            "Google-Extended"
+          ],
+          "allow": "/"
+        }
+      ],
+      "sitemap": "https://royat.aquafix.top/sitemap.xml"
+    }
+  },
+  "baked evil.aquafix.top": {
+    "sitemap": [
+      {
+        "url": "https://aquafix.top/fr",
+        "priority": 1,
+        "alternates": {
+          "languages": {
+            "fr-FR": "https://aquafix.top/fr",
+            "en": "https://aquafix.top/en",
+            "x-default": "https://aquafix.top/fr"
+          }
+        }
+      },
+      {
+        "url": "https://aquafix.top/en",
+        "priority": 1,
+        "alternates": {
+          "languages": {
+            "fr-FR": "https://aquafix.top/fr",
+            "en": "https://aquafix.top/en",
+            "x-default": "https://aquafix.top/fr"
+          }
+        }
+      }
+    ],
+    "robots": {
+      "rules": [
+        {
+          "userAgent": "*",
+          "allow": "/"
+        },
+        {
+          "userAgent": [
+            "GPTBot",
+            "ClaudeBot",
+            "PerplexityBot",
+            "Google-Extended"
+          ],
+          "allow": "/"
+        }
+      ],
+      "sitemap": "https://aquafix.top/sitemap.xml"
+    }
+  },
+  "baked royat.localhost:3000": {
+    "sitemap": [],
+    "robots": {
+      "rules": [
+        {
+          "userAgent": "*",
+          "allow": "/"
+        },
+        {
+          "userAgent": [
+            "GPTBot",
+            "ClaudeBot",
+            "PerplexityBot",
+            "Google-Extended"
+          ],
+          "allow": "/"
+        }
+      ],
+      "sitemap": "https://royat.aquafix.top/sitemap.xml"
+    }
+  },
+  "live royat.aquafix.top": {
+    "sitemap": [
+      {
+        "url": "https://royat.aquafix.top/fr",
+        "priority": 1,
+        "alternates": {
+          "languages": {
+            "fr-FR": "https://royat.aquafix.top/fr",
+            "en": "https://royat.aquafix.top/en",
+            "x-default": "https://royat.aquafix.top/fr"
+          }
+        }
+      },
+      {
+        "url": "https://royat.aquafix.top/en",
+        "priority": 1,
+        "alternates": {
+          "languages": {
+            "fr-FR": "https://royat.aquafix.top/fr",
+            "en": "https://royat.aquafix.top/en",
+            "x-default": "https://royat.aquafix.top/fr"
+          }
+        }
+      },
+      {
+        "url": "https://royat.aquafix.top/fr/prices",
+        "priority": 0.8,
+        "alternates": {
+          "languages": {
+            "fr-FR": "https://royat.aquafix.top/fr/prices",
+            "en": "https://royat.aquafix.top/en/prices",
+            "x-default": "https://royat.aquafix.top/fr/prices"
+          }
+        }
+      },
+      {
+        "url": "https://royat.aquafix.top/en/prices",
+        "priority": 0.8,
+        "alternates": {
+          "languages": {
+            "fr-FR": "https://royat.aquafix.top/fr/prices",
+            "en": "https://royat.aquafix.top/en/prices",
+            "x-default": "https://royat.aquafix.top/fr/prices"
+          }
+        }
+      },
+      {
+        "url": "https://royat.aquafix.top/fr/guarantee",
+        "priority": 0.8,
+        "alternates": {
+          "languages": {
+            "fr-FR": "https://royat.aquafix.top/fr/guarantee",
+            "en": "https://royat.aquafix.top/en/guarantee",
+            "x-default": "https://royat.aquafix.top/fr/guarantee"
+          }
+        }
+      },
+      {
+        "url": "https://royat.aquafix.top/en/guarantee",
+        "priority": 0.8,
+        "alternates": {
+          "languages": {
+            "fr-FR": "https://royat.aquafix.top/fr/guarantee",
+            "en": "https://royat.aquafix.top/en/guarantee",
+            "x-default": "https://royat.aquafix.top/fr/guarantee"
+          }
+        }
+      },
+      {
+        "url": "https://royat.aquafix.top/fr/about",
+        "priority": 0.8,
+        "alternates": {
+          "languages": {
+            "fr-FR": "https://royat.aquafix.top/fr/about",
+            "en": "https://royat.aquafix.top/en/about",
+            "x-default": "https://royat.aquafix.top/fr/about"
+          }
+        }
+      },
+      {
+        "url": "https://royat.aquafix.top/en/about",
+        "priority": 0.8,
+        "alternates": {
+          "languages": {
+            "fr-FR": "https://royat.aquafix.top/fr/about",
+            "en": "https://royat.aquafix.top/en/about",
+            "x-default": "https://royat.aquafix.top/fr/about"
+          }
+        }
+      }
+    ],
+    "robots": {
+      "rules": [
+        {
+          "userAgent": "*",
+          "allow": "/"
+        },
+        {
+          "userAgent": [
+            "GPTBot",
+            "ClaudeBot",
+            "PerplexityBot",
+            "Google-Extended"
+          ],
+          "allow": "/"
+        }
+      ],
+      "sitemap": "https://royat.aquafix.top/sitemap.xml"
+    }
+  },
+  "live lyon-nord.aquafix.top": {
+    "sitemap": [],
+    "robots": {
+      "rules": [
+        {
+          "userAgent": "*",
+          "allow": "/"
+        },
+        {
+          "userAgent": [
+            "GPTBot",
+            "ClaudeBot",
+            "PerplexityBot",
+            "Google-Extended"
+          ],
+          "allow": "/"
+        }
+      ],
+      "sitemap": "https://lyon-nord.aquafix.top/sitemap.xml"
+    }
+  }
+}
