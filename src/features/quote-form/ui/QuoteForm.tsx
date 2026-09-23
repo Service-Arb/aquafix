@@ -1,5 +1,5 @@
 import { Button, Check, Field, FieldLabel, Input, NativeSelect, NativeSelectOption } from "@evinvest/uikit";
-import { JOB_IDS, type Copy } from "@/entities/content";
+import { JOB_IDS, type CopyOf, type Text } from "@/entities/content";
 import type { PlaceView } from "@/entities/place";
 import { CTA_FACE } from "@/shared/ui/brand";
 import { HONEYPOT_FIELD, RENDERED_AT_FIELD } from "../model/antispam";
@@ -18,7 +18,9 @@ const LABEL = "text-[12.5px] font-medium tracking-[0.06em] text-ink-mid";
  * and `Field` mints the label's `for` with `useId`, so both hold with
  * scripting off; the scripted `Select` would not.
  */
-export function QuoteForm({ copy, point, renderedAt }: { copy: Copy; point: PlaceView; renderedAt: number }) {
+export type QuoteFormWidgetCopy = CopyOf<Pick<Text, "quoteForm" | "jobs">>;
+
+export function QuoteForm({ copy, point, renderedAt }: { copy: QuoteFormWidgetCopy; point: PlaceView; renderedAt: number }) {
   const q = copy.t.quoteForm;
   return (
     <form

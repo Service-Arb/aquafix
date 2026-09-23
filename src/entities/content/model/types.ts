@@ -1,5 +1,12 @@
 import type { Locale } from "@/shared/config/i18n";
 import type { PageKey } from "@/shared/config/site";
+import type {
+  CoreText,
+  PageMetaCopy as CorePageMetaCopy,
+  QuoteFormCopy as CoreQuoteFormCopy,
+  Said as CoreSaid,
+  StatusCopy as CoreStatusCopy,
+} from "@/shared/landing/core/content";
 import type { JobId, NavId, PriceId, ServiceId, WorkId } from "./catalogue";
 
 /**
@@ -23,13 +30,11 @@ export interface Facts {
 }
 
 /** A sentence that quotes a fact. */
-export type Said = (f: Facts) => string;
+export type Said = CoreSaid<Facts>;
 
-export interface PageCopy {
-  /** `<title>`, the OG title and the breadcrumb label. */
-  title: Said;
-  /** Read by `<head>`, the OG card and the sitemap — one field, three readers. */
-  description: Said;
+export type PageMetaCopy = CorePageMetaCopy<Facts>;
+
+export interface PageCopy extends PageMetaCopy {
   eyebrow: string;
   h1: Said;
   lede: string;
@@ -64,33 +69,17 @@ export interface Crew {
   credential: string;
 }
 
-export type StatusAction = "call" | "home" | "retry";
+export type { StatusAction } from "@/shared/landing/core/content";
 
-export interface StatusCopy {
-  code: string;
-  /** The `<title>`: these pages are `noindex` and carry no `PageCopy`. */
-  title: string;
-  eyebrow: string;
-  /** Split at the accented half, which is how the design draws it. */
-  headline: readonly [string, string];
-  body: Said;
-  primary: StatusAction;
-  secondary: StatusAction;
-}
+export type StatusCopy = CoreStatusCopy<Facts>;
 
-export interface QuoteFormCopy {
-  title: string;
-  lede: string;
-  submit: string;
-  privacy: string;
-  reassurance: Said;
+/** The shared frame plus the three fields a plumbing quote asks for. */
+export interface QuoteFormCopy extends CoreQuoteFormCopy<Facts> {
   jobLabel: string;
   zipLabel: string;
   mobileLabel: string;
   zipPlaceholder: string;
   mobilePlaceholder: string;
-  /** The honeypot's label — read only by a bot filling every field. */
-  honeypotLabel: string;
 }
 
 export interface HomeCopy {
@@ -136,8 +125,11 @@ export interface BrandPageCopy {
  * of this one type, checked with `satisfies`: a field added to one and not the
  * other is a compile error, so there is no missing-key fallback and no drift
  * audit. Language-free facts are in `catalogue.ts`, `site` and `TRADE`, not here.
+ *
+ * It extends `CoreText`, the words the shared machinery prints; everything
+ * else is this brand's own.
  */
-export interface Text {
+export interface Text extends CoreText<PageKey, Facts> {
   pages: Record<PageKey, PageCopy>;
   brandPage: BrandPageCopy;
   nav: Record<NavId, string>;

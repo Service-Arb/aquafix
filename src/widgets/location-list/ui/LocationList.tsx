@@ -1,6 +1,6 @@
 import { telHref } from "@evinvest/marketing";
 import { Section } from "@evinvest/uikit";
-import type { Copy } from "@/entities/content";
+import type { BrandPageCopy, CopyOf } from "@/entities/content";
 import { contactOf, placeUrl, storefrontOf, type Place } from "@/entities/place";
 import { BandHead } from "@/shared/ui/BandHead";
 
@@ -9,7 +9,9 @@ import { BandHead } from "@/shared/ui/BandHead";
  * point's own subdomain — its canonical home — and carries its phone, so the
  * emergency visitor need not click through at all.
  */
-export function LocationList({ copy, locations }: { copy: Copy; locations: readonly Place[] }) {
+export type LocationListCopy = CopyOf<{ brandPage: Pick<BrandPageCopy, "listTitle" | "open"> }>;
+
+export function LocationList({ copy, locations }: { copy: LocationListCopy; locations: readonly Place[] }) {
   const { t } = copy;
   return (
     <Section id="points">
@@ -25,7 +27,7 @@ export function LocationList({ copy, locations }: { copy: Copy; locations: reado
   );
 }
 
-function PlaceCard({ copy, place }: { copy: Copy; place: Place }) {
+function PlaceCard({ copy, place }: { copy: LocationListCopy; place: Place }) {
   const { t, locale } = copy;
   const { phone } = contactOf(place);
   const front = storefrontOf(place);
