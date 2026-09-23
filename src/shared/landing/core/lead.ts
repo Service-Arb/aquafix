@@ -56,6 +56,18 @@ export interface Lead {
 
 export type LeadCandidate = Omit<Lead, "spamVerdict">;
 
+/**
+ * The port the funnel writes through — the commit point. `insert` resolves
+ * with the row's id only once the lead is durable; a rejection is a lead the
+ * visitor must not be thanked for. Async because not every adapter is
+ * in-process: SQLite answers synchronously, a network database does not.
+ */
+export interface LeadStore {
+  insert(lead: Lead): Promise<number>;
+  count(): Promise<number>;
+  close(): Promise<void>;
+}
+
 /** A field is capped, not rejected: a long answer is still a customer. */
 export const MAX_FIELD = 200;
 

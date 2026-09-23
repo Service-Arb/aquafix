@@ -23,7 +23,7 @@ const limiter = new RateLimiter(5, 10 * 60_000);
 let store: LeadStore | undefined;
 function leadStore(): LeadStore {
   // Opened on first use rather than at import: `next build` imports this file.
-  store ??= openLeadStore(serverEnv().leadsDbPath);
+  store ??= openLeadStore(serverEnv().leadsDb);
   return store;
 }
 
@@ -62,7 +62,7 @@ export async function POST(request: Request): Promise<Response> {
   }
   const env = serverEnv();
   const notifier = leadNotifier(env);
-  const outcome = acceptLead(form, clientKey(request.headers), {
+  const outcome = await acceptLead(form, clientKey(request.headers), {
     insert: lead => leadStore().insert(lead),
     defer: task => after(task),
     notify: (lead, id) => notifier.notify(lead, id),
