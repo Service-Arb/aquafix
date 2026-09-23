@@ -98,7 +98,7 @@ owner chose to keep on the page, not in the schema.
 | `proxy.ts` → `src/features/request-routing` | Which point and which language a request gets, before any route renders. |
 | `src/shared` | Config (`site` — the composition root every brand fact is read from —, the `i18n` registry, the server env), money formatting, the lock-up. |
 | `src/shared/landing` | The brand-free machinery a future shared landing package takes whole: `core/` is pure (no React, Next or `node:*`; eslint holds the line), `server/` the Node half (the SMTP client). |
-| `src/entities/content` | Every string, once per language, and the language-free catalogue. |
+| `src/entities/content` | Every string, once per language, and the language-free catalogue. `Text` extends the shared `CoreText` (`shared/landing/core/content`); a structural widget declares the slice it prints (`CopyOf<Pick<Text, …>>`) instead of taking the whole `Copy`. |
 | `src/entities/place` | The six points bound to the site: baked data from `shared/config/places.ts`, the live overlay, the publication gate, URLs. The model (`Place` with a storefront or service-area `presence`, `PlaceView`, the gate as a policy) is in `shared/landing/core/place`. |
 | `src/entities/lead` | The lead, its SQLite store and its notifier. |
 | `src/features` | The quote form and its acceptance, analytics, SEO, the map facade. |

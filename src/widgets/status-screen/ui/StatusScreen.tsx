@@ -1,9 +1,15 @@
 import { telHref } from "@evinvest/marketing";
 import { Button, Check } from "@evinvest/uikit";
-import type { Copy, StatusAction, StatusCopy } from "@/entities/content";
+import type { CopyOf, StatusAction, StatusCopy, Text } from "@/entities/content";
 import type { Locale } from "@/shared/config/i18n";
+import { site } from "@/shared/config/site";
 import { CTA_FACE, Lockup, Mark } from "@/shared/ui/brand";
 import { LangSwitch } from "@/shared/ui/LangSwitch";
+
+/** The words a status screen prints besides its own `StatusCopy`. */
+export type StatusScreenCopy = CopyOf<
+  Pick<Text, "callLabel" | "backHome" | "tryAgain" | "statusStrip"> & { footer: Pick<Text["footer"], "facts"> }
+>;
 
 export interface StatusTarget {
   phone: string;
@@ -19,7 +25,7 @@ export interface StatusTarget {
  * visitor who hit a 404 still gets the offer — the strip is the hero's three
  * terms, compressed — and the phone is always one tap away.
  */
-export function StatusScreen({ copy, status, target }: { copy: Copy; status: StatusCopy; target: StatusTarget }) {
+export function StatusScreen({ copy, status, target }: { copy: StatusScreenCopy; status: StatusCopy; target: StatusTarget }) {
   const { t, f } = copy;
   const action = (a: StatusAction) =>
     a === "call"
@@ -33,7 +39,7 @@ export function StatusScreen({ copy, status, target }: { copy: Copy; status: Sta
       {/* The design's glow: a gradient off the primary role, not an asset. */}
       <div className="pointer-events-none absolute inset-x-0 top-24 h-[760px] bg-[radial-gradient(ellipse_at_center,color-mix(in_srgb,var(--primary)_16%,transparent),transparent_65%)]" />
       <header className="relative flex items-center border-b border-border px-5 py-4 md:px-12 md:py-[22px]">
-        <a href={target.home} aria-label="Aquafix">
+        <a href={target.home} aria-label={site.brand.name}>
           <Lockup mark="h-[30px] w-[26px] text-primary" word="text-[23px] text-ink" />
         </a>
         <div className="flex-1" />

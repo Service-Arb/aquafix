@@ -1,1 +1,1 @@
-export { StatusScreen, type StatusTarget } from "./ui/StatusScreen";
+export { StatusScreen, type StatusScreenCopy, type StatusTarget } from "./ui/StatusScreen";

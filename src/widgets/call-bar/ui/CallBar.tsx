@@ -1,6 +1,6 @@
 import { telHref, whatsappHref } from "@evinvest/marketing";
 import { Button } from "@evinvest/uikit";
-import type { Copy } from "@/entities/content";
+import type { CopyOf, Text } from "@/entities/content";
 import { contactOf, type PlaceView } from "@/entities/place";
 import { CTA_FACE } from "@/shared/ui/brand";
 
@@ -13,7 +13,9 @@ import { CTA_FACE } from "@/shared/ui/brand";
  * The form and WhatsApp lead, as the owner ranks the channels; the phone keeps
  * a square of its own, because the visitor standing in water still calls.
  */
-export function CallBar({ copy, point }: { copy: Copy; point: PlaceView }) {
+export type CallBarCopy = CopyOf<Pick<Text, "callLabel" | "whatsappMessage" | "whatsappShort" | "ctaShort">>;
+
+export function CallBar({ copy, point }: { copy: CallBarCopy; point: PlaceView }) {
   const { t, f } = copy;
   const { phone, whatsapp } = contactOf(point.place);
   return (
