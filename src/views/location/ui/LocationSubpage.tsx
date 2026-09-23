@@ -2,7 +2,7 @@ import { JsonLd } from "@evinvest/marketing";
 import type { Copy } from "@/entities/content";
 import type { Point } from "@/entities/location";
 import { locationGraph } from "@/features/seo";
-import { PAGES, type PageKey } from "@/shared/config/routes";
+import { PAGES, type PageKey } from "@/shared/config/site";
 import { Crew } from "@/widgets/crew";
 import { Faq } from "@/widgets/faq";
 import { HowItWorks } from "@/widgets/how-it-works";

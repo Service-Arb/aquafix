@@ -1,11 +1,11 @@
-import { BRAND } from "@/shared/config/brand";
+import { site } from "@/shared/config/site";
 import type { Locale } from "@/shared/config/i18n";
-import type { LinkMode } from "@/shared/config/routes";
+import type { LinkMode } from "@/shared/landing/core/routing";
 
-export const brandOrigin = (): string => `https://${BRAND.domain}`;
+export const brandOrigin = (): string => `https://${site.brand.domain}`;
 
 /** The canonical home of a point is its subdomain, whichever URL served it. */
-export const locationOrigin = (slug: string): string => `https://${slug}.${BRAND.domain}`;
+export const locationOrigin = (slug: string): string => `https://${slug}.${site.brand.domain}`;
 
 /** Absolute canonical URL of a point's page. */
 export function locationUrl(slug: string, locale: Locale, suffix: string): string {

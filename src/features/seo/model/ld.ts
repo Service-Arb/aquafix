@@ -1,9 +1,8 @@
 import { ldCompact, localBusiness, type JsonLdNode } from "@evinvest/marketing";
 import { PRICE_LIST, type Copy } from "@/entities/content";
 import { brandOrigin, freshRating, locationOrigin, type Location, type Point } from "@/entities/location";
-import { BRAND } from "@/shared/config/brand";
+import { site, PAGES, type PageKey } from "@/shared/config/site";
 import { i18n } from "@/shared/config/i18n";
-import { PAGES, type PageKey } from "@/shared/config/routes";
 
 /**
  * schema.org, derived from the copy and the point and never authored. One
@@ -35,11 +34,11 @@ export function businessNode(point: Point, now: Date): JsonLdNode {
   return localBusiness(
     {
       id: businessId(point),
-      type: "Plumber",
+      type: site.brand.businessType,
       name: location.gbpName,
       url: point.url(""),
       telephone: location.phone,
-      email: BRAND.email,
+      email: site.brand.email,
       image: location.storefrontPhoto ?? undefined,
       address: {
         streetAddress: location.address.street,
@@ -52,7 +51,7 @@ export function businessNode(point: Point, now: Date): JsonLdNode {
       parentOrganization: { "@id": organizationId() },
     },
     ldCompact({
-      priceRange: BRAND.priceRange,
+      priceRange: site.brand.priceRange,
       areaServed: (location.serviceArea ?? [location.address.locality]).map(name => ({ "@type": "Place", name })),
       openingHoursSpecification: days(location),
       aggregateRating: rating
@@ -66,10 +65,10 @@ export function organizationNode(): JsonLdNode {
   return {
     "@type": "Organization",
     "@id": organizationId(),
-    name: BRAND.name,
-    legalName: BRAND.legalName,
+    name: site.brand.name,
+    legalName: site.brand.legalName,
     url: brandOrigin(),
-    email: BRAND.email,
+    email: site.brand.email,
   };
 }
 
@@ -110,7 +109,7 @@ function faqNode(copy: Copy): JsonLdNode {
 /** Home → page. The chain is the route, so a new page cannot forget it. */
 function breadcrumbs(point: Point, copy: Copy, page: PageKey): JsonLdNode {
   const items: JsonLdNode[] = [
-    { "@type": "ListItem", position: 1, name: `${BRAND.name} ${copy.f.place}`, item: point.url(PAGES.home) },
+    { "@type": "ListItem", position: 1, name: `${site.brand.name} ${copy.f.place}`, item: point.url(PAGES.home) },
   ];
   if (page !== "home") {
     items.push({ "@type": "ListItem", position: 2, name: copy.t.pages[page].title(copy.f), item: point.url(PAGES[page]) });
@@ -124,7 +123,7 @@ export function locationGraph(point: Point, copy: Copy, page: PageKey, now: Date
   const nodes: JsonLdNode[] = [
     organizationNode(),
     businessNode(point, now),
-    { "@type": "WebSite", "@id": websiteId(point), url: locationOrigin(point.location.slug), name: `${BRAND.name} ${copy.f.place}` },
+    { "@type": "WebSite", "@id": websiteId(point), url: locationOrigin(point.location.slug), name: `${site.brand.name} ${copy.f.place}` },
     {
       "@type": "WebPage",
       "@id": `${url}#page`,

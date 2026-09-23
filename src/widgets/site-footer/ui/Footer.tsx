@@ -1,7 +1,7 @@
 import { telHref } from "@evinvest/marketing";
 import { SERVICE_LIST, type Copy } from "@/entities/content";
 import type { Point } from "@/entities/location";
-import { BRAND } from "@/shared/config/brand";
+import { site } from "@/shared/config/site";
 import { Lockup } from "@/shared/ui/brand";
 import type { ReactNode } from "react";
 
@@ -52,7 +52,7 @@ export function Footer({ copy, point }: { copy: Copy; point: Point }) {
             </a>
             <p>{t.emergencyHours}</p>
             <p>{t.bookingHours}</p>
-            <a href={`mailto:${BRAND.email}`}>{BRAND.email}</a>
+            <a href={`mailto:${site.brand.email}`}>{site.brand.email}</a>
             <address className="not-italic">
               {location.address.street}, {location.address.postalCode} {location.address.locality}
             </address>
@@ -61,7 +61,7 @@ export function Footer({ copy, point }: { copy: Copy; point: Point }) {
       </div>
       <div className="mt-8 flex flex-col gap-3 border-t border-border pb-7 pt-6 text-[13px] text-ink-soft md:mt-9 md:flex-row md:items-center md:gap-6">
         <p>
-          © {BRAND.legalName} · {f.siret}
+          © {site.brand.legalName} · {f.siret}
         </p>
         <div className="flex-1" />
         {t.footer.legal.map(label => (

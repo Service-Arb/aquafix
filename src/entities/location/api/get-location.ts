@@ -16,9 +16,17 @@ const TIMEOUT_MS = 3_000;
 
 export class LocationSourceError extends Error {}
 
-type Outcome = { kind: "found"; location: Location } | { kind: "missing" };
+/**
+ * What the source said about one point. The callers differ only in what they
+ * make of `unreachable` and `failed`, so the request and its reading live here.
+ */
+type Fetched =
+  | { kind: "live"; location: Location }
+  | { kind: "missing" }
+  | { kind: "unreachable"; cause: unknown }
+  | { kind: "failed"; status: number };
 
-async function fetchLive(base: string, baked: Location, locale: Locale): Promise<Outcome> {
+async function fetchOne(base: string, baked: Location, locale: Locale): Promise<Fetched> {
   let response: Response;
   try {
     response = await fetch(`${base}/locations/${encodeURIComponent(baked.slug)}?locale=${locale}`, {
@@ -27,21 +35,11 @@ async function fetchLive(base: string, baked: Location, locale: Locale): Promise
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
   } catch (cause) {
-    // Unreachable is not "gone": the baked config still knows the address and
-    // the phone, and a plumber's page that answers from it is the point of
-    // baking. The gate fields may be missing from it — then the page is
-    // served `noindex` until the source is back, never a 404.
-    console.error(`live location ${baked.slug}: source unreachable, serving baked`, cause);
-    return { kind: "found", location: baked };
+    return { kind: "unreachable", cause };
   }
-  // A missing point is a real 404 (and `noindex`); a failing source is a 5xx,
-  // thrown so the error boundary answers 500 instead of a soft 404 that would
-  // teach a crawler the page is gone.
   if (response.status === 404) return { kind: "missing" };
-  if (!response.ok) {
-    throw new LocationSourceError(`live location ${baked.slug}: source answered ${response.status}`);
-  }
-  return { kind: "found", location: mergeLive(baked, parseLocationLive(await response.json())) };
+  if (!response.ok) return { kind: "failed", status: response.status };
+  return { kind: "live", location: mergeLive(baked, parseLocationLive(await response.json())) };
 }
 
 /**
@@ -57,8 +55,25 @@ export const getLocation = cache(async (slug: string, locale: Locale): Promise<L
   if (!baked) return null;
   const base = serverEnv().locationsApiUrl;
   if (!base) return baked;
-  const outcome = await fetchLive(base, baked, locale);
-  return outcome.kind === "found" ? outcome.location : null;
+  const fetched = await fetchOne(base, baked, locale);
+  switch (fetched.kind) {
+    case "live":
+      return fetched.location;
+    // A missing point is a real 404 (and `noindex`).
+    case "missing":
+      return null;
+    // Unreachable is not "gone": the baked config still knows the address and
+    // the phone, and a plumber's page that answers from it is the point of
+    // baking. The gate fields may be missing from it — then the page is
+    // served `noindex` until the source is back, never a 404.
+    case "unreachable":
+      console.error(`live location ${baked.slug}: source unreachable, serving baked`, fetched.cause);
+      return baked;
+    // A failing source is a 5xx, thrown so the error boundary answers 500
+    // instead of a soft 404 that would teach a crawler the page is gone.
+    case "failed":
+      throw new LocationSourceError(`live location ${baked.slug}: source answered ${fetched.status}`);
+  }
 });
 
 /**
@@ -76,25 +91,21 @@ export async function listLocations(locale: Locale, mode: "page" | "sitemap"): P
   if (!base) return [...LOCATIONS];
   const results = await Promise.all(
     LOCATIONS.map(async (baked): Promise<Location | null> => {
-      let response: Response;
-      try {
-        response = await fetch(`${base}/locations/${encodeURIComponent(baked.slug)}?locale=${locale}`, {
-          cache: "force-cache",
-          next: { revalidate: LOCATION_REVALIDATE_SECONDS },
-          signal: AbortSignal.timeout(TIMEOUT_MS),
-        });
-      } catch (cause) {
-        if (mode === "sitemap") throw new LocationSourceError(`location list: ${baked.slug} unreachable`, { cause });
-        return baked;
+      const fetched = await fetchOne(base, baked, locale);
+      switch (fetched.kind) {
+        case "live":
+          return fetched.location;
+        case "missing":
+          return null;
+        case "unreachable":
+          if (mode === "sitemap") {
+            throw new LocationSourceError(`location list: ${baked.slug} unreachable`, { cause: fetched.cause });
+          }
+          return baked;
+        case "failed":
+          if (mode === "sitemap") throw new LocationSourceError(`location list: ${baked.slug} answered ${fetched.status}`);
+          return baked;
       }
-      if (response.status === 404) return null;
-      if (!response.ok) {
-        if (mode === "sitemap") {
-          throw new LocationSourceError(`location list: ${baked.slug} answered ${response.status}`);
-        }
-        return baked;
-      }
-      return mergeLive(baked, parseLocationLive(await response.json()));
     }),
   );
   return results.filter((l): l is Location => l !== null);

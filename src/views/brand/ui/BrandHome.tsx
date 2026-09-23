@@ -2,7 +2,7 @@ import { telHref } from "@evinvest/marketing";
 import { Section } from "@evinvest/uikit";
 import type { Copy } from "@/entities/content";
 import type { Location } from "@/entities/location";
-import { BRAND } from "@/shared/config/brand";
+import { site } from "@/shared/config/site";
 import { perLocale } from "@/shared/config/i18n";
 import { Lockup } from "@/shared/ui/brand";
 import { LangSwitch } from "@/shared/ui/LangSwitch";
@@ -39,8 +39,8 @@ export function BrandHome({ copy, locations }: { copy: Copy; locations: readonly
       </main>
       <footer className="border-t border-border px-[var(--page-px)] py-10 text-[13px] text-ink-soft">
         <p>
-          © {BRAND.legalName} · <a href={telHref(BRAND.phone)}>{BRAND.phone}</a> ·{" "}
-          <a href={`mailto:${BRAND.email}`}>{BRAND.email}</a>
+          © {site.brand.legalName} · <a href={telHref(site.brand.phone)}>{site.brand.phone}</a> ·{" "}
+          <a href={`mailto:${site.brand.email}`}>{site.brand.email}</a>
         </p>
       </footer>
     </>

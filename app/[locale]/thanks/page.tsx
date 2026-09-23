@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { copyFor } from "@/entities/content";
 import { statusMetadata } from "@/features/seo";
-import { BRAND } from "@/shared/config/brand";
+import { site } from "@/shared/config/site";
 import { isLocale, perLocale } from "@/shared/config/i18n";
-import { THANKS } from "@/shared/config/routes";
+import { THANKS } from "@/shared/landing/core/routing";
 import { StatusScreen } from "@/widgets/status-screen";
 
 type Props = { params: Promise<{ locale: string }> };
@@ -12,7 +12,7 @@ type Props = { params: Promise<{ locale: string }> };
 async function brandCopy(params: Props["params"]) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  return copyFor({ locale, place: BRAND.name, phone: BRAND.phone });
+  return copyFor({ locale, place: site.brand.name, phone: site.brand.phone });
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -30,7 +30,7 @@ export default async function BrandThanksPage({ params }: Props) {
       copy={copy}
       status={copy.t.thanks}
       target={{
-        phone: BRAND.phone,
+        phone: site.brand.phone,
         home: `/${copy.locale}`,
         retry: `/${copy.locale}`,
         langHrefs: perLocale(l => `/${l}${THANKS}`),

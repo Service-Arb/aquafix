@@ -1,5 +1,5 @@
 import type { Locale } from "@/shared/config/i18n";
-import type { PageKey } from "@/shared/config/routes";
+import type { PageKey } from "@/shared/config/site";
 import type { JobId, NavId, PriceId, ServiceId, WorkId } from "./catalogue";
 
 /**
@@ -135,7 +135,7 @@ export interface BrandPageCopy {
  * Every string that differs between languages. `FR` and `EN` are two objects
  * of this one type, checked with `satisfies`: a field added to one and not the
  * other is a compile error, so there is no missing-key fallback and no drift
- * audit. Language-free facts are in `catalogue.ts` and `BRAND`, not here.
+ * audit. Language-free facts are in `catalogue.ts`, `site` and `TRADE`, not here.
  */
 export interface Text {
   pages: Record<PageKey, PageCopy>;

@@ -4,7 +4,7 @@ import { brandOrigin, isPublished, locationOrigin } from "@/entities/location";
 import { listLocations } from "@/entities/location/server";
 import { hostSlug } from "@/features/request-routing";
 import { DEFAULT_LOCALE, i18n, LOCALES } from "@/shared/config/i18n";
-import { PAGE_KEYS, PAGES } from "@/shared/config/routes";
+import { PAGE_KEYS, PAGES } from "@/shared/config/site";
 
 /**
  * One sitemap per host: a sitemap may only list URLs on its own host, and a

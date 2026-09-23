@@ -5,7 +5,7 @@ import { copyFor, type Copy } from "@/entities/content";
 import { pointFor, type Point } from "@/entities/location";
 import { getLocation } from "@/entities/location/server";
 import { isLocale } from "@/shared/config/i18n";
-import { LOCATION_MODE_HEADER } from "@/shared/config/routes";
+import { site } from "@/shared/config/site";
 
 export interface LocationParams {
   locale: string;
@@ -23,7 +23,7 @@ export async function loadPoint(params: Promise<LocationParams>): Promise<{ poin
   const location = await getLocation(slug, locale);
   if (!location) notFound();
   // Set only by the proxy, which strips any client-sent value.
-  const mode = (await headers()).get(LOCATION_MODE_HEADER) === "host" ? "host" : "path";
+  const mode = (await headers()).get(site.headers.linkMode) === "host" ? "host" : "path";
   return {
     point: pointFor(location, locale, mode),
     copy: copyFor({ locale, place: location.place[locale], phone: location.phone }),

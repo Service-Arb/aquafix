@@ -121,8 +121,17 @@ const hostOf = (url: URL): string => url.hostname.replace(/^\[(.*)\]$/, "$1");
  * that offers neither gets nothing — not the credentials, and not the
  * customer's phone number in the body. The lead is already stored, so a
  * refusal here is loud in the log and costs nothing else.
+ *
+ * `helo` is the name this client greets a remote relay with — the site's own
+ * domain; a loopback catcher is greeted as `localhost`.
  */
-export async function sendMail(smtpUrl: string, mail: Mail, timeoutMs = TOTAL_TIMEOUT_MS): Promise<void> {
+export interface SendOptions {
+  helo: string;
+  timeoutMs?: number;
+}
+
+export async function sendMail(smtpUrl: string, mail: Mail, options: SendOptions): Promise<void> {
+  const timeoutMs = options.timeoutMs ?? TOTAL_TIMEOUT_MS;
   const url = new URL(smtpUrl);
   if (url.protocol !== "smtp:" && url.protocol !== "smtps:") throw new Error(`smtp: unsupported scheme ${url.protocol}`);
   const deadline = AbortSignal.timeout(timeoutMs);
@@ -151,7 +160,7 @@ export async function sendMail(smtpUrl: string, mail: Mail, timeoutMs = TOTAL_TI
     return reply;
   };
   const say = (line: string) => socket.write(`${line}\r\n`);
-  const hello = url.hostname.includes(".") ? "aquafix.top" : "localhost";
+  const hello = url.hostname.includes(".") ? options.helo : "localhost";
   const loopback = LOOPBACK.includes(hostOf(url));
   let done = false;
   try {

@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { describe, expect, it } from "vitest";
 import { decide, hostSlug, routeRequest, type RequestFacts } from "@/features/request-routing";
-import { LOCATION_MODE_HEADER, ROUTE_HEADER } from "@/shared/config/routes";
+import { site } from "@/shared/config/site";
 
 const APEX = "aquafix.top";
 const ROYAT = "royat.aquafix.top";
@@ -115,18 +115,18 @@ describe("the proxy", () => {
 
   it("strips the proxy's own headers on a pass-through path too", () => {
     const res = routeRequest(
-      request("https://aquafix.top/quote", { accept: "text/html", [LOCATION_MODE_HEADER]: "host", [ROUTE_HEADER]: "/fr/royat" }),
+      request("https://aquafix.top/quote", { accept: "text/html", [site.headers.linkMode]: "host", [site.headers.route]: "/fr/royat" }),
     );
     const overridden = res.headers.get("x-middleware-override-headers") ?? "";
     expect(overridden.split(",")).toContain("accept");
-    expect(overridden.split(",")).not.toContain(LOCATION_MODE_HEADER);
-    expect(overridden.split(",")).not.toContain(ROUTE_HEADER);
-    expect(res.headers.get(`x-middleware-request-${ROUTE_HEADER}`)).toBeNull();
+    expect(overridden.split(",")).not.toContain(site.headers.linkMode);
+    expect(overridden.split(",")).not.toContain(site.headers.route);
+    expect(res.headers.get(`x-middleware-request-${site.headers.route}`)).toBeNull();
   });
 
   it("strips a client-sent link mode before setting its own", () => {
-    const res = routeRequest(request("https://royat.aquafix.top/fr", { host: ROYAT, [LOCATION_MODE_HEADER]: "path" }));
+    const res = routeRequest(request("https://royat.aquafix.top/fr", { host: ROYAT, [site.headers.linkMode]: "path" }));
     expect(res.headers.get("x-middleware-rewrite")).toContain("/fr/royat");
-    expect(res.headers.get(`x-middleware-request-${LOCATION_MODE_HEADER}`)).toBe("host");
+    expect(res.headers.get(`x-middleware-request-${site.headers.linkMode}`)).toBe("host");
   });
 });

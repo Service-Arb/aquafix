@@ -3,7 +3,7 @@ import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { brandOrigin } from "@/entities/location";
-import { BRAND } from "@/shared/config/brand";
+import { site } from "@/shared/config/site";
 import { isLocale } from "@/shared/config/i18n";
 import { archivo, inter } from "@/shared/ui/fonts";
 
@@ -15,7 +15,7 @@ import { archivo, inter } from "@/shared/ui/fonts";
  */
 export const metadata: Metadata = {
   metadataBase: new URL(brandOrigin()),
-  applicationName: BRAND.name,
+  applicationName: site.brand.name,
   formatDetection: { telephone: false },
 };
 
@@ -31,7 +31,7 @@ export default async function RootLayout({
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   return (
-    <html lang={locale} data-brand={BRAND.id} className={`light ${archivo.variable} ${inter.variable}`}>
+    <html lang={locale} data-brand={site.brand.id} className={`light ${archivo.variable} ${inter.variable}`}>
       <body>{children}</body>
     </html>
   );

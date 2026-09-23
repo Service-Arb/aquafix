@@ -1,7 +1,7 @@
 import "server-only";
-import { BRAND } from "@/shared/config/brand";
+import { site } from "@/shared/config/site";
 import type { ServerEnv } from "@/shared/config/env";
-import { sendMail } from "@/shared/lib/smtp";
+import { sendMail } from "@/shared/landing/server/smtp";
 import type { Lead } from "../model/lead";
 
 /**
@@ -29,12 +29,16 @@ export function leadNotifier(env: Pick<ServerEnv, "smtpUrl" | "notifyTo" | "noti
       const channels: Promise<void>[] = [];
       if (env.smtpUrl) {
         channels.push(
-          sendMail(env.smtpUrl, {
-            from: env.notifyFrom ?? `leads@${BRAND.domain}`,
-            to: env.notifyTo ?? BRAND.email,
-            subject: `Aquafix — nouvelle demande (${lead.locationId ?? "point inconnu"})`,
-            text: body(lead, id),
-          }),
+          sendMail(
+            env.smtpUrl,
+            {
+              from: env.notifyFrom ?? `leads@${site.brand.domain}`,
+              to: env.notifyTo ?? site.brand.email,
+              subject: `${site.brand.name} — nouvelle demande (${lead.locationId ?? "point inconnu"})`,
+              text: body(lead, id),
+            },
+            { helo: site.brand.domain },
+          ),
         );
       }
       if (env.smsToken) {
