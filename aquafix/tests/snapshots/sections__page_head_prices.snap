@@ -1,5 +1,0 @@
----
-source: aquafix/tests/sections.rs
-expression: render(app)
----
-<section class="w-full px-[var(--page-px)] dark bg-background text-ink py-[var(--band-py-tight)] flex flex-col gap-3 md:gap-3.5" data-slot="section"><p class="font-medium md:tracking-[0.16em] text-primary text-[10px] md:text-[11px] tracking-[0.16em]" data-slot="eyebrow">PRICES  ·  AQUAFIX</p><h2 class="[font-weight:700] max-w-[54rem] text-[30px] md:text-[44px] leading-[1.14] tracking-[-0.01em]" data-slot="display">Every job, every number.</h2><p class="max-w-[48rem] text-[15px] md:text-[17px] leading-[1.58] text-ink-soft">What we charge, why the number never moves, and what happens if the job turns out worse than it looked.</p></section>

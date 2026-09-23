@@ -1,22 +1,19 @@
 # aquafix
-![Minimum Supported Rust Version](https://img.shields.io/badge/nightly-1.100+-ab6000.svg)
-[<img alt="crates.io" src="https://img.shields.io/crates/v/aquafix.svg?color=fc8d62&logo=rust" height="20" style=flat-square>](https://crates.io/crates/aquafix)
-[<img alt="docs.rs" src="https://img.shields.io/badge/docs.rs-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs&style=flat-square" height="20">](https://docs.rs/aquafix)
 ![Lines Of Code](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/valeratrades/b48e6f02c61942200e7d1e3eeabf9bcb/raw/aquafix-loc.json)
 <br>
 [<img alt="ci errors" src="https://img.shields.io/github/actions/workflow/status/Service-Arb/aquafix/errors.yml?branch=main&style=for-the-badge&style=flat-square&label=errors&labelColor=420d09" height="20">](https://github.com/Service-Arb/aquafix/actions?query=branch%3Amain) <!--NB: Won't find it if repo is private-->
 [<img alt="ci warnings" src="https://img.shields.io/github/actions/workflow/status/Service-Arb/aquafix/warnings.yml?branch=main&style=for-the-badge&style=flat-square&label=warnings&labelColor=d16002" height="20">](https://github.com/Service-Arb/aquafix/actions?query=branch%3Amain) <!--NB: Won't find it if repo is private-->
 
-A plumbing business, end to end: a Typst business card and a Dioxus fullstack
-landing funnel, both rendering the same brand and the same facts from
-`assets/`.
+A plumbing business, end to end: a Typst business card and a Next.js landing
+site for six points in Clermont-Ferrand and Lyon, both rendering the same brand
+and the same facts from `assets/`.
 
 The site publishes what nine jobs actually cost — the thing every competitor
-gestures at and none of them commits to — and its quote form submits before any
-WebAssembly has loaded, because the visitor it is built for is standing in
-water. Section copy traces to graded conversion evidence in
-[`docs/refs/sites/`](docs/refs/sites/README.md); the reasoning behind the
-structure is in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+gestures at and none of them commits to — and its quote form is a plain
+`<form>` that submits before any JavaScript has loaded, because the visitor it
+is built for is standing in water. Section copy traces to graded conversion
+evidence in [`docs/refs/sites/`](docs/refs/sites/README.md); the reasoning
+behind the structure is in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 <!-- markdownlint-disable -->
 <details>
 <summary>
@@ -29,9 +26,16 @@ The repo builds with Nix. Determinate Nix with `lazy-trees = true` is required.
 nix develop
 ```
 
-This gives you the Rust toolchain, `dx`, the Tailwind CLI, Typst and
-ImageMagick. The build derives everything under `aquafix/assets/` from
-`assets/`, so there is no separate asset step.
+This gives you Node 22 (≥ 22.13, for `node:sqlite`), Playwright with its
+pinned browsers, Typst and ImageMagick, and writes the generated files —
+`.github/workflows/`, `.gitignore`, `.treefmt.toml` and this README — from
+`flake.nix`. Edit the flake, not them.
+
+Plain npm works for the app itself:
+
+```sh
+npm ci && npm run typecheck && npx eslint . && npx vitest run && npm run build && npm start
+```
 
 </details>
 <!-- markdownlint-restore -->
@@ -43,39 +47,64 @@ Start the site:
 nix run .#dev
 ```
 
-The page is at `http://127.0.0.1:59081`.
+A point is at `http://royat.localhost:59081/fr` (every `*.localhost` resolves
+to your machine), the brand page at `http://localhost:59081/fr`.
 
 Run the checks:
 
 ```sh
-nix run .#test           # HTML snapshots, then screenshots at both breakpoints
-nix run .#size           # WebAssembly size against the committed budget
+nix run .#test           # tsc, eslint, vitest, build, bundle budget, Playwright
+nix run .#size           # first-load JS of a point page against tests/bundle_budget.txt
 nix run .#figma-parity   # compares the card with the Figma export
+nix flake check          # the hermetic Nix build, and the budget against it
 ```
 
-Accept new baselines after you change a section:
+The bundle budget is the one hard gate. Raising `tests/bundle_budget.txt` is a
+deliberate commit that says why.
+
+Build the server and the container image:
 
 ```sh
-nix run .#accept-test
+nix build                # the standalone server
+nix build .#container    # OCI image, on Linux
 ```
 
-Build the release server and the container image:
+The image listens on 59081 and keeps its leads in `/data/leads.db`; `/data` is
+the mount. Its non-secret settings come from `deploy/config.nix`. Secrets —
+`SMTP_URL`, `SMS_TOKEN`, `POSTHOG_KEY` — come only from the container's
+environment. Pushing a `v*` tag builds the image and publishes it to
+`ghcr.io/service-arb/aquafix`, which deploys it: `nix run .#publish` makes the
+tag.
 
-```sh
-nix build .#dx
-nix build .#container
-```
+#### Visual baselines
 
-`nix run .#help` prints this list.
+Screenshot baselines are Linux's, because CI is: a mac rasterises glyphs
+differently, so locally the pixel comparison is skipped (`AQUAFIX_SNAPSHOTS=1`
+shoots anyway, to look). To refresh them after changing a section:
+
+1. Run the **Visual baselines** workflow on the branch
+   (`gh workflow run visual-baselines.yml --ref <branch>`). Before that workflow
+   exists on `main`, a CI run of **Errors** on the branch writes any missing
+   baseline and publishes the same artifact.
+2. `gh run download <run-id> -n visual-snapshots -D tests/e2e/__screenshots__`
+3. Look at the images, then commit them alone:
+   `test: refresh visual baselines (run <run-id>)`.
+
+On Linux, `nix run .#accept-test` does the same locally; `-- <name>` for a subset.
+
+`nix run .#help` prints the list of commands.
 
 ## Layout
 
 ```text
-assets/          brand.toml, mark.svg, fonts/ — the brand, written once
-business_card/   the Typst card
-aquafix/         the site (see aquafix/src/README.md for local conventions)
+app/             Next routes: pages under [locale]/[location], /quote, /og, /health
+src/             the site in Feature-Sliced layers (shared → entities → features → widgets → views)
+assets/          brand.toml, card.toml, mark.svg, fonts/, photos — the brand, written once
+brand_materials/ the Typst card and the A4 door sheet
+tests/           vitest; tests/e2e/ Playwright; bundle_budget.txt
 docs/refs/       graded conversion evidence the copy is argued from
 deploy/          production config, authored in Nix
+nix/             the generated CI workflows' source
 ```
 
 

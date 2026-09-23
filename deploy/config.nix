@@ -1,14 +1,19 @@
-# Prod `AppConfig`, evaluated to JSON at build time and baked into the image
-# (`flake.nix: prodConfig`). Secret-free — SMTP_URL, SMS_TOKEN and POSTHOG_KEY
-# arrive from the container environment the k8s Secret injects via `envFrom`.
+# The prod environment of the server, baked into the image as plain env
+# (`flake.nix: prodEnv`). Secret-free — SMTP_URL, SMS_TOKEN and POSTHOG_KEY
+# (and LEAD_NOTIFY_TO/FROM, LOCATIONS_API_URL when used) arrive from the
+# container environment the k8s Secret injects via `envFrom`.
 #
-# Passed to the binary as `--config` explicitly. Without it the binary searches
-# only XDG dirs and the `AQUAFIX_*` env namespace, and would silently boot on
-# dev defaults: a 127.0.0.1 bind that fails the readiness probe, and leads
-# written outside the mounted volume.
+# Explicit because the defaults are dev's: without HOSTNAME the standalone
+# server binds one interface the readiness probe may not reach, and without
+# LEADS_DB_PATH leads would be written outside the mounted volume — which the
+# server refuses in production (instrumentation.ts): every request, /health
+# included, answers 500, so the pod never turns ready rather than losing a lead.
 { port }:
 {
   # The mount, not $HOME. Leads are the only durable state this service has.
-  db_path = "/data/leads.db";
-  socket_addr = "0.0.0.0:${toString port}";
+  LEADS_DB_PATH = "/data/leads.db";
+  HOSTNAME = "0.0.0.0";
+  PORT = toString port;
+  NODE_ENV = "production";
+  NEXT_TELEMETRY_DISABLED = "1";
 }

@@ -1,5 +1,0 @@
----
-source: aquafix/tests/sections.rs
-expression: render(app)
----
-<div class="dark flex items-center justify-center gap-3 bg-background px-[var(--page-px)] py-2.5 md:py-[11px] text-[13px] md:text-[14px]"><span class="size-[9px] shrink-0 rounded-full bg-accent-error"></span><p class="truncate text-ink-soft">Burst pipe, no hot water, or a leak you can hear? We answer the phone 24/7 —</p><a href="tel:+33423500640" class="shrink-0 font-semibold text-primary">+33 4 23 50 06 40</a></div>

@@ -1,0 +1,25 @@
+# Maximum gzip bytes of first-load JavaScript on a point page
+# (`/[locale]/[location]`), checked by `nix run .#size` (scripts/bundle-budget.ts).
+#
+# The visitor this page is designed for is on mobile data in the middle of an
+# emergency, so this is the one number worth gating. The quote form posts
+# without any of it — the budget is for what the page costs to become
+# interactive, not for whether it works.
+#
+# Measured: 227,085 B gz (761.7 KB raw) in 11 chunks, Next 16.3.6 / Turbopack.
+# Ceiling set ~4.5% above so ordinary churn does not trip it and a real
+# regression does. By chunk, identified by what each one contains:
+#   ~71.6 KB  react-dom
+#   ~44.3 KB  the Next app-router runtime
+#   ~42.9 KB  the uikit's client components — one barrel, Radix included
+#   ~30.5 KB  `@evinvest/marketing/react`: ContactLinkTracker, and motion with it
+#   ~38 KB    the rest: Turbopack runtime, route chunks, the analytics island
+# For comparison, the Dioxus build this replaces shipped 1,168,203 B of
+# uncompressed wasm; the equivalent raw figure here is ~780 KB.
+#
+# Raising this is a deliberate commit with a reason in the message, never a
+# silent edit. The levers, in order: move another interaction to native HTML
+# (the FAQ and the mobile drawer are already `<details>`), get the tracker from
+# the marketing package without motion, then split the uikit barrel so a
+# server-rendered `Button` does not bring the kit's client half along.
+237000

@@ -1,5 +1,0 @@
-/* `dx serve`'s hot-reload banner. Dev-server chrome that is not on the site at
- * all, and it appears on its own schedule. */
-.dx-toast {
-  display: none !important;
-}

@@ -11,7 +11,7 @@
   outputs = { self, v_flakes }:
     let
       inherit (v_flakes) flake-utils pre-commit-hooks;
-      manifest = (builtins.fromTOML (builtins.readFile ./aquafix/Cargo.toml)).package;
+      manifest = builtins.fromJSON (builtins.readFile ./package.json);
       pname = manifest.name;
       brand = builtins.fromTOML (builtins.readFile ./assets/brand.toml);
       cardCopy = builtins.fromTOML (builtins.readFile ./assets/card.toml);
@@ -39,130 +39,217 @@
       system:
       let
         pkgs = import v_flakes.default_nixpkgs { inherit system; };
-        rust = v_flakes.rs.default_nightly system;
-        # mold is Linux-only — the adapter throws at *eval* time on Darwin, which
-        # would break every target on a mac, not just the ones that link.
-        stdenv = if pkgs.stdenv.isDarwin then pkgs.stdenv else pkgs.stdenvAdapters.useMoldLinker pkgs.stdenv;
+        lib = pkgs.lib;
+        # `node:sqlite` without a flag needs ≥ 22.13 (package.json `engines`).
+        # The build and the image run the same major; the image gets the slim
+        # build, which is the same node without npm.
+        nodejs = pkgs.nodejs_22;
+        nodeRuntime = pkgs.nodejs-slim_22;
 
-        # rust-lld embeds a bad rpath on macOS: it looks for libLLVM.dylib in
-        # bin/../lib but nix puts it in <rust>/lib, so a wasm link aborts.
-        dyldFallback = pkgs.lib.optionalString pkgs.stdenv.isDarwin
-          ''export DYLD_FALLBACK_LIBRARY_PATH="${rust}/lib''${DYLD_FALLBACK_LIBRARY_PATH:+:$DYLD_FALLBACK_LIBRARY_PATH}"'';
-
-        # Single source for the `dx serve` bind, the container's exposed port and
-        # the devShell env. Matches `config::AppConfig::socket_addr`'s default.
+        # Single source for the dev server, the container's exposed port and the
+        # prod env. The Rust server listened here too; the cluster's Service did
+        # not have to change.
         sitePort = "59081";
-        # The other compositions get a port each so they can be open side by
-        # side — which is the only way the question between them gets settled.
-        fieldPort = "59082";
-        quietPort = "59083";
 
-        # What gets built and shipped. `compose::selected()` takes no default, so
-        # this is the only place the answer exists; `nix run .#dev <name>` is the
-        # one path that overrides it, per invocation.
-        composition = "quiet";
+        # ── the hermetic build ──────────────────────────────────────────────
+        # `importNpmLock` fetches each package by the `integrity` the lockfile
+        # already pins, so there is no second hash to keep in step with
+        # package-lock.json, and nothing else reaches the network.
+        npmLock = lib.importJSON ./package-lock.json;
+        npmOs = if pkgs.stdenv.hostPlatform.isDarwin then "darwin" else "linux";
+        npmCpu = if pkgs.stdenv.hostPlatform.isAarch64 then "arm64" else "x64";
+        # npm's `os`/`cpu`/`libc` fields: a list of names, or of `!name` exclusions.
+        fits = want: list:
+          let positive = builtins.filter (x: !(lib.hasPrefix "!" x)) list;
+          in !(builtins.elem "!${want}" list) && (positive == [ ] || builtins.elem want positive);
+        foreign = m:
+          (m ? os && !(fits npmOs m.os))
+          || (m ? cpu && !(fits npmCpu m.cpu))
+          || (m ? libc && !(fits "glibc" m.libc));
+        npmSourceOverrides = lib.concatMapAttrs
+          (path: m:
+            # Every platform's native binary is in the lockfile — @next/swc
+            # alone is ~100 MB per platform. npm skips the foreign ones without
+            # reading them, so they are never fetched either.
+            if (m.optional or false) && foreign m then
+              { ${path} = pkgs.emptyFile; }
+            else { })
+          npmLock.packages;
 
-        # Pinned to the workspace's `wasm-bindgen` (`=0.2.125`): nixpkgs ships a
-        # different minor and a CLI/crate schema skew is a hard error at bindgen
-        # time. Shadows `pkgs.wasm-bindgen-cli` wherever referenced below.
-        wasm-bindgen-cli =
-          let
-            src = pkgs.fetchCrate {
-              pname = "wasm-bindgen-cli";
-              version = "0.2.125";
-              hash = "sha256-zRawtjxMOdTMX+mZaiNR3YYfTiZJhf9qj7kXSSeMxrc=";
-            };
-          in
-          pkgs.buildWasmBindgenCli {
-            inherit src;
-            cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
-              inherit src;
-              inherit (src) pname version;
-              hash = "sha256-aZCfgR23Qb0Pn4Mm4ToMtuuRQqSJjXCR9li/VvP5CTM=";
-            };
+        buildSrc = lib.fileset.toSource {
+          root = ./.;
+          fileset = lib.fileset.unions [
+            ./package.json
+            ./package-lock.json
+            ./app
+            ./src
+            ./assets
+            ./next.config.ts
+            ./tsconfig.json
+            ./postcss.config.mjs
+            ./proxy.ts
+            ./instrumentation.ts
+          ];
+        };
+
+        # `.next/standalone` plus the static chunks `postbuild` copies into it:
+        # the server and only the files it was traced to need. The diagnostics
+        # ride along for the bundle-budget check; nothing serves them.
+        site = pkgs.buildNpmPackage {
+          inherit pname nodejs;
+          version = manifest.version;
+          src = buildSrc;
+          npmDeps = pkgs.importNpmLock {
+            npmRoot = ./.;
+            packageSourceOverrides = npmSourceOverrides;
           };
+          npmConfigHook = pkgs.importNpmLock.npmConfigHook;
+          env.NEXT_TELEMETRY_DISABLED = "1";
+          installPhase = ''
+            runHook preInstall
+            test -f .next/standalone/server.js
+            test -d .next/standalone/.next/static
+            test -f .next/standalone/assets/fonts/Archivo-Bold.ttf
+            cp -a .next/standalone "$out"
+            cp -a .next/diagnostics "$out/.next/diagnostics"
+            runHook postInstall
+          '';
+          # The traced `node_modules` keep their bin shebangs; rewritten, each
+          # would pull the full nodejs, npm included, into the image. Nothing in
+          # the server executes them.
+          dontPatchShebangs = true;
+        };
 
-        # ── dev ─────────────────────────────────────────────────────────────
+        # Secret-free prod env, authored in nix and baked into the image.
+        # Without it the server would take its dev defaults — see deploy/config.nix.
+        prodEnv = import ./deploy/config.nix { port = sitePort; };
+        containerStd = v_flakes.container.implement {
+          inherit pkgs pname;
+          containers."" = {
+            port = lib.toInt sitePort;
+            mounts = [ "/data" ];
+            healthPath = "/health";
+            # A down landing is a lost lead, not a stale chart.
+            criticality = "high";
+            entrypoint = [ "${nodeRuntime}/bin/node" "${site}/server.js" ];
+            workingDir = "/data";
+            imageEnv = [ "HOME=/data" ] ++ lib.mapAttrsToList (n: v: "${n}=${v}") prodEnv;
+          };
+        };
+
+        # Print-ready: the card with bleed on and trim guide off, the A4 sheet as it
+        # leaves an office printer. One set per language, the card's next to the
+        # vCard carrying the same contact facts. The card is one polarity per face,
+        # so it has no cut in its name; the sheet picks a surface and says which.
+        brandMaterials =
+          let
+            src = lib.fileset.toSource {
+              root = ./.;
+              fileset = lib.fileset.unions [
+                ./assets
+                (lib.fileset.difference ./brand_materials ./brand_materials/tests)
+              ];
+            };
+            cuts = [
+              { material = "card"; polarity = "light"; explicit = false; name = "card"; }
+              { material = "sheet"; polarity = "light"; explicit = false; name = "sheet.light"; }
+              { material = "sheet"; polarity = "dark"; explicit = false; name = "sheet.dark"; }
+              { material = "sheet"; polarity = "light"; explicit = true; name = "sheet.light.explicit"; }
+              { material = "sheet"; polarity = "dark"; explicit = true; name = "sheet.dark.explicit"; }
+            ];
+          in
+          pkgs.runCommand "aquafix-brand-materials" { nativeBuildInputs = [ pkgs.typst ]; } ''
+            mkdir -p $out
+            ${lib.concatMapStrings (lang: ''
+              ${lib.concatMapStrings (cut: ''
+                typst compile --root ${src} --ignore-system-fonts --font-path ${src}/assets/fonts \
+                  --input lang=${lang} --input material=${cut.material} --input polarity=${cut.polarity} \
+                  --input explicit=${lib.boolToString cut.explicit} \
+                  ${src}/brand_materials/__main__.typ $out/${lang}-${cut.name}.pdf
+              '') cuts}
+              sed 's/$/\r/' ${pkgs.writeText "${lang}.vcf" (vcard lang)} > $out/${lang}.vcf
+            '') (builtins.attrNames cardCopy.langs)}
+          '';
+
+        # The gate, on the hermetic build: `nix flake check` fails over budget.
+        bundleBudget = pkgs.runCommand "aquafix-bundle-budget"
+          {
+            nativeBuildInputs = [ nodejs ];
+            src = lib.fileset.toSource {
+              root = ./.;
+              fileset = lib.fileset.unions [ ./scripts/bundle-budget.ts ./tests/bundle_budget.txt ];
+            };
+          } ''
+          cd "$src"
+          node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/bundle-budget.ts ${site}
+          touch "$out"
+        '';
+
+        # ── apps ────────────────────────────────────────────────────────────
         # IMPORTANT: resolve the repo at *runtime* via `git rev-parse`, never
         # `toString ./.` — the latter pins the wrapper to the read-only
-        # /nix/store snapshot, where neither cargo nor tailwind can write.
+        # /nix/store snapshot, where npm cannot write.
+        #
+        # `npm ci` wipes node_modules, so it runs only when the lockfile moved.
+        ensureDeps = ''
+          stamp="node_modules/.aquafix-lock"
+          want="$(sha256sum package-lock.json | cut -d' ' -f1)"
+          if [ "$(cat "$stamp" 2>/dev/null)" != "$want" ]; then
+            npm ci
+            echo "$want" > "$stamp"
+          fi
+        '';
+        # The spec's `@playwright/test` is the flake's, pinned with its browsers;
+        # linked where tsc and the config resolve it from.
+        linkPlaywright = ''
+          ln -sfn ${pkgs.playwright-test}/lib/node_modules tests/e2e/node_modules
+        '';
+
         runDev = pkgs.writeShellApplication {
           name = "run-dev";
-          runtimeInputs = with pkgs; [ rust dioxus-cli tailwindcss_4 git ];
+          runtimeInputs = [ nodejs pkgs.git pkgs.coreutils ];
           text = ''
-            repo="$(git rev-parse --show-toplevel)"
-
-            # `compose::selected()` reads this at compile time; the names are
-            # `compose::ALL`. A port each, so two servers coexist.
-            composition="''${1:-${composition}}"
-            case "$composition" in
-              bands) port=${sitePort} ;;
-              field) port=${fieldPort} ;;
-              quiet) port=${quietPort} ;;
-              *) echo "✘ unknown composition '$composition' — bands | field | quiet (see compose::ALL)" >&2; exit 1 ;;
-            esac
-            # cargo does not track `env!` as a rebuild input, so one shared target
-            # dir would serve whichever composition happened to build last.
-            export CARGO_TARGET_DIR="$repo/target/compose-$composition"
-
-            cd "$repo/aquafix"
-
-            # build.rs derives every generated asset, tailwind.css included, so
-            # the one-shot build is already covered — this watcher only picks up
-            # class edits between cargo rebuilds.
-            tailwindcss -i ./input.css -o ./assets/tailwind.css --watch & css=$!
-            trap 'kill "$css" 2>/dev/null || true' EXIT INT TERM
-
-            cd "$repo"
-            # Reap a server orphaned by a previous run: dx does not always
-            # propagate SIGINT to its spawned child, which then holds the port.
-            # Scoped to this composition — the other one's server is not ours.
-            pkill -f "compose-$composition/dx/aquafix/.*/server-" 2>/dev/null || true
-            echo "  ▶ $composition on http://127.0.0.1:$port"
-            # RUSTFLAGS *replaces* `[target.*].rustflags`, it does not merge — so
-            # this keeps the correctness cfgs and drops the two flags dx cannot
-            # tolerate: `-fuse-ld=mold` (dx intercepts linking with its own shim)
-            # and `-Z threads` (ICEs its incremental build). `cargo b` and
-            # `nix build` still read the config and keep both.
-            export RUSTFLAGS='--cfg tokio_unstable --cfg web_sys_unstable_apis'
-            # No `exec`: keep this shell as the parent so the trap reaps tailwind.
-            # `--interactive false` is deliberately absent — TUI mode setsids, and
-            # that detachment is what lets dx survive fish's ctrl-c.
-            # `env` and not an export: the devShell names a composition of its
-            # own, and `nix develop` lets the derivation's value win.
-            nix develop "$repo" --command env AQUAFIX_COMPOSITION="$composition" \
-              dx serve --package aquafix --port "$port"
+            cd "$(git rev-parse --show-toplevel)"
+            ${ensureDeps}
+            echo "  ▶ a point:  http://royat.localhost:${sitePort}/fr"
+            echo "  ▶ the brand: http://localhost:${sitePort}/fr"
+            exec npm run dev -- --port ${sitePort}
           '';
         };
 
-        # ── tests ───────────────────────────────────────────────────────────
-        # Delegates to `nix develop` so cargo gets the devShell toolchain (the
-        # `.cargo` sccache/cranelift/mold accelerators a bare app PATH lacks).
         runTest = pkgs.writeShellApplication {
           name = "run-test";
-          runtimeInputs = with pkgs; [ git ];
+          runtimeInputs = [ nodejs pkgs.git pkgs.coreutils pkgs.playwright-test ];
           text = ''
-            repo="$(git rev-parse --show-toplevel)"
-            echo "▶ cargo test (insta snapshots)"
-            nix develop "$repo" --command cargo test
+            cd "$(git rev-parse --show-toplevel)"
+            ${ensureDeps}
+            ${linkPlaywright}
+            echo "▶ tsc";      npm run -s typecheck && npx tsc --noEmit -p tests/e2e
+            echo "▶ eslint";   npx eslint .
+            echo "▶ vitest";   npx vitest run
+            echo "▶ build";    npm run -s build >/dev/null
+            echo "▶ size";     npm run -s size
             echo "▶ playwright (1440 + 390)"
-            nix develop "$repo" --command bash -c 'cd aquafix && playwright test'
+            playwright test -c tests/e2e "$@"
           '';
         };
 
+        # Screenshot baselines are Linux's (CI's); a mac shoots different glyphs.
         runAcceptTest = pkgs.writeShellApplication {
           name = "accept-test";
-          runtimeInputs = with pkgs; [ git ];
+          runtimeInputs = [ nodejs pkgs.git pkgs.coreutils pkgs.playwright-test ];
           text = ''
-            repo="$(git rev-parse --show-toplevel)"
+            if [ "$(uname -s)" != Linux ]; then
+              echo "✘ baselines are Linux's. Take them from CI instead — README, \"Visual baselines\"." >&2
+              exit 1
+            fi
+            cd "$(git rev-parse --show-toplevel)"
+            ${ensureDeps}
+            ${linkPlaywright}
+            npm run -s build >/dev/null
             filter="''${1:-}"
-            echo "▶ accepting insta snapshots"
-            nix develop "$repo" --command cargo insta accept
             echo "▶ accepting screenshot baselines ''${filter:+for $filter}"
-            # The quotes are for the inner bash; the expansion is this shell's.
-            # shellcheck disable=SC2016
-            nix develop "$repo" --command bash -c \
-              "cd aquafix && playwright test --update-snapshots ''${filter:+-g '$filter'}"
+            playwright test -c tests/e2e --update-snapshots=all ''${filter:+-g "$filter"}
           '';
         };
 
@@ -179,42 +266,21 @@
 
         # The one number worth gating: our visitor is on mobile data mid-emergency.
         runSize = pkgs.writeShellApplication {
-          name = "wasm-size";
-          runtimeInputs = with pkgs; [ git coreutils findutils ];
+          name = "bundle-size";
+          runtimeInputs = [ nodejs pkgs.git pkgs.coreutils ];
           text = ''
-            repo="$(git rev-parse --show-toplevel)"
-            # The file is commented; the budget is the last line.
-            budget="$(tail -1 "$repo/aquafix/tests/wasm_budget.txt" | tr -dc '0-9')"
-            # Both build paths are real — `nix build .#dx` lands in the store
-            # behind `result`, a local `dx build --release` in `target/`. Take
-            # the newest of everything either produced: picking the first match
-            # let a stale artifact answer for a tree it was not built from.
-            dirs=()
-            for d in "$repo/result/bin/public" "$repo/target/dx/aquafix/release/web/public"; do
-              [ -d "$d" ] && dirs+=("$d")
-            done
-            wasm=""
-            if [ ''${#dirs[@]} -gt 0 ]; then
-              wasm="$(find -L "''${dirs[@]}" -name '*_bg*.wasm' -printf '%T@ %p\n' | sort -rn | head -1 | cut -d' ' -f2-)"
-            fi
-            if [ -z "$wasm" ]; then
-              echo "✘ no release wasm — run 'nix build .#dx' first" >&2
-              exit 1
-            fi
-            actual="$(stat -c %s "$wasm")"
-            printf '  wasm %s KB / budget %s KB  (%s)\n' "$((actual / 1024))" "$((budget / 1024))" "''${wasm#"$repo"/}"
-            if [ "$actual" -gt "$budget" ]; then
-              echo "✘ over budget. Raising aquafix/tests/wasm_budget.txt is a deliberate commit, with a reason." >&2
-              exit 1
-            fi
+            cd "$(git rev-parse --show-toplevel)"
+            ${ensureDeps}
+            npm run -s build >/dev/null
+            npm run -s size
           '';
         };
 
         # ── bump the latest remote vX.Y.Z tag and push: `.#publish major|minor|patch [note]` ──
         # Ported from site_conductor. The version lives in the tag, not in a
-        # file: `aquafix/Cargo.toml` carries its own and the two have already
-        # drifted (manifest 0.1.0, tags through v0.1.1), so nothing here writes
-        # to the manifest — that would be a second source for one number.
+        # file: package.json carries its own and the two need not agree, so
+        # nothing here writes to it — that would be a second source for one number.
+        # The tag is the release: `release-container.yml` ships the image on it.
         runPublish = pkgs.writeShellApplication {
           name = "publish";
           runtimeInputs = with pkgs; [ git ];
@@ -263,19 +329,79 @@
           name = "help";
           text = ''
             cat <<'EOF'
-              nix run .#dev            tailwind --watch + dx serve, the shipped composition (${composition})
-              nix run .#dev -- bands   the same, bands composition, on ${sitePort}
-              nix run .#dev -- field   the same, field composition, on ${fieldPort}
-              nix run .#dev -- quiet   the same, quiet composition, on ${quietPort}
-              nix run .#test           cargo test (insta) + playwright     [pre-push hook]
-              nix run .#accept-test    accept baselines; `-- <name>` for a subset
-              nix run .#figma-parity   blur-diff against the Figma export  [advisory]
-              nix run .#size           wasm budget check (after `nix build .#dx`)
-              nix run .#publish        bump the latest remote tag: major|minor|patch [note]
-              nix build .#dx           release server + public/
-              nix build .#${pname}-container   OCI image
+              nix run .#dev            next dev on ${sitePort} (royat.localhost for a point)
+              nix run .#test           tsc, eslint, vitest, build, size, playwright   [pre-push hook]
+              nix run .#accept-test    accept screenshot baselines (Linux only); `-- <name>` for a subset
+              nix run .#size           build, then the first-load JS budget          [the one hard gate]
+              nix run .#figma-parity   blur-diff against the Figma export            [advisory]
+              nix run .#publish        bump the latest remote tag: major|minor|patch [note] — the tag ships
+              nix build                the standalone server (.next/standalone)
+              nix build .#container    OCI image (Linux)
               nix build .#brand-materials  print -> result/<lang>-{card,sheet.{light,dark}[.explicit]}.pdf + <lang>.vcf
+              nix run .#generate       rewrite workflows, .gitignore, .treefmt.toml, README (the devShell does too)
+              nix flake check          the hermetic build + the bundle budget against it
             EOF
+          '';
+        };
+
+        # ── generated repo files ────────────────────────────────────────────
+        # `.github/workflows/*`, `.gitignore`, `.treefmt.toml` and README.md are
+        # written by the devShell from here; edit this file, not them.
+        workflows = import ./nix/workflows.nix { inherit pkgs; };
+        # v_flakes' own generators for what is not language-specific: the
+        # container release on a `v*` tag, the LoC badge and the Claude review.
+        # Its `github` module would add Rust jobs and require a Rust toolchain.
+        sharedWorkflows = v_flakes.workflows {
+          inherit pkgs pname;
+          jobsErrors = [ ];
+          jobsWarnings = [ ];
+          jobsOther = [ "loc-badge" ];
+          containerRelease = { registry = "ghcr.io/service-arb"; };
+          claude = true;
+        };
+        gitignore = v_flakes.files.gitignore {
+          inherit pkgs;
+          langs = [ "js" ];
+          extra = ''
+            next-env.d.ts
+            /data/
+            # A symlink to the flake-pinned @playwright/test, so no trailing slash.
+            tests/e2e/node_modules
+            # Playwright failure artefacts. The baselines under
+            # tests/e2e/__screenshots__/ are tracked; these are not.
+            **/test-results/
+            **/playwright-report/'';
+        };
+        treefmt = (pkgs.formats.toml { }).generate "treefmt.toml" {
+          global.excludes = [ "docs/refs/**" ];
+          formatter = {
+            nix = { command = "nixpkgs-fmt"; includes = [ "*.nix" ]; };
+            typst = { command = "typstyle"; options = [ "-i" "--line-width" "190" "--indent-width" "2" ]; includes = [ "*.typ" ]; };
+          };
+        };
+        readme = v_flakes.readme-fw {
+          inherit pkgs pname;
+          defaults = true;
+          lastSupportedVersion = null;
+          rootDir = ./.;
+          badges = [ "loc" "ci" ];
+        };
+        generateRepoFiles = ''
+          mkdir -p .github/workflows
+          ${v_flakes.utils.unwrapShellHook sharedWorkflows.shellHook}
+          ${workflows.shellHook}
+          cp -f ${gitignore} ./.gitignore
+          cp -f ${treefmt} ./.treefmt.toml
+          ${v_flakes.utils.unwrapShellHook readme.shellHook}
+        '';
+
+        # The same writes without entering the shell (and without its hook installs).
+        runGenerate = pkgs.writeShellApplication {
+          name = "generate";
+          runtimeInputs = with pkgs; [ git coreutils gnused gnugrep ];
+          text = ''
+            cd "$(git rev-parse --show-toplevel)"
+            ${generateRepoFiles}
           '';
         };
 
@@ -284,6 +410,11 @@
         preCommitBase = v_flakes.files.preCommit { inherit pkgs; };
         pre-commit-check = pre-commit-hooks.lib.${system}.run (preCommitBase // {
           hooks = preCommitBase.hooks // {
+            treefmt = preCommitBase.hooks.treefmt // {
+              settings = preCommitBase.hooks.treefmt.settings // {
+                formatters = [ pkgs.nixpkgs-fmt pkgs.typstyle ];
+              };
+            };
             test = {
               enable = true;
               name = "nix run .#test";
@@ -293,183 +424,6 @@
             };
           };
         });
-
-        rs = v_flakes.rs {
-          inherit pkgs rust;
-          # Unforced, so the devShell and `nix run .#dev <name>` still win: this
-          # is only what a bare `cargo b` — rust-analyzer's included — compiles.
-          config.env.AQUAFIX_COMPOSITION = composition;
-          build = {
-            deny = false;
-            workspace = let deprecate_by = "v1.0.0"; in {
-              "./aquafix/" = [ "git_version" "log_directives" { deprecate = { by_version = deprecate_by; force = true; }; } ];
-            };
-          };
-        };
-        github = v_flakes.github {
-          inherit pkgs pname rs;
-          enable = true;
-          lastSupportedVersion = "nightly-2026-09-03";
-          containerRelease = { registry = "ghcr.io/service-arb"; };
-          jobs.default = true;
-          gitignore.extra = ''
-            **/node_modules/
-            # Derived from the repo-root assets/ by aquafix/assets.rs + tailwind.
-            aquafix/assets/
-            /data/
-            # Playwright failure artefacts. The baselines under
-            # aquafix/tests/__screenshots__/ are tracked; these are not.
-            **/test-results/
-            **/playwright-report/
-          '';
-        };
-        readme = v_flakes.readme-fw {
-          inherit pkgs pname;
-          defaults = true;
-          lastSupportedVersion = "nightly-1.100";
-          rootDir = ./.;
-          badges = [ "msrv" "crates_io" "docs_rs" "loc" "ci" ];
-        };
-        combined = v_flakes.utils.combine { inherit rust; modules = [ rs github readme ]; };
-      in
-      let
-        rustc = rust;
-        cargo = rust;
-        rustPlatform = pkgs.makeRustPlatform { inherit rustc cargo stdenv; };
-
-        # `.cargo` holds dev-only accelerators (sccache rustc-wrapper, cranelift,
-        # mold) the hermetic sandbox lacks — drop it so the pure build uses nix's
-        # own toolchain instead of failing on a missing `sccache` on PATH.
-        pureSrc = pkgs.lib.cleanSourceWith {
-          src = ./.;
-          filter = path: _type: baseNameOf path != ".cargo";
-        };
-
-        # Print-ready: the card with bleed on and trim guide off, the A4 sheet as it
-        # leaves an office printer. One set per language, the card's next to the
-        # vCard carrying the same contact facts. The card is one polarity per face,
-        # so it has no cut in its name; the sheet picks a surface and says which.
-        brandMaterials =
-          let
-            src = pkgs.lib.fileset.toSource {
-              root = ./.;
-              fileset = pkgs.lib.fileset.unions [
-                ./assets
-                (pkgs.lib.fileset.difference ./brand_materials ./brand_materials/tests)
-              ];
-            };
-            cuts = [
-              { material = "card"; polarity = "light"; explicit = false; name = "card"; }
-              { material = "sheet"; polarity = "light"; explicit = false; name = "sheet.light"; }
-              { material = "sheet"; polarity = "dark"; explicit = false; name = "sheet.dark"; }
-              { material = "sheet"; polarity = "light"; explicit = true; name = "sheet.light.explicit"; }
-              { material = "sheet"; polarity = "dark"; explicit = true; name = "sheet.dark.explicit"; }
-            ];
-          in
-          pkgs.runCommand "aquafix-brand-materials" { nativeBuildInputs = [ pkgs.typst ]; } ''
-            mkdir -p $out
-            ${pkgs.lib.concatMapStrings (lang: ''
-              ${pkgs.lib.concatMapStrings (cut: ''
-                typst compile --root ${src} --ignore-system-fonts --font-path ${src}/assets/fonts \
-                  --input lang=${lang} --input material=${cut.material} --input polarity=${cut.polarity} \
-                  --input explicit=${pkgs.lib.boolToString cut.explicit} \
-                  ${src}/brand_materials/__main__.typ $out/${lang}-${cut.name}.pdf
-              '') cuts}
-              sed 's/$/\r/' ${pkgs.writeText "${lang}.vcf" (vcard lang)} > $out/${lang}.vcf
-            '') (builtins.attrNames cardCopy.langs)}
-          '';
-
-        siteBin = rustPlatform.buildRustPackage {
-          inherit pname;
-          version = manifest.version;
-          src = pureSrc;
-          cargoLock.lockFile = ./Cargo.lock;
-          buildInputs = with pkgs; [ openssl.dev sqlite ];
-          # tailwindcss is for build.rs, which derives every generated asset.
-          nativeBuildInputs = with pkgs; [ pkg-config tailwindcss_4 ];
-          AQUAFIX_COMPOSITION = composition;
-          # Dioxus fullstack resolves `public/` by the binary's *realpath*, so a
-          # buildEnv symlink does not work — it must be in the same store path.
-          postInstall = "mkdir -p $out/bin/public";
-          doCheck = false;
-        };
-
-        # `NO_DOWNLOADS=1` flips dx 0.7's `prefer_no_downloads()`, so its
-        # wasm-opt/wasm-bindgen stages resolve binaries via `which` off PATH
-        # (binaryen 129 matches dx's pinned BINARYEN_VERSION; wasm-bindgen-cli
-        # =0.2.125 passes its exact-version check) instead of fetching — which is
-        # what makes a hermetic build possible at all.
-        siteDxBuild = rustPlatform.buildRustPackage {
-          pname = "${pname}-dx";
-          version = manifest.version;
-          src = pureSrc;
-          cargoLock.lockFile = ./Cargo.lock;
-
-          buildInputs = with pkgs; [ openssl.dev sqlite ];
-          nativeBuildInputs = with pkgs; [
-            pkg-config
-            dioxus-cli
-            wasm-bindgen-cli
-            binaryen
-            tailwindcss_4
-            removeReferencesTo
-          ] ++ pkgs.lib.optionals (!pkgs.stdenv.isDarwin) [ pkgs.mold ];
-
-          AQUAFIX_BUILD_REV = self.shortRev or self.dirtyShortRev or "";
-          AQUAFIX_COMPOSITION = composition;
-
-          buildPhase = ''
-            runHook preBuild
-            ${dyldFallback}
-            export NO_DOWNLOADS=1
-            # `-C strip=debuginfo` is prod-only: dx forces DWARF into the release
-            # wasm, which wasm-opt's binary writer aborts on. Stripping fixes the
-            # abort and roughly halves the bundle.
-            export RUSTFLAGS="--cfg tokio_unstable --cfg web_sys_unstable_apis -C strip=debuginfo"
-            ( cd aquafix && dx build --release --package aquafix )
-            runHook postBuild
-          '';
-
-          installPhase = ''
-            runHook preInstall
-            web="target/dx/aquafix/release/web"
-            test -x "$web/server"
-            test -f "$web/public/index.html"
-            mkdir -p "$out/bin"
-            cp -a "$web/server" "$out/bin/aquafix"
-            cp -a "$web/public" "$out/bin/public"
-            # The binary and the wasm bake the nightly std source path into
-            # `#[track_caller]` panic strings — pure data never opened at runtime,
-            # but nix's reference scanner sees it and dockerTools would drag the
-            # whole toolchain in. Scrubbing it is worth ~2.3 GB of image.
-            chmod -R u+w "$out/bin"
-            remove-references-to -t ${rust} "$out/bin/aquafix"
-            find "$out/bin/public" -name '*.wasm' -exec remove-references-to -t ${rust} {} +
-            runHook postInstall
-          '';
-          doCheck = false;
-        };
-
-        # Secret-free prod config baked into the image. Authored in nix and
-        # evaluated to JSON here, because the container has no `nix`. Without an
-        # explicit `--config` the binary searches only XDG dirs and the
-        # `AQUAFIX_*` env namespace, so it would silently boot on dev defaults —
-        # a 127.0.0.1 bind that fails the k8s probe, and leads written somewhere
-        # that is not the mounted volume.
-        prodConfig = pkgs.writeText "config.json" (builtins.toJSON (import ./deploy/config.nix { port = sitePort; }));
-        containerStd = v_flakes.container.implement {
-          inherit pkgs pname;
-          containers."" = {
-            port = pkgs.lib.toInt sitePort;
-            mounts = [ "/data" ];
-            healthPath = "/health";
-            # A down landing is a lost lead, not a stale chart.
-            criticality = "high";
-            entrypoint = [ "${siteDxBuild}/bin/aquafix" "--config" "${prodConfig}" ];
-            workingDir = "/data";
-            imageEnv = [ "HOME=/data" ];
-          };
-        };
       in
       {
         apps = {
@@ -478,58 +432,53 @@
           test = { type = "app"; program = "${runTest}/bin/run-test"; };
           accept-test = { type = "app"; program = "${runAcceptTest}/bin/accept-test"; };
           figma-parity = { type = "app"; program = "${runFigmaParity}/bin/figma-parity"; };
-          size = { type = "app"; program = "${runSize}/bin/wasm-size"; };
+          size = { type = "app"; program = "${runSize}/bin/bundle-size"; };
           publish = { type = "app"; program = "${runPublish}/bin/publish"; };
           help = { type = "app"; program = "${runHelp}/bin/help"; };
+          generate = { type = "app"; program = "${runGenerate}/bin/generate"; };
         };
 
         packages = {
-          default = siteBin;
-          bin = siteBin;
-          dx = siteDxBuild;
+          default = site;
+          site = site;
+          container = containerStd.packages."${pname}-container";
           brand-materials = brandMaterials;
         } // containerStd.packages;
 
         containers = containerStd.containers;
 
-        devShells.default =
-          with pkgs;
-          mkShell {
-            inherit stdenv;
-            shellHook =
-              pre-commit-check.shellHook
-              + combined.shellHook
-              + ''
-                cp -f ${(v_flakes.files.treefmt) { inherit pkgs; }} ./.treefmt.toml
-                # Everything under aquafix/assets/ is derived by build.rs; there
-                # is nothing to stage here.
-                ${dyldFallback}
-              '';
+        checks = {
+          inherit site;
+          bundle-budget = bundleBudget;
+        };
 
-            packages = [
-              mold
-              openssl
-              pkg-config
-              rust
-              dioxus-cli # `dx serve` / `dx build`
-              tailwindcss_4 # standalone Tailwind v4 CLI
-              wasm-bindgen-cli # must match wasm-bindgen =0.2.125
-              # runner + nixpkgs-pinned browsers; its wrapper exports NODE_PATH,
-              # which is what resolves `@playwright/test` from playwright.config.ts.
-              playwright-test
-              sqlite # inspecting the lead store
-              # brand_materials/
-              typst
-              imagemagick
-            ] ++ pre-commit-check.enabledPackages ++ combined.enabledPackages;
+        devShells.default = pkgs.mkShell {
+          shellHook = pre-commit-check.shellHook + ''
+            # Generated files are written only from the repo root, and never in
+            # CI, where the checkout is the thing under test.
+            if [ -z "''${CI:-}" ] && [ "$PWD" = "$(git rev-parse --show-toplevel 2>/dev/null)" ]; then
+              ${generateRepoFiles}
+            fi
+          '';
 
-            # `cargo b` and `cargo test` have no other source for it, and
-            # `compose::selected()` refuses to invent one.
-            env.AQUAFIX_COMPOSITION = composition;
-            env.RUST_BACKTRACE = 1;
-            env.RUST_LIB_BACKTRACE = 0;
-            env.SITE_PORT = sitePort;
-          };
+          packages = [
+            nodejs
+            # runner + nixpkgs-pinned browsers; its wrapper exports NODE_PATH and
+            # PLAYWRIGHT_BROWSERS_PATH. `nix run .#test` links it for tsc.
+            pkgs.playwright-test
+            pkgs.sqlite # inspecting the lead store
+            # brand_materials/
+            pkgs.typst
+            pkgs.typstyle
+            pkgs.imagemagick
+            pkgs.treefmt
+            pkgs.nixpkgs-fmt
+          ] ++ pre-commit-check.enabledPackages ++ readme.enabledPackages;
+
+          env.PORT = sitePort;
+          env.NEXT_TELEMETRY_DISABLED = "1";
+          env.E2E_PLAYWRIGHT_MODULES = "${pkgs.playwright-test}/lib/node_modules";
+        };
       }
     );
 }
