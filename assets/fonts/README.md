@@ -11,8 +11,13 @@ done
 for w in 400:Regular 500:Medium 600:SemiBold; do
   fonttools varLib.instancer -o "Inter-${w#*:}.ttf" "$gf/Inter[opsz,wght].ttf" opsz=14 wght=${w%%:*}
 done
-for f in *.ttf; do fonttools ttLib.woff2 compress -o "${f%.ttf}.woff2" "$f"; done
 ```
+
+The `.woff2` twins are not a straight compression of the `.ttf`: they are cut
+to the Latin range a French/English page renders, by
+[`scripts/subset-fonts.sh`](../../scripts/subset-fonts.sh) (~125 KB for all
+five instead of ~400 KB). `tests/fonts.test.ts` fails when the copy uses a
+character the cut leaves out.
 
 Archivo © The Archivo Project Authors, Inter © The Inter Project Authors, both
 under the SIL Open Font License 1.1 ([OFL.txt](OFL.txt)).
