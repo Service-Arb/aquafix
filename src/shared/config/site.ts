@@ -1,11 +1,13 @@
+import { STOREFRONT_GATE } from "@/shared/landing/core/place";
 import { defineSite } from "@/shared/landing/core/site";
 import { i18n } from "./i18n";
+import { PLACES } from "./places";
 
 /**
  * Aquafix, as the shared landing machinery sees it: the one object routing,
  * the lead funnel, schema.org, analytics and mail read their brand facts from.
  * A point overrides only what is genuinely its own (address, phone, hours) —
- * see `entities/location`.
+ * see `entities/place`.
  *
  * Values marked in `OWNER_TODO` are placeholders the owner has not supplied
  * yet. They are rendered as written, so each one is listed here, once, rather
@@ -54,6 +56,8 @@ export const site = defineSite({
     guarantee: "/guarantee",
     about: "/about",
   },
+  places: PLACES,
+  publication: STOREFRONT_GATE,
   // Unprefixed was English. `/fr/thanks` and `/en/thanks` are not moved: the
   // brand's thank-you page still lives at that path.
   legacyRedirects: [

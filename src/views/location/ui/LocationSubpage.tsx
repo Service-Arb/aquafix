@@ -1,6 +1,6 @@
 import { JsonLd } from "@evinvest/marketing";
 import type { Copy } from "@/entities/content";
-import type { Point } from "@/entities/location";
+import type { PlaceView } from "@/entities/place";
 import { locationGraph } from "@/features/seo";
 import { PAGES, type PageKey } from "@/shared/config/site";
 import { Crew } from "@/widgets/crew";
@@ -17,7 +17,7 @@ import { PageHeader } from "@/widgets/site-header";
 type Subpage = Exclude<PageKey, "home">;
 
 /** Header → head → the page's sections → one action → footer. */
-export function LocationSubpage({ copy, point, page, now }: { copy: Copy; point: Point; page: Subpage; now: Date }) {
+export function LocationSubpage({ copy, point, page, now }: { copy: Copy; point: PlaceView; page: Subpage; now: Date }) {
   return (
     <>
       <JsonLd data={locationGraph(point, copy, page, now)} />

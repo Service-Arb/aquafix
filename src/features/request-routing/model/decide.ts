@@ -52,9 +52,8 @@ function withQuery(path: string, query: URLSearchParams): string {
 
 export function createRouting<L extends string, P extends string, B extends BrandFacts>(
   site: Site<L, P, B>,
-  placeSlugs: readonly string[],
 ): Routing<L> {
-  const { i18n } = site;
+  const { i18n, placeSlugs } = site;
   const suffixes = pointSuffixes(site);
   const hosts = [site.brand.domain, "localhost"].filter((h): h is string => h !== null);
 

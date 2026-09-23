@@ -1,6 +1,6 @@
 import { JsonLd } from "@evinvest/marketing";
 import type { Copy } from "@/entities/content";
-import type { Point } from "@/entities/location";
+import type { PlaceView } from "@/entities/place";
 import { locationGraph } from "@/features/seo";
 import { CallBar } from "@/widgets/call-bar";
 import { Closing } from "@/widgets/closing";
@@ -17,7 +17,7 @@ import { Work } from "@/widgets/work";
  * A point's home page. Its rule: text gets a measure and stops, only media may
  * fill the viewport; a band is one heading and one object.
  */
-export function LocationHome({ copy, point, now }: { copy: Copy; point: Point; now: Date }) {
+export function LocationHome({ copy, point, now }: { copy: Copy; point: PlaceView; now: Date }) {
   return (
     <>
       <JsonLd data={locationGraph(point, copy, "home", now)} />

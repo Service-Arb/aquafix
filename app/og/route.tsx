@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { copyFor } from "@/entities/content";
-import { bakedLocation } from "@/entities/location";
+import { bakedPlace, contactOf } from "@/entities/place";
 import { site, PAGE_KEYS, type PageKey } from "@/shared/config/site";
 import type { OgPalette } from "@/shared/config/build-env";
 import { DEFAULT_LOCALE, isLocale } from "@/shared/config/i18n";
@@ -40,9 +40,10 @@ const font = (file: string) => readFile(join(process.cwd(), "assets/fonts", file
 const cardFor = memoByKey(async (key: string): Promise<ArrayBuffer> => {
   const [slug = "", lang = "", p = ""] = key.split("|");
   const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
-  const location = bakedLocation(slug);
+  const location = bakedPlace(slug);
+  const phone = location ? contactOf(location).phone : site.brand.phone;
   const page: PageKey = PAGE_KEYS.find(k => k === p) ?? "home";
-  const copy = copyFor({ locale, place: location?.place[locale] ?? site.brand.name, phone: location?.phone ?? site.brand.phone });
+  const copy = copyFor({ locale, place: location?.name[locale] ?? site.brand.name, phone });
   const title = location ? copy.t.pages[page].title(copy.f) : copy.t.brandPage.h1;
   const c = palette();
   const [display, text] = await Promise.all([font("Archivo-Bold.ttf"), font("Inter-Medium.ttf")]);
@@ -63,7 +64,7 @@ const cardFor = memoByKey(async (key: string): Promise<ArrayBuffer> => {
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "Inter", fontSize: 28, color: c.inkSoft }}>
           <span>{copy.t.promise}</span>
-          <span style={{ color: c.primary }}>{location?.phone ?? site.brand.phone}</span>
+          <span style={{ color: c.primary }}>{phone}</span>
         </div>
       </div>
     ),
@@ -86,7 +87,7 @@ export async function GET(request: Request): Promise<Response> {
   const lang = url.searchParams.get("lang");
   const p = url.searchParams.get("p");
   const key = [
-    bakedLocation(url.searchParams.get("l") ?? "")?.slug ?? "",
+    bakedPlace(url.searchParams.get("l") ?? "")?.slug ?? "",
     isLocale(lang) ? lang : DEFAULT_LOCALE,
     PAGE_KEYS.find(k => k === p) ?? "home",
   ].join("|");

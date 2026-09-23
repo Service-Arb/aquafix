@@ -1,7 +1,7 @@
 import { telHref } from "@evinvest/marketing";
 import { Button } from "@evinvest/uikit";
 import { NAV_IDS, NAV_SUFFIX, type Copy } from "@/entities/content";
-import type { Point } from "@/entities/location";
+import { contactOf, type PlaceView } from "@/entities/place";
 import { perLocale } from "@/shared/config/i18n";
 import { CTA_FACE, Lockup } from "@/shared/ui/brand";
 import { LangSwitch } from "@/shared/ui/LangSwitch";
@@ -10,9 +10,9 @@ import { LangSwitch } from "@/shared/ui/LangSwitch";
  * The sub-pages' header. The mobile drawer is a `<details>`: a nav that opens
  * without hydration is one less thing on the critical path.
  */
-export function PageHeader({ copy, point, suffix }: { copy: Copy; point: Point; suffix: string }) {
+export function PageHeader({ copy, point, suffix }: { copy: Copy; point: PlaceView; suffix: string }) {
   const { t, f } = copy;
-  const phone = point.location.phone;
+  const { phone } = contactOf(point.place);
   const hrefs = perLocale(l => point.href(suffix, l));
   return (
     <header className="relative border-b border-border bg-background">

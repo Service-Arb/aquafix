@@ -1,19 +1,20 @@
 import { Section } from "@evinvest/uikit";
 import type { Copy } from "@/entities/content";
-import type { Point } from "@/entities/location";
+import { servedLocalities, storefrontOf, type PlaceView } from "@/entities/place";
 import { MapFacade } from "@/features/map-facade";
 import { BandHead } from "@/shared/ui/BandHead";
 
 /**
  * A visitor's first question is whether you come to them at all, so the
  * communes get a band of their own. Until the owner names the zone, the chip
- * list is the point's own town — and the point stays unpublished.
+ * list is the point's own town — and the point stays unpublished. The map
+ * and the landmark belong to a storefront; a service area has neither.
  */
-export function Coverage({ copy, point }: { copy: Copy; point: Point }) {
+export function Coverage({ copy, point }: { copy: Copy; point: PlaceView }) {
   const { t, f, locale } = copy;
-  const { location } = point;
-  const areas = location.serviceArea ?? [location.address.locality];
-  const address = `${location.address.street}, ${location.address.postalCode} ${location.address.locality}`;
+  const areas = servedLocalities(point.place);
+  const front = storefrontOf(point.place);
+  const address = front && `${front.address.street}, ${front.address.postalCode} ${front.address.locality}`;
   return (
     <Section id="areas">
       <div className="flex flex-col gap-6 md:gap-8">
@@ -28,8 +29,15 @@ export function Coverage({ copy, point }: { copy: Copy; point: Point }) {
             </li>
           ))}
         </ul>
-        {location.landmark && <p className="text-[14.5px] text-ink-soft">{location.landmark[locale]}</p>}
-        <MapFacade query={`${location.gbpName}, ${address}`} title={t.home.mapTitle(f)} show={t.home.mapShow} address={address} />
+        {front?.landmark && <p className="text-[14.5px] text-ink-soft">{front.landmark[locale]}</p>}
+        {address && (
+          <MapFacade
+            query={`${point.place.gbpName}, ${address}`}
+            title={t.home.mapTitle(f)}
+            show={t.home.mapShow}
+            address={address}
+          />
+        )}
       </div>
     </Section>
   );

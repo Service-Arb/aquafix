@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { parseLocationLive } from "@/entities/location";
+import { parseLive, storefrontOf } from "@/entities/place";
 
 describe("the live location source", () => {
   it("keeps what validates and drops what does not", () => {
-    const live = parseLocationLive({
+    const live = parseLive({
       phone: "+33 4 00 00 00 00",
       whatsapp: "06 12 34 56 78", // national: cannot become wa.me, dropped
       storefrontPhoto: "http://insecure.example/x.jpg", // not https, dropped
@@ -15,11 +15,11 @@ describe("the live location source", () => {
     expect(live).toEqual({
       phone: "+33 4 00 00 00 00",
       hours: [{ days: ["Monday"], opens: "07:00", closes: "21:00" }],
-      serviceArea: ["Royat", "Ceyrat"],
+      serviceArea: [{ kind: "localities", names: ["Royat", "Ceyrat"] }],
     });
   });
 
-  describe("getLocation", () => {
+  describe("getPlace", () => {
     beforeEach(() => {
       vi.stubEnv("LOCATIONS_API_URL", "https://live.example");
       vi.resetModules();
@@ -29,14 +29,14 @@ describe("the live location source", () => {
       vi.unstubAllGlobals();
     });
 
-    const load = async () => (await import("@/entities/location/server")).getLocation;
+    const load = async () => (await import("@/entities/place/server")).getPlace;
 
     it("merges live fields over the baked ones", async () => {
       vi.stubGlobal("fetch", vi.fn(async () => Response.json({ phone: "+33 4 11 11 11 11", serviceArea: ["Royat"] })));
       const location = await (await load())("royat", "fr");
-      expect(location?.phone).toBe("+33 4 11 11 11 11");
-      expect(location?.serviceArea).toEqual(["Royat"]);
-      expect(location?.address.postalCode).toBe("63130");
+      expect(location?.channels.phone).toBe("+33 4 11 11 11 11");
+      expect(location?.serviceArea).toEqual([{ kind: "localities", names: ["Royat"] }]);
+      expect(location && storefrontOf(location)?.address.postalCode).toBe("63130");
     });
 
     it("turns a 404 into a missing point", async () => {
@@ -64,7 +64,7 @@ describe("the live location source", () => {
       expect(fetch).not.toHaveBeenCalled();
     });
 
-    const list = async () => (await import("@/entities/location/server")).listLocations;
+    const list = async () => (await import("@/entities/place/server")).listPlaces;
     const bySlug = (answer: (slug: string) => Response | Promise<Response>) =>
       vi.fn(async (input: string | URL | Request) => {
         const slug = /\/locations\/([^?]+)/.exec(String(input))?.[1] ?? "";

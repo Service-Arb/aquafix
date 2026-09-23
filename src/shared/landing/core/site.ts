@@ -1,4 +1,6 @@
 import type { LocaleRegistry } from "@evinvest/i18n";
+import type { Place } from "./place/types";
+import type { PublicationPolicy } from "./place/publication";
 
 /**
  * The composition root of a landing site: every brand fact the shared
@@ -48,11 +50,16 @@ export interface SiteConfig<L extends string, P extends string, B extends BrandF
   topology: Topology;
   /** Every indexable page of a point; `home` is required. */
   pages: Readonly<Record<P | "home", PageSuffix>>;
+  /** Every point the site has, baked; a live source may overlay them. */
+  places: readonly Place<L>[];
+  /** Which fields a point must fill before it may be indexed. */
+  publication: PublicationPolicy;
   legacyRedirects?: readonly LegacyRedirect<L>[];
 }
 
 export interface Site<L extends string, P extends string, B extends BrandFacts> extends SiteConfig<L, P, B> {
   readonly pageKeys: readonly (P | "home")[];
+  readonly placeSlugs: readonly string[];
   /**
    * Request headers only the proxy may set: how a point's links are written
    * on this host, and the internal path a request was routed to.
@@ -67,6 +74,7 @@ export function defineSite<L extends string, P extends string, B extends BrandFa
   return {
     ...config,
     pageKeys,
+    placeSlugs: config.places.map(p => p.slug),
     headers: { linkMode: `x-${config.brand.id}-link-mode`, route: `x-${config.brand.id}-route` },
   };
 }

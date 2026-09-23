@@ -25,7 +25,7 @@ export default async function LocationLayout({
   return (
     <AnalyticsBoundary
       target={{ key: env.posthogKey, host: env.posthogHost, brandId: site.brand.id }}
-      locationId={point.location.slug}
+      locationId={point.place.slug}
     >
       {children}
     </AnalyticsBoundary>

@@ -1,10 +1,10 @@
 import { Button, Section } from "@evinvest/uikit";
 import type { Copy } from "@/entities/content";
-import type { Point } from "@/entities/location";
+import type { PlaceView } from "@/entities/place";
 import { CTA_FACE } from "@/shared/ui/brand";
 
 /** The sub-pages' one action, shared. */
-export function InlineCta({ copy, point }: { copy: Copy; point: Point }) {
+export function InlineCta({ copy, point }: { copy: Copy; point: PlaceView }) {
   const { line, button } = copy.t.inlineCta;
   return (
     <Section surface="primary" tight className="flex flex-col gap-4 md:flex-row md:items-center md:gap-5">

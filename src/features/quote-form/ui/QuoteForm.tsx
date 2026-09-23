@@ -1,6 +1,6 @@
 import { Button, Check, Field, FieldLabel, Input, NativeSelect, NativeSelectOption } from "@evinvest/uikit";
 import { JOB_IDS, type Copy } from "@/entities/content";
-import type { Point } from "@/entities/location";
+import type { PlaceView } from "@/entities/place";
 import { CTA_FACE } from "@/shared/ui/brand";
 import { HONEYPOT_FIELD, RENDERED_AT_FIELD } from "../model/antispam";
 import { FORM_ID_FIELD, LOCALE_FIELD, LOCATION_FIELD } from "../model/accept";
@@ -18,7 +18,7 @@ const LABEL = "text-[12.5px] font-medium tracking-[0.06em] text-ink-mid";
  * and `Field` mints the label's `for` with `useId`, so both hold with
  * scripting off; the scripted `Select` would not.
  */
-export function QuoteForm({ copy, point, renderedAt }: { copy: Copy; point: Point; renderedAt: number }) {
+export function QuoteForm({ copy, point, renderedAt }: { copy: Copy; point: PlaceView; renderedAt: number }) {
   const q = copy.t.quoteForm;
   return (
     <form
@@ -28,7 +28,7 @@ export function QuoteForm({ copy, point, renderedAt }: { copy: Copy; point: Poin
       // A light island inside a dark band.
       className="light flex w-full flex-col gap-5 rounded-[var(--corner-float)] bg-background px-6 py-7 text-ink shadow-overlay md:px-[34px] md:pb-[30px] md:pt-8"
     >
-      <input type="hidden" name={LOCATION_FIELD} value={point.location.slug} />
+      <input type="hidden" name={LOCATION_FIELD} value={point.place.slug} />
       <input type="hidden" name={LOCALE_FIELD} value={copy.locale} />
       <input type="hidden" name={FORM_ID_FIELD} value="quote" />
       <input type="hidden" name={RENDERED_AT_FIELD} value={String(renderedAt)} />

@@ -1,5 +1,5 @@
 import type { Copy, StatusCopy } from "@/entities/content";
-import type { Point } from "@/entities/location";
+import { contactOf, type PlaceView } from "@/entities/place";
 import { perLocale } from "@/shared/config/i18n";
 import { StatusScreen } from "@/widgets/status-screen";
 
@@ -11,7 +11,7 @@ export function LocationStatus({
   suffix,
 }: {
   copy: Copy;
-  point: Point;
+  point: PlaceView;
   status: StatusCopy;
   /** The page's own suffix, for the language switch; home for a dead URL. */
   suffix: string;
@@ -21,7 +21,7 @@ export function LocationStatus({
       copy={copy}
       status={status}
       target={{
-        phone: point.location.phone,
+        phone: contactOf(point.place).phone,
         home: point.href(""),
         retry: point.href(suffix),
         langHrefs: perLocale(l => point.href(suffix, l)),
