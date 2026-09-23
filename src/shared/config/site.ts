@@ -1,6 +1,7 @@
 import { STOREFRONT_GATE } from "@/shared/landing/core/place";
 import { defineSite } from "@/shared/landing/core/site";
 import { i18n } from "./i18n";
+import { LEAD } from "./lead";
 import { PLACES } from "./places";
 
 /**
@@ -58,6 +59,7 @@ export const site = defineSite({
   },
   places: PLACES,
   publication: STOREFRONT_GATE,
+  lead: LEAD,
   // Unprefixed was English. `/fr/thanks` and `/en/thanks` are not moved: the
   // brand's thank-you page still lives at that path.
   legacyRedirects: [

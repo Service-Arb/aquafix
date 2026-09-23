@@ -1,6 +1,7 @@
 import { Button, Check, Field, FieldLabel, Input, NativeSelect, NativeSelectOption } from "@evinvest/uikit";
-import { JOB_IDS, type CopyOf, type Text } from "@/entities/content";
+import type { CopyOf, Text } from "@/entities/content";
 import type { PlaceView } from "@/entities/place";
+import { LEAD } from "@/shared/config/lead";
 import { CTA_FACE } from "@/shared/ui/brand";
 import { HONEYPOT_FIELD, RENDERED_AT_FIELD } from "../model/antispam";
 import { FORM_ID_FIELD, LOCALE_FIELD, LOCATION_FIELD } from "../model/accept";
@@ -41,8 +42,8 @@ export function QuoteForm({ copy, point, renderedAt }: { copy: QuoteFormWidgetCo
       <Field className={FIELD}>
         <FieldLabel className={LABEL}>{q.jobLabel}</FieldLabel>
         {/* Right padding clears the kit's arrow. */}
-        <NativeSelect name="job" required className={`${CONTROL} pr-11`} defaultValue={JOB_IDS[0]}>
-          {JOB_IDS.map(id => (
+        <NativeSelect name={LEAD.wire.subject} required className={`${CONTROL} pr-11`} defaultValue={LEAD.subjects[0]}>
+          {LEAD.subjects.map(id => (
             <NativeSelectOption key={id} value={id}>
               {copy.t.jobs[id]}
             </NativeSelectOption>
@@ -51,11 +52,11 @@ export function QuoteForm({ copy, point, renderedAt }: { copy: QuoteFormWidgetCo
       </Field>
       <Field className={FIELD}>
         <FieldLabel className={LABEL}>{q.zipLabel}</FieldLabel>
-        <Input className={CONTROL} type="text" name="zip" autoComplete="postal-code" placeholder={q.zipPlaceholder} required />
+        <Input className={CONTROL} type="text" name={LEAD.wire.locality} autoComplete="postal-code" placeholder={q.zipPlaceholder} required />
       </Field>
       <Field className={FIELD}>
         <FieldLabel className={LABEL}>{q.mobileLabel}</FieldLabel>
-        <Input className={CONTROL} type="tel" name="mobile" autoComplete="tel" placeholder={q.mobilePlaceholder} required />
+        <Input className={CONTROL} type="tel" name={LEAD.wire.mobile} autoComplete="tel" placeholder={q.mobilePlaceholder} required />
       </Field>
       {/* Off-screen rather than `display: none`, which some bots skip. */}
       <div aria-hidden="true" className="absolute -left-[10000px] h-px w-px overflow-hidden">

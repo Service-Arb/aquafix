@@ -23,7 +23,7 @@ const limiter = new RateLimiter(5, 10 * 60_000);
 let store: LeadStore | undefined;
 function leadStore(): LeadStore {
   // Opened on first use rather than at import: `next build` imports this file.
-  store ??= openLeadStore(serverEnv().leadsDbPath);
+  store ??= openLeadStore(serverEnv().leadsDb);
   return store;
 }
 
@@ -62,12 +62,12 @@ export async function POST(request: Request): Promise<Response> {
   }
   const env = serverEnv();
   const notifier = leadNotifier(env);
-  const outcome = acceptLead(form, clientKey(request.headers), {
+  const outcome = await acceptLead(form, clientKey(request.headers), {
     insert: lead => leadStore().insert(lead),
     defer: task => after(task),
     notify: (lead, id) => notifier.notify(lead, id),
     capture: (lead, formId) =>
-      analyticsSink({ key: env.posthogKey, host: env.posthogHost, brandId: site.brand.id }, lead.locationId).capture(
+      analyticsSink({ key: env.posthogKey, host: env.posthogHost, brandId: site.brand.id }, lead.placeSlug).capture(
         EVENTS.leadSubmit,
         { form_id: formId },
       ),
@@ -79,7 +79,7 @@ export async function POST(request: Request): Promise<Response> {
   switch (outcome.kind) {
     // A suspected bot is answered exactly as a person is.
     case "stored":
-      return seeOther(href(request, outcome.lead.locationId, outcome.locale, THANKS));
+      return seeOther(href(request, outcome.lead.placeSlug, outcome.locale, THANKS));
     case "invalid":
       return seeOther(href(request, outcome.slug, outcome.locale, outcome.slug ? "#quote" : ""));
     case "failed":
