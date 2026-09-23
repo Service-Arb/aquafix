@@ -8,4 +8,4 @@ includes = ["*.typ"]
 options = ["-i", "--line-width", "190", "--indent-width", "2"]
 
 [global]
-excludes = ["vendor/**", "docs/refs/**"]
+excludes = ["docs/refs/**"]

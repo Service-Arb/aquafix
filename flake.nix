@@ -68,14 +68,10 @@
           || (m ? libc && !(fits "glibc" m.libc));
         npmSourceOverrides = lib.concatMapAttrs
           (path: m:
-            # The vendored `@evinvest/*` tarballs: `importNpmLock` reads a
-            # `file:` spec as a path under npmRoot with the scheme still on it.
-            if lib.hasPrefix "file:" (m.resolved or "") then
-              { ${path} = ./. + "/${lib.removePrefix "file:" m.resolved}"; }
             # Every platform's native binary is in the lockfile — @next/swc
             # alone is ~100 MB per platform. npm skips the foreign ones without
             # reading them, so they are never fetched either.
-            else if (m.optional or false) && foreign m then
+            if (m.optional or false) && foreign m then
               { ${path} = pkgs.emptyFile; }
             else { })
           npmLock.packages;
@@ -85,7 +81,6 @@
           fileset = lib.fileset.unions [
             ./package.json
             ./package-lock.json
-            ./vendor/evinvest
             ./app
             ./src
             ./assets
@@ -378,7 +373,7 @@
             **/playwright-report/'';
         };
         treefmt = (pkgs.formats.toml { }).generate "treefmt.toml" {
-          global.excludes = [ "vendor/**" "docs/refs/**" ];
+          global.excludes = [ "docs/refs/**" ];
           formatter = {
             nix = { command = "nixpkgs-fmt"; includes = [ "*.nix" ]; };
             typst = { command = "typstyle"; options = [ "-i" "--line-width" "190" "--indent-width" "2" ]; includes = [ "*.typ" ]; };

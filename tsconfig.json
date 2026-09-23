@@ -41,7 +41,6 @@
     "node_modules",
     "brand_materials",
     "docs",
-    "vendor",
     "tests/e2e"
   ]
 }
