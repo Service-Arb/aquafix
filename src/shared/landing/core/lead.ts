@@ -9,7 +9,10 @@
 /** Why a submission was kept but not acted on. `null` is a clean lead. */
 export type SpamVerdict = "honeypot" | "too-fast" | "rate-limited";
 
-/** One more field a brand's form asks for, capped at `max` characters. */
+/**
+ * One more field a brand's form asks for, capped at its own `max` characters —
+ * not at `MAX_FIELD`, which caps the core fields: a free-text note may be longer.
+ */
 export interface LeadExtra {
   name: string;
   max: number;
@@ -84,7 +87,7 @@ export function readCandidate(
 ): LeadCandidate {
   const extras: Record<string, string> = {};
   for (const extra of schema.extras ?? []) {
-    const value = field(form, extra.name, Math.min(extra.max, MAX_FIELD));
+    const value = field(form, extra.name, extra.max);
     if (value) extras[extra.name] = value;
   }
   return {

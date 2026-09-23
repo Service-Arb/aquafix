@@ -1,4 +1,4 @@
-import { mkdtempSync } from "node:fs";
+import { existsSync, mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
@@ -164,6 +164,8 @@ describe("the lead store's migrations", () => {
     db.exec("CREATE TABLE leads (id INTEGER PRIMARY KEY, name TEXT)");
     db.close();
     expect(() => openSqliteLeadStore(path)).toThrow(/unrecognised table/);
+    // Closed behind the error: the last connection to a WAL file removes its `-wal`.
+    expect(existsSync(`${path}-wal`)).toBe(false);
     expect(columnsOf(path)).toEqual(["id", "name"]);
   });
 });

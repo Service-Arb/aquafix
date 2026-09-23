@@ -34,6 +34,9 @@ describe("the lead schema", () => {
     };
     const lead = readCandidate(cleaning, form({ kind: "flat", surface_m2: "123456", notes: "  " }), null);
     expect(lead.extras).toEqual({ surface_m2: "1234" });
+    // An extra's own cap, not the core fields' 200.
+    const long = readCandidate(cleaning, form({ notes: "n".repeat(600) }), null);
+    expect(long.extras.notes).toHaveLength(500);
     // No `validate` → every candidate is a lead.
     expect(validateCandidate(cleaning, lead)).toBeNull();
   });

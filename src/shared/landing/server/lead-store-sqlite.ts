@@ -96,7 +96,14 @@ function immediate(db: DatabaseSync, fn: () => void): void {
     fn();
     db.exec("COMMIT");
   } catch (error) {
-    db.exec("ROLLBACK");
+    // SQLite may already have rolled back (a failed COMMIT, an I/O error), and
+    // then ROLLBACK throws too. The first error says what went wrong; this one
+    // would only hide it. `db.isTransaction` is not in every Node ≥ 22.13.
+    try {
+      db.exec("ROLLBACK");
+    } catch {
+      // Nothing left to roll back.
+    }
     throw error;
   }
 }
@@ -116,17 +123,24 @@ function migrate(db: DatabaseSync): void {
 }
 
 /**
- * Opens (and migrates) the file synchronously, so a broken volume fails the
- * first request loudly; the port's methods are async only by contract —
+ * Opens (and migrates) the file synchronously, so a broken volume fails boot
+ * (see `instrumentation.ts`); the port's methods are async only by contract —
  * `node:sqlite` answers in-process, and an `async` body turns its throw into
  * the rejection the funnel expects.
  */
 export function openSqliteLeadStore(path: string): SqliteLeadStore {
   if (path !== ":memory:") mkdirSync(dirname(path), { recursive: true });
   const db = new (sqlite().DatabaseSync)(path);
-  db.exec("PRAGMA journal_mode = WAL");
-  db.exec("PRAGMA busy_timeout = 5000");
-  migrate(db);
+  try {
+    db.exec("PRAGMA journal_mode = WAL");
+    db.exec("PRAGMA busy_timeout = 5000");
+    migrate(db);
+  } catch (error) {
+    // A refused file must not stay open behind the error: the handle would
+    // hold its WAL and leak on every retry.
+    db.close();
+    throw error;
+  }
   const insert = db.prepare(
     "INSERT INTO leads (job, zip, mobile, location_id, spam_verdict, extras) VALUES (?, ?, ?, ?, ?, ?) RETURNING id",
   );

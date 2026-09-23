@@ -22,6 +22,13 @@ export function parseLeadDb(value: string): LeadDb {
     throw new Error(`LEADS_DB_URL is not a URL: ${JSON.stringify(value)}`);
   }
   if (url.protocol === "sqlite:") {
+    // `sqlite://data/leads.db` parses `data` as a host and would put the file
+    // at `/leads.db`; a query or fragment would be dropped just as quietly.
+    if (url.host !== "" || url.search !== "" || url.hash !== "") {
+      throw new Error(
+        `LEADS_DB_URL: a sqlite URL is sqlite:///<absolute path> with no host, query or fragment, got ${JSON.stringify(value)}`,
+      );
+    }
     const path = decodeURIComponent(url.pathname);
     if (!path.startsWith("/")) throw new Error(`LEADS_DB_URL: a sqlite path must be absolute, got ${JSON.stringify(value)}`);
     return { kind: "sqlite", path };
