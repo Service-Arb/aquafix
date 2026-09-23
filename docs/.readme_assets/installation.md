@@ -14,8 +14,3 @@ Plain npm works for the app itself:
 ```sh
 npm ci && npm run typecheck && npx eslint . && npx vitest run && npm run build && npm start
 ```
-
-`vendor/evinvest/*.tgz` are unpublished builds of the EV lib packages
-(`@evinvest/uikit`, `marketing`, `analytics`, `i18n`), installed as `file:`
-dependencies. They are temporary: before the port merges they are replaced by
-the same versions from npm, and the directory goes away.
