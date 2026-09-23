@@ -1,4 +1,5 @@
 import type { LocaleRegistry } from "@evinvest/i18n";
+import type { LeadSchema } from "./lead";
 import type { Place } from "./place/types";
 import type { PublicationPolicy } from "./place/publication";
 
@@ -54,6 +55,8 @@ export interface SiteConfig<L extends string, P extends string, B extends BrandF
   places: readonly Place<L>[];
   /** Which fields a point must fill before it may be indexed. */
   publication: PublicationPolicy;
+  /** What the quote form asks and what a lead must have. */
+  lead: LeadSchema<string>;
   legacyRedirects?: readonly LegacyRedirect<L>[];
 }
 

@@ -67,7 +67,7 @@ export async function POST(request: Request): Promise<Response> {
     defer: task => after(task),
     notify: (lead, id) => notifier.notify(lead, id),
     capture: (lead, formId) =>
-      analyticsSink({ key: env.posthogKey, host: env.posthogHost, brandId: site.brand.id }, lead.locationId).capture(
+      analyticsSink({ key: env.posthogKey, host: env.posthogHost, brandId: site.brand.id }, lead.placeSlug).capture(
         EVENTS.leadSubmit,
         { form_id: formId },
       ),
@@ -79,7 +79,7 @@ export async function POST(request: Request): Promise<Response> {
   switch (outcome.kind) {
     // A suspected bot is answered exactly as a person is.
     case "stored":
-      return seeOther(href(request, outcome.lead.locationId, outcome.locale, THANKS));
+      return seeOther(href(request, outcome.lead.placeSlug, outcome.locale, THANKS));
     case "invalid":
       return seeOther(href(request, outcome.slug, outcome.locale, outcome.slug ? "#quote" : ""));
     case "failed":

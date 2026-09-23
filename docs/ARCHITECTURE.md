@@ -100,7 +100,7 @@ owner chose to keep on the page, not in the schema.
 | `src/shared/landing` | The brand-free machinery a future shared landing package takes whole: `core/` is pure (no React, Next or `node:*`; eslint holds the line), `server/` the Node half (the SMTP client). |
 | `src/entities/content` | Every string, once per language, and the language-free catalogue. `Text` extends the shared `CoreText` (`shared/landing/core/content`); a structural widget declares the slice it prints (`CopyOf<Pick<Text, …>>`) instead of taking the whole `Copy`. |
 | `src/entities/place` | The six points bound to the site: baked data from `shared/config/places.ts`, the live overlay, the publication gate, URLs. The model (`Place` with a storefront or service-area `presence`, `PlaceView`, the gate as a policy) is in `shared/landing/core/place`. |
-| `src/entities/lead` | The lead, its SQLite store and its notifier. |
+| `src/entities/lead` | The notifier, plus the slice API over the lead: its type and schema (`LEAD` in `shared/config/lead.ts`, the core in `shared/landing/core/lead.ts`) and its versioned SQLite store (`shared/landing/server/lead-store.ts`). |
 | `src/features` | The quote form and its acceptance, analytics, SEO, the map facade. |
 | `src/widgets` | One band per file, ≤120 lines, over a `Copy` and a `PlaceView`. |
 | `src/views` | The compositions: a point's home, its sub-pages, its status screens; the brand page. |
@@ -145,7 +145,7 @@ A light island inside a dark band (the quote card) says `light` on itself.
 their price is coming. Notification and the analytics event run after the
 response (`after()`); their failure logs and changes nothing. A store failure is
 a 500 with the phone on it, never a 303 to the thank-you page. The table is the
-Rust server's, brought forward in place with `location_id`.
+Rust server's, brought forward in place by numbered steps under `PRAGMA user_version`, each in its own `BEGIN IMMEDIATE`; a file no versioned store opened yet is recognised by its columns first.
 
 **Live data is an overlay, not a dependency.** `getPlace` merges
 `LOCATIONS_API_URL`'s answer over the baked point, with the TTL on the fetch

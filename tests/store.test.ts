@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import type { Lead } from "@/entities/lead";
-import { openLeadStore } from "@/entities/lead/server";
+import { LEAD_SCHEMA_VERSION, openLeadStore } from "@/entities/lead/server";
 import { acceptLead, RateLimiter, type AcceptDeps } from "@/features/quote-form";
 
 const NOW = 1_800_000_000_000;
@@ -18,7 +18,15 @@ function form(fields: Record<string, string>, omit: string[] = []): FormData {
 }
 
 const good = { job: "blocked_drain", zip: "63130", mobile: "06 12 34 56 78" };
-const lead = (over: Partial<Lead> = {}): Lead => ({ ...good, locationId: "royat", spamVerdict: null, ...over });
+const lead = (over: Partial<Lead> = {}): Lead => ({
+  subject: good.job,
+  locality: good.zip,
+  mobile: good.mobile,
+  extras: {},
+  placeSlug: "royat",
+  spamVerdict: null,
+  ...over,
+});
 
 function deps(over: Partial<AcceptDeps> = {}) {
   const deferred: (() => Promise<void> | void)[] = [];
@@ -40,7 +48,7 @@ describe("the lead store", () => {
   it("inserts a lead with its point and counts it", () => {
     const store = openLeadStore(tmp());
     expect(store.insert(lead())).toBe(1);
-    expect(store.insert(lead({ locationId: null, spamVerdict: "too-fast" }))).toBe(2);
+    expect(store.insert(lead({ placeSlug: null, spamVerdict: "too-fast" }))).toBe(2);
     expect(store.count()).toBe(2);
     store.close();
   });
@@ -54,7 +62,7 @@ describe("the lead store", () => {
     legacy.close();
 
     const store = openLeadStore(path);
-    expect(store.insert(lead({ locationId: "lyon-nord", spamVerdict: "honeypot" }))).toBe(2);
+    expect(store.insert(lead({ placeSlug: "lyon-nord", spamVerdict: "honeypot" }))).toBe(2);
     store.close();
     const check = new (sqlite().DatabaseSync)(path);
     expect(check.prepare("SELECT location_id, spam_verdict FROM leads ORDER BY id").all()).toEqual([
@@ -62,6 +70,101 @@ describe("the lead store", () => {
       { location_id: "lyon-nord", spam_verdict: "honeypot" },
     ]);
     check.close();
+  });
+});
+
+/**
+ * The store as it shipped before its schema was versioned (71045d0): the Rust
+ * table created if absent, then each column added if missing, `user_version`
+ * never touched. Every prod volume the Node port has written looks like this.
+ */
+function openWithUnversionedStore(path: string, columns: readonly ("location_id" | "spam_verdict")[]): void {
+  const db = new (sqlite().DatabaseSync)(path);
+  db.exec("PRAGMA journal_mode = WAL");
+  db.exec(`CREATE TABLE IF NOT EXISTS leads (
+    id      INTEGER PRIMARY KEY AUTOINCREMENT,
+    job     TEXT NOT NULL,
+    zip     TEXT NOT NULL,
+    mobile  TEXT NOT NULL,
+    at      TEXT NOT NULL DEFAULT (datetime('now'))
+  )`);
+  for (const column of columns) db.exec(`ALTER TABLE leads ADD COLUMN ${column} TEXT`);
+  if (columns.includes("location_id") && columns.includes("spam_verdict")) {
+    db.prepare("INSERT INTO leads (job, zip, mobile, location_id, spam_verdict) VALUES (?, ?, ?, ?, ?)").run(
+      "tap_toilet",
+      "69003",
+      "0612345678",
+      "desgenettes",
+      "too-fast",
+    );
+  } else {
+    db.prepare("INSERT INTO leads (job, zip, mobile) VALUES (?, ?, ?)").run("tap_toilet", "69003", "0612345678");
+  }
+  db.close();
+}
+
+const columnsOf = (path: string): unknown[] => {
+  const db = new (sqlite().DatabaseSync)(path);
+  const names = db
+    .prepare("PRAGMA table_info(leads)")
+    .all()
+    .map(r => (typeof r === "object" && r !== null ? Reflect.get(r, "name") : undefined));
+  db.close();
+  return names;
+};
+
+describe("the lead store's migrations", () => {
+  it("creates a fresh file at the latest version", () => {
+    const path = tmp();
+    const store = openLeadStore(path);
+    expect(store.version()).toBe(LEAD_SCHEMA_VERSION);
+    store.close();
+    expect(columnsOf(path)).toEqual(["id", "job", "zip", "mobile", "at", "location_id", "spam_verdict", "extras"]);
+  });
+
+  it("recognises a file the unversioned Node store wrote, and keeps its rows", () => {
+    const path = tmp();
+    openWithUnversionedStore(path, ["location_id", "spam_verdict"]);
+
+    const store = openLeadStore(path);
+    expect(store.version()).toBe(LEAD_SCHEMA_VERSION);
+    expect(store.insert(lead({ extras: { surface_m2: "40" } }))).toBe(2);
+    expect(store.count()).toBe(2);
+    store.close();
+
+    const check = new (sqlite().DatabaseSync)(path);
+    expect(check.prepare("SELECT job, zip, location_id, spam_verdict, extras FROM leads ORDER BY id").all()).toEqual([
+      { job: "tap_toilet", zip: "69003", location_id: "desgenettes", spam_verdict: "too-fast", extras: null },
+      { job: "blocked_drain", zip: "63130", location_id: "royat", spam_verdict: null, extras: '{"surface_m2":"40"}' },
+    ]);
+    check.close();
+  });
+
+  it("finishes a file the unversioned store left halfway (location_id only)", () => {
+    const path = tmp();
+    openWithUnversionedStore(path, ["location_id"]);
+    const store = openLeadStore(path);
+    expect(store.version()).toBe(LEAD_SCHEMA_VERSION);
+    store.close();
+    expect(columnsOf(path)).toEqual(["id", "job", "zip", "mobile", "at", "location_id", "spam_verdict", "extras"]);
+  });
+
+  it("opens a migrated file again without touching it", () => {
+    const path = tmp();
+    openLeadStore(path).close();
+    const again = openLeadStore(path);
+    expect(again.version()).toBe(LEAD_SCHEMA_VERSION);
+    expect(again.insert(lead())).toBe(1);
+    again.close();
+  });
+
+  it("refuses a `leads` table it does not recognise instead of altering it", () => {
+    const path = tmp();
+    const db = new (sqlite().DatabaseSync)(path);
+    db.exec("CREATE TABLE leads (id INTEGER PRIMARY KEY, name TEXT)");
+    db.close();
+    expect(() => openLeadStore(path)).toThrow(/unrecognised table/);
+    expect(columnsOf(path)).toEqual(["id", "name"]);
   });
 });
 
@@ -75,7 +178,7 @@ describe("accepting a lead", () => {
       },
     });
     const outcome = acceptLead(form(good), "1.2.3.4", d);
-    expect(outcome).toMatchObject({ kind: "stored", id: 1, lead: { locationId: "royat", spamVerdict: null } });
+    expect(outcome).toMatchObject({ kind: "stored", id: 1, lead: { placeSlug: "royat", spamVerdict: null } });
     // Durable already — the notification has not even run yet.
     expect(store.count()).toBe(1);
     await flush();
@@ -153,9 +256,9 @@ describe("accepting a lead", () => {
     expect(acceptLead(form({ ...good, ...fields }, [...omit]), "1.2.3.4", d)).toMatchObject({
       kind: "stored",
       id: 7,
-      lead: { locationId: null },
+      lead: { placeSlug: null },
     });
-    expect(insert).toHaveBeenCalledWith(expect.objectContaining({ locationId: null }));
+    expect(insert).toHaveBeenCalledWith(expect.objectContaining({ placeSlug: null }));
   });
 
   it("records the submission for analytics only after it is stored", async () => {
@@ -164,6 +267,6 @@ describe("accepting a lead", () => {
     acceptLead(form(good), "1.2.3.4", d);
     expect(capture).not.toHaveBeenCalled();
     await flush();
-    expect(capture).toHaveBeenCalledWith(expect.objectContaining({ locationId: "royat" }), "quote");
+    expect(capture).toHaveBeenCalledWith(expect.objectContaining({ placeSlug: "royat" }), "quote");
   });
 });
