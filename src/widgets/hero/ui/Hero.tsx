@@ -2,8 +2,12 @@ import { telHref, whatsappHref } from "@evinvest/marketing";
 import { Button } from "@evinvest/uikit";
 import type { Copy } from "@/entities/content";
 import type { Point } from "@/entities/location";
+import { PHOTO_SETS } from "@/shared/assets/photos";
 import { CTA_FACE } from "@/shared/ui/brand";
 import heroWide from "../../../../assets/photos/hero-wide.jpg";
+
+/** Tailwind's `md` is `min-width: 48rem`; this is its complement. */
+const BELOW_MD = "(width < 48rem)";
 
 /**
  * The one place the page's rule is visible as geometry: the photograph is the
@@ -19,13 +23,20 @@ export function Hero({ copy, point }: { copy: Copy; point: Point }) {
   const { location } = point;
   return (
     <section className="dark relative isolate flex min-h-[580px] flex-col justify-end overflow-hidden md:min-h-[76vh] md:justify-center">
-      <img
-        src={heroWide.src}
-        alt={t.heroPhotoAlt}
-        fetchPriority="high"
-        decoding="async"
-        className="absolute inset-0 -z-20 h-full w-full object-cover object-[72%_50%] md:object-[60%_42%]"
-      />
+      {/* The LCP element. Below `md` a crop of the region a phone can show, not
+          the whole wide frame; AVIF, then WebP, then the jpg for the rest. */}
+      <picture>
+        <source media={BELOW_MD} type="image/avif" srcSet={PHOTO_SETS["hero-mobile"].avif} sizes="100vw" />
+        <source media={BELOW_MD} type="image/webp" srcSet={PHOTO_SETS["hero-mobile"].webp} sizes="100vw" />
+        <source type="image/avif" srcSet={PHOTO_SETS["hero-wide"].avif} sizes="100vw" />
+        <source type="image/webp" srcSet={PHOTO_SETS["hero-wide"].webp} sizes="100vw" />
+        <img
+          src={heroWide.src}
+          alt={t.heroPhotoAlt}
+          fetchPriority="high"
+          className="absolute inset-0 -z-20 h-full w-full object-cover object-[72%_50%] md:object-[60%_42%]"
+        />
+      </picture>
       <div className="hero-scrim absolute inset-0 -z-10" />
       <div className="w-full px-[var(--page-px)] pb-12 pt-28 md:pb-20 md:pt-32">
         <div className="flex max-w-[var(--measure)] flex-col">
