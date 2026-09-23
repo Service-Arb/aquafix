@@ -1,13 +1,15 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { GONE_HEADER, goneHeader, gonePath } from "@/shared/landing/core/routing";
 import { LANG_COOKIE, LANG_COOKIE_MAX_AGE, type Routing } from "./decide";
 
 /** The bare URL's answer depends on both; a shared cache must key on them. */
 const VARY = "Accept-Language, Cookie";
 
 /**
- * `decide`, applied to a live request. It passes nothing to the page but the
+ * `decide`, applied to a live request. It passes nothing to a page but the
  * path it rewrites to: a page that read a request header would render per
- * request, and every page here is a cached one.
+ * request, and every page here is a cached one. The one header it sets goes
+ * to the 404, which is not a page of any segment.
  */
 export function createProxy<L extends string>(routing: Routing<L>): (request: NextRequest) => NextResponse {
   return function routeRequest(request) {
@@ -50,6 +52,13 @@ export function createProxy<L extends string>(routing: Routing<L>): (request: Ne
         return decision.pathname === url.pathname
           ? NextResponse.next()
           : NextResponse.rewrite(new URL(`${decision.pathname}${url.search}`, url));
+      case "gone": {
+        // To a path no route matches, which Next answers 404 from
+        // `app/global-not-found.tsx` — the one reader of the header.
+        const headers = new Headers(request.headers);
+        headers.set(GONE_HEADER, goneHeader(decision.locale, decision.location));
+        return NextResponse.rewrite(new URL(gonePath(decision.locale), url), { request: { headers } });
+      }
     }
   };
 }

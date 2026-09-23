@@ -1,4 +1,4 @@
-import { locationParam, pointSuffixes, THANKS } from "@/shared/landing/core/routing";
+import { GONE, locationParam, parseLocationParam, pointSuffixes, THANKS } from "@/shared/landing/core/routing";
 import type { BrandFacts, Site } from "@/shared/landing/core/site";
 
 /**
@@ -8,6 +8,7 @@ import type { BrandFacts, Site } from "@/shared/landing/core/site";
  * ```text
  * <slug>.<domain>                   → the point; /fr/prices renders /fr/_<slug>/prices
  * <domain>/fr/<slug>/…              → the same point, through the apex (fallback)
+ * a dead prefixed path              → the 404 for its point, or the brand's (see GONE)
  * ?lang=<l> on a page               → cookie for a year, 303 to the clean URL
  * a `legacyRedirects` path          → 301 to where it moved
  * unprefixed page, cookie or none   → 302 to /<cookie ?? Accept-Language>/…,
@@ -35,7 +36,9 @@ export type Decision<L extends string> =
   | { kind: "negotiate"; location: string }
   | { kind: "choose"; location: string; locale: L }
   | { kind: "moved"; location: string }
-  | { kind: "serve"; pathname: string };
+  | { kind: "serve"; pathname: string }
+  /** A dead prefixed path: the 404 in `locale`, for a point's param or the brand (see `GONE`). */
+  | { kind: "gone"; locale: L; location: string | null };
 
 export interface Routing<L extends string> {
   /** `royat.<domain>` → `"royat"`; `royat.localhost:3000` too, for local work. */
@@ -118,12 +121,23 @@ export function createRouting<L extends string, P extends string, B extends Bran
     if (locale === null) return { kind: "pass" };
     // Every prefixed path on a point's host belongs to that point, page or not:
     // `/fr/nonsense` is that point's French 404, not the brand's.
-    if (slug) return { kind: "serve", pathname: `/${locale}/${locationParam(slug, "host")}${rest}` };
-    // A host-mode path (`/fr/_royat`) passes as it is. It must: Next runs this
-    // proxy again, host-less, on the rewritten path when it renders a page into
-    // its cache. Reached from the apex by hand it is the same cached page, whose
-    // canonical is the subdomain — no second copy for an index to find.
-    return { kind: "serve", pathname: req.pathname };
+    if (slug) {
+      const param = locationParam(slug, "host");
+      return page ? { kind: "serve", pathname: `/${locale}/${param}${rest}` } : { kind: "gone", locale, location: param };
+    }
+    if (page) return { kind: "serve", pathname: req.pathname };
+    // The 404's own target passes untouched, so its header keeps the point.
+    if (rest === `/${GONE}/${GONE}`) return { kind: "serve", pathname: req.pathname };
+    const [, first = "", ...more] = rest.split("/");
+    const named = parseLocationParam(first);
+    if (!placeSlugs.includes(named.slug)) return { kind: "gone", locale, location: null };
+    // A host-mode page (`/fr/_royat/prices`) passes as it is. It must: Next runs
+    // this proxy again, host-less, on the rewritten path when it renders a page
+    // into its cache. Reached from the apex by hand it is the same cached page,
+    // whose canonical is the subdomain — no second copy for an index to find.
+    const suffix = more.length ? `/${more.join("/")}` : "";
+    if (named.mode === "host" && suffixes.includes(suffix)) return { kind: "serve", pathname: req.pathname };
+    return { kind: "gone", locale, location: first };
   }
 
   return { hostSlug, decide };

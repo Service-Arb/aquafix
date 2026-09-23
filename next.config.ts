@@ -34,6 +34,10 @@ const config: NextConfig = {
     // cache stays in memory: per pod, which a restart forgetting costs one
     // round trip, instead of a write the store refuses.
     isrFlushToDisk: false,
+    // `app/global-not-found.tsx` answers every path no route matches — the
+    // proxy sends dead paths there (see `GONE`). The root layout lives under
+    // `[locale]`, so without it that 404 is Next's bare default page.
+    globalNotFound: true,
   },
 };
 

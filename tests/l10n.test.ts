@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { describe, expect, it } from "vitest";
 import { decide, hostSlug, routeRequest, type RequestFacts } from "@/features/request-routing";
-import { parseLocationParam } from "@/shared/landing/core/routing";
+import { GONE_HEADER, goneHeader, parseGoneHeader, parseLocationParam } from "@/shared/landing/core/routing";
 
 const APEX = "aquafix.top";
 const ROYAT = "royat.aquafix.top";
@@ -79,8 +79,31 @@ describe("host routing", () => {
   it("serves a subdomain's pages from the point's host-mode route", () => {
     expect(decide(req("/fr", { host: ROYAT }))).toEqual({ kind: "serve", pathname: "/fr/_royat" });
     expect(decide(req("/en/prices", { host: ROYAT }))).toEqual({ kind: "serve", pathname: "/en/_royat/prices" });
-    // A dead path on a point's host is that point's 404.
-    expect(decide(req("/fr/nope", { host: ROYAT }))).toEqual({ kind: "serve", pathname: "/fr/_royat/nope" });
+  });
+
+  it("sends a dead path to the 404, for the point it belongs to", () => {
+    // On a point's host, a dead path is that point's 404.
+    expect(decide(req("/fr/nope", { host: ROYAT }))).toEqual({ kind: "gone", locale: "fr", location: "_royat" });
+    expect(decide(req("/en/prices/nope", { host: ROYAT }))).toEqual({ kind: "gone", locale: "en", location: "_royat" });
+    // Through the apex: a known point's dead page, and an unknown point — the brand's.
+    expect(decide(req("/fr/lyon-nord/nope"))).toEqual({ kind: "gone", locale: "fr", location: "lyon-nord" });
+    expect(decide(req("/fr/nowhere"))).toEqual({ kind: "gone", locale: "fr", location: null });
+    expect(decide(req("/fr/_nowhere/prices"))).toEqual({ kind: "gone", locale: "fr", location: null });
+    expect(decide(req("/fr/404"))).toEqual({ kind: "gone", locale: "fr", location: null });
+    // Its own target passes, keeping the header it was sent with.
+    expect(decide(req("/fr/404/404"))).toEqual({ kind: "serve", pathname: "/fr/404/404" });
+  });
+
+  it("carries the 404's language and point in one header", () => {
+    expect(parseGoneHeader(goneHeader("fr", "_royat"))).toEqual({ locale: "fr", location: "_royat" });
+    expect(parseGoneHeader(goneHeader("en", null))).toEqual({ locale: "en" });
+    expect(parseGoneHeader(null)).toEqual({});
+  });
+
+  it("keeps every real page out of the 404 route", () => {
+    for (const path of ["/fr", "/fr/thanks", "/fr/royat", "/fr/royat/prices", "/fr/royat/thanks", "/fr/_royat/about"]) {
+      expect(decide(req(path)).kind, path).toBe("serve");
+    }
   });
 
   it("serves the apex fallback path as it is, in path link mode", () => {
@@ -125,6 +148,12 @@ describe("the proxy", () => {
   it("rewrites a subdomain to the host-mode route", () => {
     const res = routeRequest(request("https://royat.aquafix.top/fr", { host: ROYAT }));
     expect(new URL(res.headers.get("x-middleware-rewrite") ?? "").pathname).toBe("/fr/_royat");
+  });
+
+  it("rewrites a dead path to one no route matches, telling the 404 its point", () => {
+    const res = routeRequest(request("https://royat.aquafix.top/fr/nope", { host: ROYAT }));
+    expect(new URL(res.headers.get("x-middleware-rewrite") ?? "").pathname).toBe("/fr/404/404");
+    expect(res.headers.get(`x-middleware-request-${GONE_HEADER}`)).toBe("fr/_royat");
   });
 
   it("hands the page nothing but the path — no request header for it to read", () => {

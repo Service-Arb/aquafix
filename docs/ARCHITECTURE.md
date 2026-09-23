@@ -113,7 +113,16 @@ royat.aquafix.top/fr/prices       → rewritten to /fr/_royat/prices (host link 
 aquafix.top/fr                    → the brand page, listing the points
 aquafix.top/fr/royat/prices       → the same point page, through the apex (fallback)
 …?lang=en                         → cookie for a year, 303 to the clean URL
+royat.aquafix.top/fr/nope         → 404: royat's screen, from app/global-not-found
+aquafix.top/fr/nowhere            → 404: the brand's screen, the same way
 ```
+
+A dead path is answered by the proxy, not by a `notFound()`: Next 16 sends
+that as an empty document the browser fills in, and the 404 must work without
+JavaScript like every other page. The proxy knows every point and page, so it
+rewrites a dead path to one no route matches (`/fr/404/404`) and names the
+language and point in a header that only `app/global-not-found.tsx` reads —
+it is a route of its own, so the cached pages never see it.
 
 Both languages carry a prefix and French is the default: there are no legacy
 URLs to keep, and a header-less crawler lands on French and reaches English
