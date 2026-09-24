@@ -16,7 +16,7 @@
     "typecheck": "next typegen && tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
-    "size": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/bundle-budget.ts",
+    "size": "kitstart-size",
     "photos": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/photos.ts"
   },
   "dependencies": {
