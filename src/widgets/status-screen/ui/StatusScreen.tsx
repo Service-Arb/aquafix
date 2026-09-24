@@ -23,7 +23,13 @@ const FRAME = [
   "dark",
   "before:pointer-events-none before:absolute before:inset-x-0 before:top-24 before:h-[760px] before:content-['']",
   "before:bg-[radial-gradient(ellipse_at_center,color-mix(in_srgb,var(--primary)_16%,transparent),transparent_65%)]",
-  "[&>header]:gap-0 md:[&>header]:py-[22px] [&_header_nav]:mr-5 [&_header_nav]:text-[13px] [&_header_nav]:leading-[inherit] [&>header>a:last-child]:leading-[inherit]",
+  "[&>header]:gap-0 md:[&>header]:py-[22px] [&>header>a:last-child]:leading-[inherit]",
+  // On a phone the lock-up, the switch and the number share one line; the
+  // number never wraps, so everything else gives way; under 360 px the
+  // wordmark goes and the mark stays (the link keeps the brand's name).
+  "max-[359px]:[&>header>a:first-child>span>span]:hidden",
+  "[&_header_nav]:mr-3 md:[&_header_nav]:mr-5 [&_header_nav]:text-[12px] md:[&_header_nav]:text-[13px] [&_header_nav]:leading-[inherit]",
+  "[&>header>a:last-child]:whitespace-nowrap [&>header>a:last-child]:text-[14px] md:[&>header>a:last-child]:text-xl",
   "md:[&>main]:py-[110px]",
   "[&>main>p:nth-of-type(1)]:text-[11px] md:[&>main>p:nth-of-type(1)]:text-[12px] [&>main>p:nth-of-type(1)]:leading-[inherit] [&>main>p:nth-of-type(1)]:tracking-[0.22em]",
   "[&>main>p:nth-of-type(2)]:text-[88px] md:[&>main>p:nth-of-type(2)]:text-[150px] [&>main>p:nth-of-type(2)]:tracking-[-0.02em] [&>main>p:nth-of-type(2)]:[font-variant-numeric:tabular-nums]",
@@ -39,7 +45,15 @@ const FRAME = [
  * visitor who hit a 404 still gets the offer, and the phone is one tap away.
  * Renders on either side: the error boundary is a client module.
  */
-export function StatusScreen({ copy, status, target }: { copy: StatusScreenCopy; status: StatusCopy; target: StatusTarget }) {
+export function StatusScreen({
+  copy,
+  status,
+  target,
+}: {
+  copy: StatusScreenCopy;
+  status: StatusCopy;
+  target: StatusTarget;
+}) {
   return (
     <KitStatusScreen
       copy={copy}
@@ -48,7 +62,9 @@ export function StatusScreen({ copy, status, target }: { copy: StatusScreenCopy;
       locales={LOCALES}
       labels={i18n.labels}
       brandName={site.brand.name}
-      logo={<Lockup mark="h-[30px] w-[26px] text-primary" word="text-[23px] text-ink" />}
+      logo={
+        <Lockup mark="h-6 w-[21px] text-primary md:h-[30px] md:w-[26px]" word="text-[19px] text-ink md:text-[23px]" />
+      }
       mark={<Mark className="h-[54px] w-[47px] text-primary" />}
       className={FRAME}
       buttonClassName={CTA_FACE}
