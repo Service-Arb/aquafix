@@ -165,3 +165,28 @@ describe("the proxy on a path with an extension", () => {
     }
   });
 });
+
+// Everything without an extension goes to kitstart's proxy as it came: the
+// same request, so a POST reaches the route with its body unread.
+describe("the proxy on a path without an extension", () => {
+  it("passes /og and /quote untouched", () => {
+    for (const path of ["/og", "/quote"]) {
+      const res = proxy(new NextRequest(new URL(`https://royat.aquafix.top${path}`), { headers: { host: ROYAT } }));
+      expect(res.headers.get("x-middleware-rewrite"), path).toBeNull();
+      expect(res.headers.get("x-middleware-next"), path).toBe("1");
+    }
+  });
+
+  it("leaves a POST's body for the route", async () => {
+    const body = "location=royat&locale=fr&job=blocked_drain&zip=63130&mobile=0612345678";
+    const request = new NextRequest(new URL("https://royat.aquafix.top/quote"), {
+      method: "POST",
+      headers: { host: ROYAT, "content-type": "application/x-www-form-urlencoded" },
+      body,
+    });
+    const res = proxy(request);
+    expect(res.headers.get("x-middleware-next")).toBe("1");
+    expect(request.bodyUsed).toBe(false);
+    expect(await request.text()).toBe(body);
+  });
+});
