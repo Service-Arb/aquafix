@@ -1,17 +1,15 @@
+import { statusTarget } from "@evinvest/kitstart";
+import { loadLocale } from "@evinvest/kitstart/next";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import { copyFor } from "@/entities/content";
 import { statusMetadata } from "@/features/seo";
 import { CARD, site } from "@/shared/config/site";
-import { isLocale, perLocale } from "@/shared/config/i18n";
-import { THANKS } from "@evinvest/kitstart";
 import { StatusScreen } from "@/widgets/status-screen";
 
 type Props = { params: Promise<{ locale: string }> };
 
 async function brandCopy(params: Props["params"]) {
-  const { locale } = await params;
-  if (!isLocale(locale)) notFound();
+  const locale = await loadLocale(site, params);
   return copyFor({ locale, place: site.brand.name, phone: CARD.phone });
 }
 
@@ -25,16 +23,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
  */
 export default async function BrandThanksPage({ params }: Props) {
   const copy = await brandCopy(params);
-  return (
-    <StatusScreen
-      copy={copy}
-      status={copy.t.thanks}
-      target={{
-        phone: CARD.phone,
-        home: `/${copy.locale}`,
-        retry: `/${copy.locale}`,
-        langHrefs: perLocale(l => `/${l}${THANKS}`),
-      }}
-    />
-  );
+  const { home, retry, langHrefs } = statusTarget(site, { locale: copy.locale }, { thanks: true });
+  return <StatusScreen copy={copy} status={copy.t.thanks} target={{ phone: CARD.phone, home, retry, langHrefs }} />;
 }

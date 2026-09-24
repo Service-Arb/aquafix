@@ -1,6 +1,6 @@
 import { fileURLToPath } from "node:url";
+import { buildEnv } from "@evinvest/kitstart/next/config";
 import { defineConfig } from "vitest/config";
-import { buildEnv } from "./src/shared/config/build-env";
 
 const root = fileURLToPath(new URL(".", import.meta.url));
 

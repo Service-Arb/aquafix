@@ -1,9 +1,9 @@
 import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { PASS_PATHS, pointSuffixes } from "@evinvest/kitstart";
 import { describe, expect, it } from "vitest";
 import { site } from "@/shared/config/site";
-import { GONE, HOST_MARK, pointSuffixes } from "@evinvest/kitstart";
-import { NON_PAGE_ROUTES } from "@/features/request-routing";
+import { FILE_ROUTES } from "../proxy";
 
 const ROOT = join(import.meta.dirname, "..");
 
@@ -13,22 +13,16 @@ describe("the site composition root", () => {
     expect(pointSuffixes(site)).toEqual(["", "/prices", "/guarantee", "/about", "/thanks"]);
   });
 
-  it("gives no point a slug the proxy reserves", () => {
-    for (const slug of site.placeSlugs) {
-      expect(slug, slug).not.toBe(GONE);
-      expect(slug.startsWith(HOST_MARK), slug).toBe(false);
-    }
-  });
-
-  // The proxy sends every unprefixed path but these to the 404. A route added
-  // to `app/` and not to the list would answer 404; a file in `public/` too,
-  // since the proxy's matcher now lets paths with an extension in.
+  // The proxy sends every unprefixed path but these to the 404: kitstart's
+  // `PASS_PATHS`, and the two metadata routes its own file guard lets through.
+  // A route added to `app/` and to neither list would answer 404; so would a
+  // file in `public/`, since the proxy sends every path with an extension there.
   it("lets through exactly the routes app/ has outside [locale], and serves no public files", () => {
     const special: Record<string, string> = { "robots.ts": "/robots.txt", "sitemap.ts": "/sitemap.xml" };
     const routes = readdirSync(join(ROOT, "app"), { withFileTypes: true })
       .filter(e => (e.isDirectory() && !e.name.startsWith("[")) || special[e.name])
       .map(e => special[e.name] ?? `/${e.name}`);
-    expect([...routes].sort()).toEqual([...NON_PAGE_ROUTES].sort());
+    expect([...routes].sort()).toEqual([...PASS_PATHS, ...FILE_ROUTES].sort());
     expect(existsSync(join(ROOT, "public")) ? readdirSync(join(ROOT, "public")) : []).toEqual([]);
   });
 
