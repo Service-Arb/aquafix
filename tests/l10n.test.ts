@@ -136,9 +136,9 @@ describe("host routing", () => {
   });
 });
 
-// kitstart passes a path with an extension; this app serves no files, so its
-// proxy sends each to the 404 like any dead path. The rest of the proxy is
-// kitstart's, tested there (`ts/kitstart/test/next.node.test.ts`, "the proxy").
+// This site lists no `publicFiles`, so a path with an extension is a dead path
+// like any other — once a cached, phone-less 404 per scanner probe. The rest
+// of the proxy is kitstart's, tested there (`next.node.test.ts`, "the proxy").
 describe("the proxy on a path with an extension", () => {
   const request = (url: string, headers: Record<string, string> = {}) => new NextRequest(new URL(url), { headers });
   const gone = (res: Response) => ({
@@ -166,8 +166,8 @@ describe("the proxy on a path with an extension", () => {
   });
 });
 
-// Everything without an extension goes to kitstart's proxy as it came: the
-// same request, so a POST reaches the route with its body unread.
+// The routes outside `[locale]` pass as they came, so a POST reaches the
+// route with its body unread.
 describe("the proxy on a path without an extension", () => {
   it("passes /og and /quote untouched", () => {
     for (const path of ["/og", "/quote"]) {
