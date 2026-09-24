@@ -68,8 +68,8 @@
           || (m ? libc && !(fits "glibc" m.libc));
         npmSourceOverrides = lib.concatMapAttrs
           (path: m:
-            # TODO: drop with the npm swap — @evinvest/{uikit,marketing,kitstart}
-            # are vendored tarballs (`file:vendor/…`) until they are published,
+            # TODO: drop with the npm swap — @evinvest/kitstart
+            # is a vendored tarball (`file:vendor/…`) until it is published,
             # and `importNpmLock` would read the spec as a path with the scheme
             # still on it.
             if lib.hasPrefix "file:" (m.resolved or "") then
