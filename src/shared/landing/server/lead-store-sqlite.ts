@@ -2,7 +2,7 @@ import "server-only";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
-import type { LeadStore } from "../core/lead";
+import type { LeadStore } from "./lead-store";
 
 /**
  * The SQLite adapter of the `LeadStore` port: one file on the pod's volume.

@@ -41,7 +41,7 @@ export function QuietFooter({ copy, point }: { copy: Copy; point: PlaceView }) {
           </nav>
         </div>
         <div className="flex flex-col gap-3 border-t border-border pt-6 md:flex-row md:items-center md:justify-between">
-          <p className="text-[12.5px] text-ink-soft">{[...t.footer.facts(f), ...t.footer.legal].join(" · ")}</p>
+          <p className="text-[12.5px] text-ink-soft">{[...t.facts(f), ...t.footer.legal].join(" · ")}</p>
           <LangSwitch
             current={copy.locale}
             hrefs={perLocale(l => point.href("", l))}

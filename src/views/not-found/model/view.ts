@@ -1,8 +1,8 @@
 import { copyFor, type Copy } from "@/entities/content";
 import { bakedPlace, contactOf, placeView } from "@/entities/place";
 import { DEFAULT_LOCALE, isLocale, perLocale } from "@/shared/config/i18n";
-import { site } from "@/shared/config/site";
-import { parseLocationParam } from "@/shared/landing/core/routing";
+import { CARD, site } from "@/shared/config/site";
+import { parsePlaceParam } from "@evinvest/kitstart";
 import type { StatusTarget } from "@/widgets/status-screen";
 
 /**
@@ -21,7 +21,7 @@ export function notFoundView(params: { locale?: string | undefined; location?: s
   target: StatusTarget;
 } {
   const locale = isLocale(params.locale) ? params.locale : DEFAULT_LOCALE;
-  const { slug, mode } = parseLocationParam(params.location ?? "");
+  const { slug, mode } = parsePlaceParam(params.location ?? "");
   const baked = slug ? bakedPlace(slug) : undefined;
   if (baked) {
     const { phone } = contactOf(baked);
@@ -32,7 +32,7 @@ export function notFoundView(params: { locale?: string | undefined; location?: s
     };
   }
   return {
-    copy: copyFor({ locale, place: site.brand.name, phone: site.brand.phone }),
-    target: { phone: site.brand.phone, home: `/${locale}`, retry: `/${locale}`, langHrefs: perLocale(l => `/${l}`) },
+    copy: copyFor({ locale, place: site.brand.name, phone: CARD.phone }),
+    target: { phone: CARD.phone, home: `/${locale}`, retry: `/${locale}`, langHrefs: perLocale(l => `/${l}`) },
   };
 }

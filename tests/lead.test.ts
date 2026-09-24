@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { LEAD } from "@/shared/config/lead";
-import { readCandidate, validateCandidate, type LeadSchema } from "@/shared/landing/core/lead";
+import { readCandidate, validateCandidate } from "@evinvest/kitstart";
 
 const form = (fields: Record<string, string>): FormData => {
   const data = new FormData();
@@ -21,24 +21,6 @@ describe("the lead schema", () => {
 
   it("keeps a subject the form no longer offers — a stale page's lead is still a job", () => {
     expect(readCandidate(LEAD, form({ job: "gas_leak" }), null).subject).toBe("gas_leak");
-  });
-
-  it("reads a brand's extras, capped, and leaves out the empty ones", () => {
-    const cleaning: LeadSchema<"flat" | "office"> = {
-      subjects: ["flat", "office"],
-      wire: { subject: "kind", locality: "city", mobile: "phone" },
-      extras: [
-        { name: "surface_m2", max: 4 },
-        { name: "notes", max: 500 },
-      ],
-    };
-    const lead = readCandidate(cleaning, form({ kind: "flat", surface_m2: "123456", notes: "  " }), null);
-    expect(lead.extras).toEqual({ surface_m2: "1234" });
-    // An extra's own cap, not the core fields' 200.
-    const long = readCandidate(cleaning, form({ notes: "n".repeat(600) }), null);
-    expect(long.extras.notes).toHaveLength(500);
-    // No `validate` → every candidate is a lead.
-    expect(validateCandidate(cleaning, lead)).toBeNull();
   });
 
   it("refuses, for the log only, a lead with no number to text", () => {

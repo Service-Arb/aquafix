@@ -12,32 +12,14 @@ export default defineConfig([
       "@next/next/no-img-element": "off",
     },
   },
-  // `src/shared/landing` is the seam a future shared landing package will
-  // take whole. Its core is pure — edge- and client-safe — and neither half may
-  // reach back into the brand app, or the move stops being mechanical.
-  {
-    files: ["src/shared/landing/core/**"],
-    rules: {
-      "no-restricted-imports": [
-        "error",
-        {
-          patterns: [
-            { group: ["@/*", "../server/*", "../../server/*"], message: "landing core is brand-free and pure" },
-            {
-              group: ["node:*", "next", "next/*", "react", "react/*", "react-dom", "server-only"],
-              message: "landing core runs anywhere",
-            },
-          ],
-        },
-      ],
-    },
-  },
+  // `src/shared/landing/server` is what kitstart's `./server` has not replaced
+  // yet; it must not reach back into the brand app.
   {
     files: ["src/shared/landing/server/**"],
     rules: {
       "no-restricted-imports": [
         "error",
-        { patterns: [{ group: ["@/*"], message: "landing server reads only landing core and its own inputs" }] },
+        { patterns: [{ group: ["@/*"], message: "landing server reads only kitstart and its own inputs" }] },
       ],
     },
   },

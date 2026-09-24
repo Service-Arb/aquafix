@@ -1,2 +1,2 @@
-export { locationGraph, businessNode, offerNodes, organizationNode, organizationId } from "./model/ld";
-export { locationMetadata, brandMetadata, statusMetadata, ogImageUrl } from "./model/metadata";
+export { locationGraph } from "./model/ld";
+export { locationMetadata, brandMetadata, statusMetadata } from "./model/metadata";

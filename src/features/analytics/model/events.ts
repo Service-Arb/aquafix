@@ -1,5 +1,5 @@
 import { createBeaconSink, type AnalyticsSink } from "@evinvest/analytics";
-import { THANKS } from "@/shared/landing/core/routing";
+import { THANKS } from "@evinvest/kitstart";
 
 /**
  * The event model. Analytics records; it never decides what renders.

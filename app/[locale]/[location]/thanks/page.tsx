@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { statusMetadata } from "@/features/seo";
-import { THANKS } from "@/shared/landing/core/routing";
+import { THANKS } from "@evinvest/kitstart";
 import { LocationStatus } from "@/views/location";
 import { loadPoint, type LocationParams } from "@/views/location/server";
 

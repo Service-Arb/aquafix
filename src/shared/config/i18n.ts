@@ -23,9 +23,6 @@ export function isLocale(value: unknown): value is Locale {
   return i18n.isLocale(value);
 }
 
-/** `og:locale` — a region is required there, unlike `hreflang`. */
-export const OG_LOCALE: Record<Locale, string> = { fr: "fr_FR", en: "en_GB" };
-
 /** `Intl` tag for numbers and money, one per locale. */
 export const INTL_TAG: Record<Locale, string> = { fr: "fr-FR", en: "en-IE" };
 

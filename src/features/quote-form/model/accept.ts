@@ -1,6 +1,5 @@
 import type { Lead } from "@/entities/lead";
-import { MAX_FIELD, readCandidate, validateCandidate } from "@/shared/landing/core/lead";
-import type { BrandFacts, Site } from "@/shared/landing/core/site";
+import { MAX_FIELD, readCandidate, validateCandidate, type Site } from "@evinvest/kitstart";
 import { HONEYPOT_FIELD, RENDERED_AT_FIELD, screen, type RateLimiter } from "./antispam";
 
 /** Hidden fields the form carries besides what the visitor types. */
@@ -44,14 +43,14 @@ function field(form: FormData, name: string): string | null {
  * `failed`, never `stored` — a thank-you page for a lead that was never
  * written is the worst outcome this system can produce.
  */
-export function createAcceptLead<L extends string, P extends string, B extends BrandFacts>(
-  site: Site<L, P, B>,
+export function createAcceptLead<L extends string, P extends string>(
+  site: Site<L, P>,
 ): (form: FormData, clientKey: string, deps: AcceptDeps) => Promise<Outcome<L>> {
   return (form, clientKey, deps) => accept(site, form, clientKey, deps);
 }
 
-async function accept<L extends string, P extends string, B extends BrandFacts>(
-  site: Site<L, P, B>,
+async function accept<L extends string, P extends string>(
+  site: Site<L, P>,
   form: FormData,
   clientKey: string,
   deps: AcceptDeps,

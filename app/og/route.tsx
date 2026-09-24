@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { copyFor } from "@/entities/content";
 import { bakedPlace, contactOf } from "@/entities/place";
-import { site, PAGE_KEYS, type PageKey } from "@/shared/config/site";
+import { CARD, site, PAGE_KEYS, type PageKey } from "@/shared/config/site";
 import type { OgPalette } from "@/shared/config/build-env";
 import { DEFAULT_LOCALE, isLocale } from "@/shared/config/i18n";
 import { memoByKey } from "@/shared/lib/memo";
@@ -41,7 +41,7 @@ const cardFor = memoByKey(async (key: string): Promise<ArrayBuffer> => {
   const [slug = "", lang = "", p = ""] = key.split("|");
   const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
   const location = bakedPlace(slug);
-  const phone = location ? contactOf(location).phone : site.brand.phone;
+  const phone = location ? contactOf(location).phone : CARD.phone;
   const page: PageKey = PAGE_KEYS.find(k => k === p) ?? "home";
   const copy = copyFor({ locale, place: location?.name[locale] ?? site.brand.name, phone });
   const title = location ? copy.t.pages[page].title(copy.f) : copy.t.brandPage.h1;

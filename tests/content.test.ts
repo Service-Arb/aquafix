@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { factsFor, text, PRICE_LIST, type Facts } from "@/entities/content";
-import { site } from "@/shared/config/site";
+import { CARD } from "@/shared/config/site";
 import { LOCALES, type Locale } from "@/shared/config/i18n";
 
 // Completeness itself is the compiler's: `FR` and `EN` are checked against one
 // `Text` with `satisfies`, so a missing field does not build. What the type
 // cannot see is an empty string, or a sentence that quotes a fact by hand.
 
-const facts = (locale: Locale): Facts => factsFor({ locale, place: "Royat", phone: site.brand.phone });
+const facts = (locale: Locale): Facts => factsFor({ locale, place: "Royat", phone: CARD.phone });
 
 /** Every leaf string, with functions called on the facts, and its path. */
 function leaves(value: unknown, f: Facts, path = ""): [string, string][] {
@@ -38,12 +38,12 @@ describe("the copy", () => {
     const t = text(locale);
     const f = facts(locale);
     for (const s of [t.callLabel(f), t.quoteForm.reassurance(f), t.guaranteeCtaAside(f)]) {
-      expect(s).toContain(site.brand.phone);
+      expect(s).toContain(CARD.phone);
     }
     const all = leaves(t, f).map(([, s]) => s);
     // No other number shaped like a French phone may appear in the copy.
     const phones = all.flatMap(s => s.match(/\+33[\d\s]{9,}/g) ?? []);
-    expect(new Set(phones.map(p => p.trim()))).toEqual(new Set([site.brand.phone]));
+    expect(new Set(phones.map(p => p.trim()))).toEqual(new Set([CARD.phone]));
   });
 
   it.each(LOCALES)("prices every row in euros and names every job (%s)", locale => {

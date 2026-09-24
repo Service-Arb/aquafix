@@ -8,7 +8,7 @@ import { LangSwitch } from "@/shared/ui/LangSwitch";
 
 /** The words a status screen prints besides its own `StatusCopy`. */
 export type StatusScreenCopy = CopyOf<
-  Pick<Text, "callLabel" | "backHome" | "tryAgain" | "statusStrip"> & { footer: Pick<Text["footer"], "facts"> }
+  Pick<Text, "callLabel" | "backHome" | "tryAgain" | "statusStrip" | "facts">
 >;
 
 export interface StatusTarget {
@@ -77,7 +77,7 @@ export function StatusScreen({ copy, status, target }: { copy: StatusScreenCopy;
         </div>
       </main>
       <footer className="relative flex flex-col gap-3 border-t border-border px-5 py-6 text-[11.5px] tracking-[0.08em] text-ink-soft md:flex-row md:items-center md:px-12 md:py-7">
-        <p>{t.footer.facts(f).join(" · ").toUpperCase()}</p>
+        <p>{t.facts(f).join(" · ").toUpperCase()}</p>
       </footer>
     </div>
   );

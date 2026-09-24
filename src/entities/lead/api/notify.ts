@@ -1,5 +1,5 @@
 import "server-only";
-import { site } from "@/shared/config/site";
+import { CARD, site } from "@/shared/config/site";
 import type { ServerEnv } from "@/shared/config/env";
 import { sendMail } from "@/shared/landing/server/smtp";
 import type { Lead } from "../model/lead";
@@ -33,12 +33,12 @@ export function leadNotifier(env: Pick<ServerEnv, "smtpUrl" | "notifyTo" | "noti
           sendMail(
             env.smtpUrl,
             {
-              from: env.notifyFrom ?? `leads@${site.brand.domain}`,
-              to: env.notifyTo ?? site.brand.email,
+              from: env.notifyFrom ?? `leads@${CARD.site}`,
+              to: env.notifyTo ?? CARD.email,
               subject: `${site.brand.name} — nouvelle demande (${lead.placeSlug ?? "point inconnu"})`,
               text: body(lead, id),
             },
-            { helo: site.brand.domain },
+            { helo: CARD.site },
           ),
         );
       }

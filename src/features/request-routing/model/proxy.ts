@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { GONE_HEADER, goneHeader, gonePath } from "@/shared/landing/core/routing";
+import { GONE_HEADER, goneHeader, gonePath } from "@evinvest/kitstart";
 import { LANG_COOKIE, LANG_COOKIE_MAX_AGE, type Routing } from "./decide";
 
 /** The bare URL's answer depends on both; a shared cache must key on them. */

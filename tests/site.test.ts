@@ -2,7 +2,8 @@ import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { site } from "@/shared/config/site";
-import { GONE, HOST_MARK, NON_PAGE_ROUTES, pointSuffixes } from "@/shared/landing/core/routing";
+import { GONE, HOST_MARK, pointSuffixes } from "@evinvest/kitstart";
+import { NON_PAGE_ROUTES } from "@/features/request-routing";
 
 const ROOT = join(import.meta.dirname, "..");
 

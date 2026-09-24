@@ -1,5 +1,11 @@
-import { GONE, locationParam, NON_PAGE_ROUTES, parseLocationParam, pointSuffixes, THANKS } from "@/shared/landing/core/routing";
-import type { BrandFacts, Site } from "@/shared/landing/core/site";
+import { GONE, parsePlaceParam, placeParam, pointSuffixes, THANKS, type Site } from "@evinvest/kitstart";
+
+/**
+ * The routes that are not pages: the proxy passes them untouched and sends
+ * every other unprefixed path to the 404. One list, checked against `app/`
+ * by a test, so a new route cannot be forgotten here.
+ */
+export const NON_PAGE_ROUTES: readonly string[] = ["/quote", "/og", "/health", "/sitemap.xml", "/robots.txt"];
 
 /**
  * Which point and which language a request gets, decided before any route
@@ -60,8 +66,8 @@ function withQuery(path: string, query: URLSearchParams): string {
   return qs ? `${path}?${qs}` : path;
 }
 
-export function createRouting<L extends string, P extends string, B extends BrandFacts>(
-  site: Site<L, P, B>,
+export function createRouting<L extends string, P extends string>(
+  site: Site<L, P>,
 ): Routing<L> {
   const { i18n, placeSlugs } = site;
   const suffixes = pointSuffixes(site);
@@ -139,7 +145,7 @@ export function createRouting<L extends string, P extends string, B extends Bran
     // Every prefixed path on a point's host belongs to that point, page or not:
     // `/fr/nonsense` is that point's French 404, not the brand's.
     if (slug) {
-      return page ? { kind: "serve", pathname: `/${locale}/${locationParam(slug, "host")}${rest}` } : dead(locale, rest, slug);
+      return page ? { kind: "serve", pathname: `/${locale}/${placeParam(slug, "host")}${rest}` } : dead(locale, rest, slug);
     }
     if (page) return { kind: "serve", pathname: req.pathname };
     // A host-mode page (`/fr/_royat/prices`) passes as it is. It must: Next runs
@@ -147,7 +153,7 @@ export function createRouting<L extends string, P extends string, B extends Bran
     // into its cache. Reached from the apex by hand it is the same cached page,
     // whose canonical is the subdomain — no second copy for an index to find.
     const [, first = "", ...more] = rest.split("/");
-    const named = parseLocationParam(first);
+    const named = parsePlaceParam(first);
     const suffix = more.length ? `/${more.join("/")}` : "";
     if (named.mode === "host" && placeSlugs.includes(named.slug) && suffixes.includes(suffix)) {
       return { kind: "serve", pathname: req.pathname };
@@ -165,9 +171,9 @@ export function createRouting<L extends string, P extends string, B extends Bran
    * came through, or whose slug it starts with, else the brand's.
    */
   function dead(locale: L, rest: string, slug: string | null): Decision<L> {
-    if (slug) return { kind: "gone", locale, location: locationParam(slug, "host") };
+    if (slug) return { kind: "gone", locale, location: placeParam(slug, "host") };
     const [, first = ""] = rest.split("/");
-    return { kind: "gone", locale, location: placeSlugs.includes(parseLocationParam(first).slug) ? first : null };
+    return { kind: "gone", locale, location: placeSlugs.includes(parsePlaceParam(first).slug) ? first : null };
   }
 
   return { hostSlug, decide };

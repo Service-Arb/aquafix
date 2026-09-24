@@ -16,6 +16,9 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["tests/**/*.test.ts"],
+    // Through Vite rather than Node, so the alias above reaches kitstart's own
+    // `server-only` imports (its `./next` and `./server` entries).
+    server: { deps: { inline: [/@evinvest\/kitstart/] } },
     // The same facts `next.config.ts` inlines, so content reads the card here too.
     env: buildEnv(root),
   },

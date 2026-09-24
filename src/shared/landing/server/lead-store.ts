@@ -1,6 +1,9 @@
 import "server-only";
-import type { LeadStore } from "../core/lead";
+import type { LeadStore as KitLeadStore } from "@evinvest/kitstart";
 import { openSqliteLeadStore } from "./lead-store-sqlite";
+
+/** The funnel's port, as far as this adapter serves it; kitstart's adds `schemaVersion` and `health`. */
+export type LeadStore = Pick<KitLeadStore, "insert" | "count" | "close">;
 
 /**
  * Where leads are kept, chosen by the scheme of `LEADS_DB_URL`:

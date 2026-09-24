@@ -1,12 +1,12 @@
-import type { Locale } from "@/shared/config/i18n";
-import type { PageKey } from "@/shared/config/site";
 import type {
   CoreText,
   PageMetaCopy as CorePageMetaCopy,
   QuoteFormCopy as CoreQuoteFormCopy,
   Said as CoreSaid,
   StatusCopy as CoreStatusCopy,
-} from "@/shared/landing/core/content";
+} from "@evinvest/kitstart";
+import type { Locale } from "@/shared/config/i18n";
+import type { PageKey } from "@/shared/config/site";
 import type { JobId, NavId, PriceId, ServiceId, WorkId } from "./catalogue";
 
 /**
@@ -69,7 +69,7 @@ export interface Crew {
   credential: string;
 }
 
-export type { StatusAction } from "@/shared/landing/core/content";
+export type { StatusAction } from "@evinvest/kitstart";
 
 export type StatusCopy = CoreStatusCopy<Facts>;
 
@@ -168,7 +168,6 @@ export interface Text extends CoreText<PageKey, Facts> {
   inlineCta: { line: string; button: string };
   footer: {
     columns: { services: string; areas: string; company: string; contact: string };
-    facts: (f: Facts) => readonly string[];
     legal: readonly string[];
     company: Record<"guarantee" | "prices" | "reviews" | "crew" | "contact", string>;
   };

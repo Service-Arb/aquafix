@@ -1,4 +1,4 @@
-import type { LeadCandidate, LeadSchema } from "@/shared/landing/core/lead";
+import type { LeadCandidate, LeadSchema } from "@evinvest/kitstart";
 
 /** Values the quote form's `<select>` posts and the lead store keeps. */
 export const JOB_IDS = [
