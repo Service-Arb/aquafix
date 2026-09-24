@@ -48,7 +48,8 @@ export function Footer({ copy, point }: { copy: Copy; point: PlaceView }) {
             <a href={point.href("#quote")}>{company.contact}</a>
           </Column>
           <Column heading={cols.contact}>
-            <a href={telHref(phone)} className="whitespace-nowrap font-display text-[22px] font-bold text-primary-ink">
+            {/* 17px below `md`: at 22px the number overflowed its half of a 390 screen. */}
+            <a href={telHref(phone)} className="whitespace-nowrap font-display text-[17px] font-bold text-primary-ink md:text-[22px]">
               {phone}
             </a>
             <p>{t.emergencyHours}</p>
@@ -64,7 +65,7 @@ export function Footer({ copy, point }: { copy: Copy; point: PlaceView }) {
       </div>
       <div className="mt-8 flex flex-col gap-3 border-t border-border pb-7 pt-6 text-[13px] text-ink-soft md:mt-9 md:flex-row md:items-center md:gap-6">
         <p>
-          © {site.brand.legalName} · {f.siret}
+          © {site.brand.legalName} · {t.footer.siret(f)}
         </p>
         <div className="flex-1" />
         {t.footer.legal.map(label => (
