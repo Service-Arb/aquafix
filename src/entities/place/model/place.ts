@@ -12,7 +12,7 @@ import {
   type PublicationField,
 } from "@evinvest/kitstart";
 import { LOCALES, type Locale } from "@/shared/config/i18n";
-import { CARD, site } from "@/shared/config/site";
+import { site } from "@/shared/config/site";
 import type { Place, PlaceLive, PlaceView } from "./types";
 
 /**
@@ -46,8 +46,13 @@ export const isPublished = (place: Place): boolean => isPublishedBy(place, site.
 
 export const parseLive = (body: unknown): PlaceLive => parsePlaceLive(body, LOCALES);
 
-/** The numbers a point answers on: its own, or the card's until it has one. */
+/**
+ * The numbers a point answers on: its own, or the brand's until it has one
+ * (kitstart's `contactOf`). Never null here — the brand's is the card's, which
+ * the build refuses to leave out — so the pages can print it as it is.
+ */
 export function contactOf(place: Place): { phone: string; whatsapp: string } {
-  const own = contactOn(site, place);
-  return { phone: own.phone ?? CARD.phone, whatsapp: own.whatsapp ?? CARD.phone };
+  const { phone, whatsapp } = contactOn(site, place);
+  if (phone === null || whatsapp === null) throw new Error(`${place.slug}: no phone — assets/card.toml must carry one`);
+  return { phone, whatsapp };
 }
