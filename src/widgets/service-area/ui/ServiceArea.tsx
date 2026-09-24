@@ -9,8 +9,8 @@ import { servedLocalities, type PlaceView } from "@/entities/place";
  */
 
 /** The Figma frame's chips over kitstart's: on the card plane, taller, the page's leading. */
-const CHIPS =
-  "flex-1 content-start gap-2.5 [&>li]:whitespace-nowrap [&>li]:bg-card [&>li]:py-2.5 [&>li]:text-[14px] [&>li]:leading-[inherit]";
+const CHIPS = "flex-1 content-start gap-2.5";
+const CHIP = "whitespace-nowrap bg-card py-2.5 text-[14px] leading-[inherit]";
 
 export function ServiceArea({ copy, point }: { copy: Copy; point: PlaceView }) {
   const { t, f } = copy;
@@ -23,7 +23,7 @@ export function ServiceArea({ copy, point }: { copy: Copy; point: PlaceView }) {
           <Display>{head.title(f)}</Display>
           <p className="text-[15px] leading-[1.62] text-ink-soft md:text-[16.5px]">{head.lede}</p>
         </div>
-        <AreaChips areas={servedLocalities(point.place)} className={CHIPS} />
+        <AreaChips areas={servedLocalities(point.place)} className={CHIPS} chipClassName={CHIP} />
       </div>
     </Section>
   );

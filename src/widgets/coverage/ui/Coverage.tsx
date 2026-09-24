@@ -13,17 +13,14 @@ import { BandHead } from "@/shared/ui/BandHead";
 
 /**
  * The Figma frame's geometry over kitstart's type scale: the chips' and the
- * landmark's sizes, the map's corner and its call to action. The chips and
- * the map's button have no parts of their own, so their slots reach in.
+ * landmark's sizes, the map's corner and its call to action.
  */
 const FRAME: Partial<Record<CoveragePart, string>> = {
-  chips: "[&>li]:text-[13.5px] [&>li]:leading-[inherit] md:[&>li]:text-[14.5px]",
+  chip: "text-[13.5px] leading-[inherit] md:text-[14.5px]",
   landmark: "text-[14.5px] leading-[inherit]",
-  map: [
-    "rounded-[var(--corner-card)]",
-    "[&_button>span:first-child]:text-[17px] [&_button>span:first-child]:leading-[inherit] md:[&_button>span:first-child]:text-[19px]",
-    "[&_button>span:last-child]:text-[13.5px] [&_button>span:last-child]:leading-[inherit] md:[&_button>span:last-child]:text-[14.5px]",
-  ].join(" "),
+  map: "rounded-[var(--corner-card)]",
+  mapShow: "text-[17px] leading-[inherit] md:text-[19px]",
+  mapAddress: "text-[13.5px] leading-[inherit] md:text-[14.5px]",
 };
 
 export function Coverage({ copy, point }: { copy: Copy; point: PlaceView }) {
