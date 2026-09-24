@@ -25,22 +25,17 @@ const ROOT = [
 /**
  * The Figma frame's paddings and type sizes over kitstart's screen. On a phone
  * the lock-up, the switch and the number share one line — kitstart wraps the
- * switch onto its own; the switch has no part of its own, so the header says
- * where it goes. The outline's rule takes `ink-soft` at 60 % (4.10:1 on the
- * background): the dark scope's border token is 1.55:1.
+ * switch onto its own.
  */
 const PARTS: Partial<Record<StatusScreenPart, string>> = {
-  header: [
-    "flex-nowrap gap-0 py-4 md:gap-0 md:py-[22px]",
-    "[&>nav]:order-none [&>nav]:mr-3 [&>nav]:w-auto [&>nav]:text-[12px] [&>nav]:leading-[inherit] md:[&>nav]:mr-5 md:[&>nav]:text-[13px]",
-  ].join(" "),
+  header: "flex-nowrap gap-0 py-4 md:gap-0 md:py-[22px]",
+  lang: "order-none mr-3 w-auto text-[12px] leading-[inherit] md:mr-5 md:text-[13px]",
   phone: "text-[14px] leading-[inherit] md:text-xl",
   main: "md:py-[110px]",
   eyebrow: "text-[11px] leading-[inherit] tracking-[0.22em] md:text-[12px]",
   code: "text-[88px] leading-none tracking-[-0.02em] tabular-nums md:text-[150px]",
   headline: "text-[26px] leading-[1.25] md:text-[40px]",
   body: "max-w-[41rem] text-[15px] leading-[1.6] md:text-[17px]",
-  secondaryButton: "border-ink-soft/60",
   strip: "text-[14px] leading-[inherit] sm:gap-[26px]",
   footer: "text-[11.5px] leading-[inherit] tracking-[0.08em]",
 };
