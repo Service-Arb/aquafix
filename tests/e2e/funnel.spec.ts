@@ -1,7 +1,7 @@
 import { DatabaseSync } from "node:sqlite";
 import { LIBRARY_PROPS } from "@evinvest/analytics";
+import { MIN_FILL_MS } from "@evinvest/kitstart";
 import { expect, test } from "@playwright/test";
-import { MIN_FILL_MS } from "../../src/features/quote-form/model/antispam";
 import { LEADS_DB, POSTHOG_HOST } from "./env";
 
 // The funnel's floor: the form must submit before any JavaScript has loaded.

@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { headers } from "next/headers";
 import { brandOrigin, isPublished, placeOrigin } from "@/entities/place";
-import { listPlaces } from "@/entities/place/server";
+import { placeSource } from "@/entities/place/server";
 import { hostSlug } from "@/features/request-routing";
 import { DEFAULT_LOCALE, i18n, LOCALES } from "@/shared/config/i18n";
 import { PAGE_KEYS, PAGES } from "@/shared/config/site";
@@ -34,7 +34,7 @@ function cluster(origin: string, suffix: string, priority: number): MetadataRout
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const slug = hostSlug((await headers()).get("host") ?? "");
   if (!slug) return cluster(brandOrigin(), "", 1);
-  const locations = await listPlaces(DEFAULT_LOCALE, "sitemap");
+  const locations = await placeSource.listPlaces(DEFAULT_LOCALE, "sitemap");
   const location = locations.find(l => l.slug === slug);
   if (!location || !isPublished(location)) return [];
   return PAGE_KEYS.flatMap(page => cluster(placeOrigin(slug), PAGES[page], page === "home" ? 1 : 0.8));

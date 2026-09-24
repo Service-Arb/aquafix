@@ -65,6 +65,10 @@ export default defineConfig({
       PORT: String(PORT),
       HOSTNAME: "127.0.0.1",
       LEADS_DB_PATH: LEADS_DB,
+      // The standalone server runs as production, which refuses to boot
+      // without knowing whose address the rate limit counts; nothing sits
+      // in front of it here.
+      TRUSTED_PROXY: "xff:1",
       POSTHOG_KEY,
       POSTHOG_HOST,
     },

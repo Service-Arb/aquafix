@@ -12,16 +12,5 @@ export default defineConfig([
       "@next/next/no-img-element": "off",
     },
   },
-  // `src/shared/landing/server` is what kitstart's `./server` has not replaced
-  // yet; it must not reach back into the brand app.
-  {
-    files: ["src/shared/landing/server/**"],
-    rules: {
-      "no-restricted-imports": [
-        "error",
-        { patterns: [{ group: ["@/*"], message: "landing server reads only kitstart and its own inputs" }] },
-      ],
-    },
-  },
   globalIgnores([".next/**", "node_modules/**", "next-env.d.ts", "brand_materials/**", "docs/**"]),
 ]);
