@@ -59,9 +59,9 @@
         prodEnv = import ./deploy/config.nix { port = sitePort; };
 
         # TODO: drop with the npm swap (package.json `file:` → versions).
-        # @evinvest/{uikit,marketing,kitstart} are vendored tarballs until they
-        # are published; `importNpmLock` would read a `file:` spec as a path
-        # with the scheme still on it, so each is handed over from vendor/.
+        # @evinvest/kitstart is a vendored tarball until it is published;
+        # `importNpmLock` would read a `file:` spec as a path with the scheme
+        # still on it, so it is handed over from vendor/.
         vendored = lib.concatMapAttrs
           (path: m:
             if lib.hasPrefix "file:" (m.resolved or "") then

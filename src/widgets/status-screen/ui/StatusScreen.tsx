@@ -1,6 +1,7 @@
 import { StatusScreen as KitStatusScreen } from "@evinvest/kitstart/react";
 import type { CopyOf, StatusCopy, Text } from "@/entities/content";
 import { i18n, LOCALES, type Locale } from "@/shared/config/i18n";
+import { site } from "@/shared/config/site";
 import { CTA_FACE, Lockup, Mark } from "@/shared/ui/brand";
 
 /** The words a status screen prints besides its own `StatusCopy`. */
@@ -46,7 +47,7 @@ export function StatusScreen({ copy, status, target }: { copy: StatusScreenCopy;
       target={target}
       locales={LOCALES}
       labels={i18n.labels}
-      brandName="Aquafix"
+      brandName={site.brand.name}
       logo={<Lockup mark="h-[30px] w-[26px] text-primary" word="text-[23px] text-ink" />}
       mark={<Mark className="h-[54px] w-[47px] text-primary" />}
       className={FRAME}

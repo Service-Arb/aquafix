@@ -24,6 +24,11 @@ const SECTIONS = [
   { name: "crew", url: "/fr/about#crew", selector: "#crew" },
   { name: "areas", url: "/fr/about#areas", selector: "#areas" },
   { name: "points", url: `${APEX_ORIGIN}/fr#points`, selector: "#points" },
+  // The status screens, whole: kitstart's screen under the brand's frame. The
+  // 404 is the proxy's, rendered on the server; the thank-you page is where
+  // the form's 303 lands.
+  { name: "status-404", url: "/fr/nope", selector: "main >> xpath=.." },
+  { name: "thanks", url: "/fr/thanks", selector: "main >> xpath=.." },
 ] as const;
 
 // `md:hidden` in the design: at 1440 there is nothing to shoot.
