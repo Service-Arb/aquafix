@@ -8,9 +8,9 @@ import { CTA_FACE } from "@/shared/ui/brand";
 /**
  * On top of the kit's `lg` control (16px inset and 16px type at every width —
  * a bare `text-[16px]` here would lose to the kit's `md:text-sm`): the 52px
- * Figma height on the card plane.
+ * Figma height on the card plane, 24px line + 2×13px + 2×1px border.
  */
-const CONTROL = "h-auto w-full rounded-[var(--corner-control)] border border-input bg-card py-[15px] text-ink shadow-none";
+const CONTROL = "h-auto w-full rounded-[var(--corner-control)] border border-input bg-card py-[13px] text-ink shadow-none";
 const FIELD = "flex w-full flex-col gap-2";
 const LABEL = "text-[12.5px] font-medium tracking-[0.06em] text-ink-mid";
 
