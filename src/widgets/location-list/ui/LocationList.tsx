@@ -1,4 +1,4 @@
-import { PlaceDirectory } from "@evinvest/kitstart/react";
+import { PlaceDirectory, type PlaceDirectoryPart } from "@evinvest/kitstart/react";
 import { Section } from "@evinvest/uikit";
 import type { BrandPageCopy, CopyOf } from "@/entities/content";
 import { contactOf, placeUrl, type Place } from "@/entities/place";
@@ -14,8 +14,13 @@ export type LocationListCopy = CopyOf<{ brandPage: Pick<BrandPageCopy, "listTitl
  * The Figma frame's geometry over kitstart's type scale: the card corner is
  * the brand's, the lines keep the page's leading, the address its own size.
  */
-const CARDS =
-  "[&_li]:rounded-[var(--corner-card)] [&_li>p]:leading-[inherit] [&_li>a]:leading-[inherit] [&_address]:text-[14.5px] [&_address]:leading-[1.55]";
+const CARDS: Partial<Record<PlaceDirectoryPart, string>> = {
+  card: "rounded-[var(--corner-card)]",
+  name: "leading-[inherit]",
+  address: "text-[14.5px] leading-[1.55]",
+  phone: "leading-[inherit]",
+  link: "leading-[inherit]",
+};
 
 export function LocationList({ copy, locations }: { copy: LocationListCopy; locations: readonly Place[] }) {
   const { t, locale } = copy;
@@ -29,7 +34,7 @@ export function LocationList({ copy, locations }: { copy: LocationListCopy; loca
         phoneOf={place => contactOf(place).phone}
         openLabel={t.brandPage.open}
         head={<BandHead title={t.brandPage.listTitle} />}
-        className={CARDS}
+        classNames={CARDS}
       />
     </Section>
   );

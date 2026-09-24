@@ -1,4 +1,4 @@
-import { Faq as KitFaq } from "@evinvest/kitstart/react";
+import { Faq as KitFaq, type FaqPart } from "@evinvest/kitstart/react";
 import { Display, Eyebrow, Section } from "@evinvest/uikit";
 import { faqItems, type Copy } from "@/entities/content";
 
@@ -8,13 +8,13 @@ import { faqItems, type Copy } from "@/entities/content";
  */
 
 /** The Figma frame's geometry over kitstart's type scale: corner, padding, sizes, leading. */
-const FRAME = [
-  "[&>div:last-child]:rounded-[var(--corner-card)]",
-  "md:[&_summary]:px-[30px] md:[&_summary]:pb-[26px]",
-  "[&_summary>span:first-child]:text-[17px] md:[&_summary>span:first-child]:text-[19px] [&_summary>span:first-child]:leading-[1.35]",
-  "[&_summary>span:last-child]:leading-[inherit]",
-  "[&_details>p]:text-[15px] md:[&_details>p]:text-[15.5px] [&_details>p]:leading-[1.65] md:[&_details>p]:px-[30px] md:[&_details>p]:pb-[26px]",
-].join(" ");
+const FRAME: Partial<Record<FaqPart, string>> = {
+  list: "rounded-[var(--corner-card)]",
+  summary: "md:px-[30px] md:pb-[26px]",
+  question: "text-[17px] leading-[1.35] md:text-[19px]",
+  icon: "leading-[inherit]",
+  answer: "text-[15px] leading-[1.65] md:px-[30px] md:pb-[26px] md:text-[15.5px]",
+};
 
 export function Faq({ copy }: { copy: Copy }) {
   const { t } = copy;
@@ -29,7 +29,7 @@ export function Faq({ copy }: { copy: Copy }) {
             <Display>{t.faqHead.title}</Display>
           </div>
         }
-        className={FRAME}
+        classNames={FRAME}
       />
     </Section>
   );
