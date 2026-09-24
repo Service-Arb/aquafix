@@ -10,7 +10,10 @@ import { loadPoint, type LocationParams } from "@/views/location/server";
  * so the list is empty: the first request for a path renders it, the result
  * is cached and served as a static page, and it re-renders in the background
  * once the live fetch's TTL (`PLACE_REVALIDATE_SECONDS`) has passed. A
- * failing source during that re-render keeps the last good page.
+ * failing source during that re-render keeps the last good live data only
+ * while its fetch-cache entry lives: after a restart or an eviction (the
+ * cache is in memory, `isrFlushToDisk: false`) a re-render during the outage
+ * serves the baked point, and that page is cached for the next 600 s.
  */
 export function generateStaticParams(): LocationParams[] {
   return [];

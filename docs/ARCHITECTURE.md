@@ -115,6 +115,7 @@ aquafix.top/fr/royat/prices       → the same point page, through the apex (fal
 …?lang=en                         → cookie for a year, 303 to the clean URL
 royat.aquafix.top/fr/nope         → 404: royat's screen, from app/global-not-found
 aquafix.top/fr/nowhere            → 404: the brand's screen, the same way
+aquafix.top/wp-login.php          → 404 in the visitor's language (cookie, then Accept-Language)
 ```
 
 A dead path is answered by the proxy, not by a `notFound()`: Next 16 sends
@@ -122,7 +123,11 @@ that as an empty document the browser fills in, and the 404 must work without
 JavaScript like every other page. The proxy knows every point and page, so it
 rewrites a dead path to one no route matches (`/fr/404/404`) and names the
 language and point in a header that only `app/global-not-found.tsx` reads —
-it is a route of its own, so the cached pages never see it.
+it is a route of its own, so the cached pages never see it. An unprefixed path
+that is not a page or one of `NON_PAGE_ROUTES` goes the same way: let through,
+it would land in `[locale]` and Next would cache its `notFound()` as a page —
+one in-memory ISR entry per scanner probe, crowding out the real pages. The
+404 renders per request (`no-store`), so junk never takes a cache entry.
 
 Both languages carry a prefix and French is the default: there are no legacy
 URLs to keep, and a header-less crawler lands on French and reaches English
@@ -169,8 +174,10 @@ Rust server's, brought forward in place by numbered steps under `PRAGMA user_ver
 **Live data is an overlay, not a dependency.** `getPlace` merges
 `LOCATIONS_API_URL`'s answer over the baked point, with the TTL on the fetch
 itself. A 404 is `notFound()`; a 5xx or an unreachable source serves the
-baked point (a cached page keeps its last good render; a cold one that threw
-would get Next's bare-text 500, with no phone). The sitemap is stricter: with a
+baked point (a cold render that threw would get Next's bare-text 500, with no
+phone). A re-render during an outage still sees the last live answer while its
+fetch-cache entry lives; after a restart or an eviction — the cache is in
+memory — it renders the baked point, and that page is cached for 600 s. The sitemap is stricter: with a
 source configured, any failure throws, because a truncated sitemap tells a
 crawler the points are gone.
 
