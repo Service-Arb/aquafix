@@ -12,7 +12,8 @@ import { CTA_FACE } from "@/shared/ui/brand";
  */
 const CONTROL = "h-auto w-full rounded-[var(--corner-control)] border border-input bg-card py-[13px] text-ink shadow-none";
 const FIELD = "flex w-full flex-col gap-2";
-const LABEL = "text-[12.5px] font-medium tracking-[0.06em] text-ink-mid";
+/** Set solid, as the frame's `normal` leading: the page's 1.5 added ~40px to the card. */
+const LABEL = "text-[12.5px] font-medium leading-[normal] tracking-[0.06em] text-ink-mid";
 
 /**
  * kitstart's `QuoteFormShell` — a plain `<form method="post" action="/quote">`
@@ -36,8 +37,8 @@ export function QuoteForm({ copy, point, renderedAt }: { copy: QuoteFormWidgetCo
       className="light rounded-[var(--corner-float)] bg-background px-6 py-7 text-ink shadow-overlay md:px-[34px] md:pb-[30px] md:pt-8"
     >
       <div className="flex flex-col gap-[7px]">
-        <p className="font-display text-[24px] font-bold text-ink md:text-[30px]">{q.title}</p>
-        <p className="text-[15px] text-ink-soft">{q.lede}</p>
+        <p className="font-display text-[24px] font-bold leading-[1.1] text-ink md:text-[30px]">{q.title}</p>
+        <p className="text-[15px] leading-[normal] text-ink-soft">{q.lede}</p>
       </div>
       <Field className={FIELD}>
         <FieldLabel className={LABEL}>{q.jobLabel}</FieldLabel>
