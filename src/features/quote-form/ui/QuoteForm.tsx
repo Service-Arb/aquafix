@@ -1,4 +1,4 @@
-import { FORM_ID_FIELD, HONEYPOT_FIELD, LOCALE_FIELD, LOCATION_FIELD, RENDERED_AT_FIELD } from "@evinvest/kitstart";
+import { PHONE_INPUT_PROPS, QuoteFormShell } from "@evinvest/kitstart/react";
 import { Button, Check, Field, FieldLabel, Input, NativeSelect, NativeSelectOption } from "@evinvest/uikit";
 import type { CopyOf, Text } from "@/entities/content";
 import type { PlaceView } from "@/entities/place";
@@ -12,28 +12,26 @@ const FIELD = "flex w-full flex-col gap-2";
 const LABEL = "text-[12.5px] font-medium tracking-[0.06em] text-ink-mid";
 
 /**
- * A plain `<form method="post" action="/quote">`, answered with a 303. It has
- * to work before any JavaScript arrives, because that is when the visitor
- * standing in water submits it. The kit's `NativeSelect` is a real `<select>`
- * and `Field` mints the label's `for` with `useId`, so both hold with
- * scripting off; the scripted `Select` would not.
+ * kitstart's `QuoteFormShell` — a plain `<form method="post" action="/quote">`
+ * answered with a 303, carrying the hidden fields and the honeypot the funnel
+ * reads — around the three fields a plumbing quote asks for. It has to work
+ * before any JavaScript arrives, because that is when the visitor standing in
+ * water submits it. The kit's `NativeSelect` is a real `<select>` and `Field`
+ * mints the label's `for` with `useId`, so both hold with scripting off.
  */
 export type QuoteFormWidgetCopy = CopyOf<Pick<Text, "quoteForm" | "jobs">>;
 
 export function QuoteForm({ copy, point, renderedAt }: { copy: QuoteFormWidgetCopy; point: PlaceView; renderedAt: number }) {
   const q = copy.t.quoteForm;
   return (
-    <form
-      id="quote"
-      method="post"
-      action="/quote"
+    <QuoteFormShell
+      placeSlug={point.place.slug}
+      locale={copy.locale}
+      renderedAt={renderedAt}
+      honeypotLabel={q.honeypotLabel}
       // A light island inside a dark band.
-      className="light flex w-full flex-col gap-5 rounded-[var(--corner-float)] bg-background px-6 py-7 text-ink shadow-overlay md:px-[34px] md:pb-[30px] md:pt-8"
+      className="light rounded-[var(--corner-float)] bg-background px-6 py-7 text-ink shadow-overlay md:px-[34px] md:pb-[30px] md:pt-8"
     >
-      <input type="hidden" name={LOCATION_FIELD} value={point.place.slug} />
-      <input type="hidden" name={LOCALE_FIELD} value={copy.locale} />
-      <input type="hidden" name={FORM_ID_FIELD} value="quote" />
-      <input type="hidden" name={RENDERED_AT_FIELD} value={String(renderedAt)} />
       <div className="flex flex-col gap-[7px]">
         <p className="font-display text-[24px] font-bold text-ink md:text-[30px]">{q.title}</p>
         <p className="text-[15px] text-ink-soft">{q.lede}</p>
@@ -55,15 +53,8 @@ export function QuoteForm({ copy, point, renderedAt }: { copy: QuoteFormWidgetCo
       </Field>
       <Field className={FIELD}>
         <FieldLabel className={LABEL}>{q.mobileLabel}</FieldLabel>
-        <Input className={CONTROL} type="tel" name={LEAD.wire.mobile} autoComplete="tel" placeholder={q.mobilePlaceholder} required />
+        <Input className={CONTROL} {...PHONE_INPUT_PROPS} name={LEAD.wire.mobile} placeholder={q.mobilePlaceholder} required />
       </Field>
-      {/* Off-screen rather than `display: none`, which some bots skip. */}
-      <div aria-hidden="true" className="absolute -left-[10000px] h-px w-px overflow-hidden">
-        <label>
-          {q.honeypotLabel}
-          <input type="text" name={HONEYPOT_FIELD} tabIndex={-1} autoComplete="off" defaultValue="" />
-        </label>
-      </div>
       <Button type="submit" size="xl" className={`w-full ${CTA_FACE}`}>
         {q.submit}
       </Button>
@@ -73,6 +64,6 @@ export function QuoteForm({ copy, point, renderedAt }: { copy: QuoteFormWidgetCo
         <Check />
         <span className="text-[13px] font-medium text-ink-mid">{q.privacy}</span>
       </div>
-    </form>
+    </QuoteFormShell>
   );
 }

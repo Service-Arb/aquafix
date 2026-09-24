@@ -1,4 +1,4 @@
-import type { CopySlice } from "@evinvest/kitstart";
+import type { CopySlice, QuestionAnswer } from "@evinvest/kitstart";
 import type { Locale } from "@/shared/config/i18n";
 import { TRADE } from "@/shared/config/site";
 import { formatEur } from "@/shared/lib/money";
@@ -59,4 +59,9 @@ export type CopyOf<T> = CopySlice<Locale, T, Facts>;
 
 export function copyFor(input: { locale: Locale; place: string; phone: string }): Copy {
   return { locale: input.locale, t: text(input.locale), f: factsFor(input) };
+}
+
+/** The FAQ as the page prints it and the FAQPage node says it: one reading of the copy. */
+export function faqItems(copy: Copy): QuestionAnswer[] {
+  return copy.t.faqs.map(item => ({ q: item.q(copy.f), a: item.a(copy.f) }));
 }

@@ -1,9 +1,9 @@
+import { LangSwitch } from "@evinvest/kitstart/react";
 import { Button } from "@evinvest/uikit";
 import { NAV_IDS, NAV_SUFFIX, type Copy } from "@/entities/content";
 import type { PlaceView } from "@/entities/place";
-import { perLocale } from "@/shared/config/i18n";
+import { perLocale, i18n, LOCALES } from "@/shared/config/i18n";
 import { CTA_FACE, Lockup } from "@/shared/ui/brand";
-import { LangSwitch } from "@/shared/ui/LangSwitch";
 
 /**
  * The home page's header: transparent and laid over the photograph, so the
@@ -26,7 +26,7 @@ export function OverlayHeader({ copy, point }: { copy: Copy; point: PlaceView })
             </a>
           ))}
         </nav>
-        <LangSwitch
+        <LangSwitch locales={LOCALES} labels={i18n.labels} label={copy.t.langLabel}
           current={copy.locale}
           hrefs={perLocale(l => point.href("", l))}
           className="hidden text-[13px] font-medium text-ink-soft md:flex"

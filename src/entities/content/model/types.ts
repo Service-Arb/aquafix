@@ -145,6 +145,8 @@ export interface Text extends CoreText<PageKey, Facts> {
   whatsappLabel: string;
   /** The same channel where only a word fits. */
   whatsappShort: string;
+  /** The mobile call bar's accessible name. */
+  callBarLabel: string;
   menuLabel: string;
   whatsappMessage: Said;
   quoteForm: QuoteFormCopy;
@@ -177,6 +179,7 @@ export interface Text extends CoreText<PageKey, Facts> {
   thanks: StatusCopy;
   backHome: string;
   tryAgain: string;
+  langLabel: string;
   langName: string;
 }
 
