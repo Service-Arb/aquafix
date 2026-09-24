@@ -1,9 +1,9 @@
-import { LangSwitch } from "@evinvest/kitstart/react";
 import { telHref } from "@evinvest/marketing";
 import { NAV_IDS, NAV_SUFFIX, type Copy } from "@/entities/content";
 import { contactOf, storefrontOf, type PlaceView } from "@/entities/place";
-import { perLocale, i18n, LOCALES } from "@/shared/config/i18n";
+import { perLocale } from "@/shared/config/i18n";
 import { Lockup } from "@/shared/ui/brand";
+import { BrandLangSwitch } from "@/shared/ui/BrandLangSwitch";
 
 /**
  * One row of facts and one row of law. The four-column link farm went with the
@@ -42,7 +42,8 @@ export function QuietFooter({ copy, point }: { copy: Copy; point: PlaceView }) {
         </div>
         <div className="flex flex-col gap-3 border-t border-border pt-6 md:flex-row md:items-center md:justify-between">
           <p className="text-[12.5px] text-ink-soft">{[...t.facts(f), ...t.footer.legal].join(" · ")}</p>
-          <LangSwitch locales={LOCALES} labels={i18n.labels} label={copy.t.langLabel}
+          <BrandLangSwitch
+            label={copy.t.langLabel}
             current={copy.locale}
             hrefs={perLocale(l => point.href("", l))}
             className="text-[12.5px] font-medium text-ink-soft"

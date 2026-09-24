@@ -1,12 +1,12 @@
-import { LangSwitch } from "@evinvest/kitstart/react";
 import { telHref } from "@evinvest/marketing";
 import { Section } from "@evinvest/uikit";
 import type { Copy } from "@/entities/content";
 import type { Place } from "@/entities/place";
 import { CARD, site } from "@/shared/config/site";
-import { perLocale, i18n, LOCALES } from "@/shared/config/i18n";
+import { perLocale } from "@/shared/config/i18n";
 import { Lockup } from "@/shared/ui/brand";
 import { LocationList } from "@/widgets/location-list";
+import { BrandLangSwitch } from "@/shared/ui/BrandLangSwitch";
 
 /**
  * The apex, `aquafix.top`: the brand and its points, nothing to convert on
@@ -19,7 +19,8 @@ export function BrandHome({ copy, locations }: { copy: Copy; locations: readonly
       <header className="dark flex items-center bg-background px-[var(--page-px)] py-4 md:py-5">
         <Lockup mark="h-7 w-[24px] text-primary" word="text-[23px] text-ink" />
         <div className="flex-1" />
-        <LangSwitch locales={LOCALES} labels={i18n.labels} label={copy.t.langLabel}
+        <BrandLangSwitch
+          label={copy.t.langLabel}
           current={copy.locale}
           hrefs={perLocale(l => `/${l}`)}
           className="text-[13px] font-medium text-ink-soft"
