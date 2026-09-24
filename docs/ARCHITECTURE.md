@@ -102,7 +102,7 @@ owner chose to keep on the page, not in the schema.
 | `src/entities/place` | The six points bound to the site: baked data from `shared/config/places.ts`, the live overlay, the publication gate, URLs — kitstart's place model (`Place` with a storefront or service-area `presence`, `PlaceView`, the gate as a policy) with the site filled in; on `server.ts` the live source and the page loader. |
 | `src/entities/lead` | The lead's type (kitstart's), and the notifier that mails it to the business in French. What a lead asks is `LEAD` in `shared/config/lead.ts`. |
 | `src/features` | The quote form's fields (in kitstart's shell), SEO (which of Aquafix's words kitstart's `placeGraph` and `placeMetadata` quote). |
-| `src/widgets` | One band per file, ≤120 lines, over a `Copy` and a `PlaceView`. The structural ones are kitstart's widgets in the brand's band, with the Figma frame's geometry passed through `className`. |
+| `src/widgets` | One band per file, ≤120 lines, over a `Copy` and a `PlaceView`. The structural ones are kitstart's widgets in the brand's band, with the Figma frame's geometry passed through their `classNames` parts. |
 | `src/views` | The compositions: a point's home, its sub-pages, its status screens; the brand page. |
 
 ## Routing

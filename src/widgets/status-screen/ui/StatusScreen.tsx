@@ -1,4 +1,4 @@
-import { StatusScreen as KitStatusScreen } from "@evinvest/kitstart/react";
+import { StatusScreen as KitStatusScreen, type StatusScreenPart } from "@evinvest/kitstart/react";
 import type { CopyOf, StatusCopy, Text } from "@/entities/content";
 import { i18n, LOCALES, type Locale } from "@/shared/config/i18n";
 import { site } from "@/shared/config/site";
@@ -15,36 +15,35 @@ export interface StatusTarget {
   langHrefs: Record<Locale, string>;
 }
 
-/**
- * The Figma frame over kitstart's screen: the dark polarity, the glow off the
- * primary role, and the frame's own paddings and type sizes.
- *
- * `text-ink` is the dark scope's: kitstart's screen sets no colour of its own,
- * so without it an uncoloured child — the outline button's label — inherited
- * the light scope's ink from `<body>`, the page's own background colour.
- * The outline's rule takes `ink-soft` at 60 %: the dark scope's border token
- * is 1.55:1 on the background, under the 3:1 a control's edge needs.
- */
-const FRAME = [
-  "dark text-ink",
+/** The dark polarity and the glow off the primary role. */
+const ROOT = [
+  "dark",
   "before:pointer-events-none before:absolute before:inset-x-0 before:top-24 before:h-[760px] before:content-['']",
   "before:bg-[radial-gradient(ellipse_at_center,color-mix(in_srgb,var(--primary)_16%,transparent),transparent_65%)]",
-  "[&>header]:gap-0 md:[&>header]:py-[22px] [&>header>a:last-child]:leading-[inherit]",
-  // On a phone the lock-up, the switch and the number share one line; the
-  // number never wraps, so everything else gives way; under 360 px the
-  // wordmark goes and the mark stays (the link keeps the brand's name).
-  "max-[359px]:[&>header>a:first-child>span>span]:hidden",
-  "[&_header_nav]:mr-3 md:[&_header_nav]:mr-5 [&_header_nav]:text-[12px] md:[&_header_nav]:text-[13px] [&_header_nav]:leading-[inherit]",
-  "[&>header>a:last-child]:whitespace-nowrap [&>header>a:last-child]:text-[14px] md:[&>header>a:last-child]:text-xl",
-  "[&>main>div>a:nth-child(2)]:border-ink-soft/60",
-  "md:[&>main]:py-[110px]",
-  "[&>main>p:nth-of-type(1)]:text-[11px] md:[&>main>p:nth-of-type(1)]:text-[12px] [&>main>p:nth-of-type(1)]:leading-[inherit] [&>main>p:nth-of-type(1)]:tracking-[0.22em]",
-  "[&>main>p:nth-of-type(2)]:text-[88px] md:[&>main>p:nth-of-type(2)]:text-[150px] [&>main>p:nth-of-type(2)]:tracking-[-0.02em] [&>main>p:nth-of-type(2)]:[font-variant-numeric:tabular-nums]",
-  "[&_h1]:text-[26px] md:[&_h1]:text-[40px] [&_h1]:leading-[1.25]",
-  "[&>main>p:nth-of-type(3)]:max-w-[41rem] [&>main>p:nth-of-type(3)]:text-[15px] md:[&>main>p:nth-of-type(3)]:text-[17px] [&>main>p:nth-of-type(3)]:leading-[1.6]",
-  "[&>main>ul]:text-[14px] [&>main>ul]:leading-[inherit] sm:[&>main>ul]:gap-[26px]",
-  "[&>footer]:text-[11.5px] [&>footer]:leading-[inherit] [&>footer]:tracking-[0.08em]",
 ].join(" ");
+
+/**
+ * The Figma frame's paddings and type sizes over kitstart's screen. On a phone
+ * the lock-up, the switch and the number share one line — kitstart wraps the
+ * switch onto its own; the switch has no part of its own, so the header says
+ * where it goes. The outline's rule takes `ink-soft` at 60 % (4.10:1 on the
+ * background): the dark scope's border token is 1.55:1.
+ */
+const PARTS: Partial<Record<StatusScreenPart, string>> = {
+  header: [
+    "flex-nowrap gap-0 py-4 md:gap-0 md:py-[22px]",
+    "[&>nav]:order-none [&>nav]:mr-3 [&>nav]:w-auto [&>nav]:text-[12px] [&>nav]:leading-[inherit] md:[&>nav]:mr-5 md:[&>nav]:text-[13px]",
+  ].join(" "),
+  phone: "text-[14px] leading-[inherit] md:text-xl",
+  main: "md:py-[110px]",
+  eyebrow: "text-[11px] leading-[inherit] tracking-[0.22em] md:text-[12px]",
+  code: "text-[88px] leading-none tracking-[-0.02em] tabular-nums md:text-[150px]",
+  headline: "text-[26px] leading-[1.25] md:text-[40px]",
+  body: "max-w-[41rem] text-[15px] leading-[1.6] md:text-[17px]",
+  secondaryButton: "border-ink-soft/60",
+  strip: "text-[14px] leading-[inherit] sm:gap-[26px]",
+  footer: "text-[11.5px] leading-[inherit] tracking-[0.08em]",
+};
 
 /**
  * The 404, the 500 and the post-submit confirmation: kitstart's screen over a
@@ -69,11 +68,16 @@ export function StatusScreen({
       locales={LOCALES}
       labels={i18n.labels}
       brandName={site.brand.name}
+      // Under 360 px the wordmark goes and the mark stays; the link keeps the brand's name.
       logo={
-        <Lockup mark="h-6 w-[21px] text-primary md:h-[30px] md:w-[26px]" word="text-[19px] text-ink md:text-[23px]" />
+        <Lockup
+          mark="h-6 w-[21px] text-primary md:h-[30px] md:w-[26px]"
+          word="text-[19px] text-ink max-[359px]:hidden md:text-[23px]"
+        />
       }
       mark={<Mark className="h-[54px] w-[47px] text-primary" />}
-      className={FRAME}
+      className={ROOT}
+      classNames={PARTS}
       buttonClassName={CTA_FACE}
     />
   );
