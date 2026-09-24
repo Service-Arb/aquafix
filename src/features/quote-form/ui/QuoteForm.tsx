@@ -5,9 +5,12 @@ import type { PlaceView } from "@/entities/place";
 import { LEAD } from "@/shared/config/lead";
 import { CTA_FACE } from "@/shared/ui/brand";
 
-/** Taller and roomier than the kit's default control, on the card plane. */
-const CONTROL =
-  "h-auto w-full rounded-[var(--corner-control)] border border-input bg-card px-4 py-[15px] text-[16px] text-ink shadow-none";
+/**
+ * On top of the kit's `lg` control (16px inset and 16px type at every width —
+ * a bare `text-[16px]` here would lose to the kit's `md:text-sm`): the 52px
+ * Figma height on the card plane, 24px line + 2×13px + 2×1px border.
+ */
+const CONTROL = "h-auto w-full rounded-[var(--corner-control)] border border-input bg-card py-[13px] text-ink shadow-none";
 const FIELD = "flex w-full flex-col gap-2";
 const LABEL = "text-[12.5px] font-medium tracking-[0.06em] text-ink-mid";
 
@@ -38,8 +41,7 @@ export function QuoteForm({ copy, point, renderedAt }: { copy: QuoteFormWidgetCo
       </div>
       <Field className={FIELD}>
         <FieldLabel className={LABEL}>{q.jobLabel}</FieldLabel>
-        {/* Right padding clears the kit's arrow. */}
-        <NativeSelect name={LEAD.wire.subject} required className={`${CONTROL} pr-11`} defaultValue={LEAD.subjects[0]}>
+        <NativeSelect size="lg" name={LEAD.wire.subject} required className={CONTROL} defaultValue={LEAD.subjects[0]}>
           {LEAD.subjects.map(id => (
             <NativeSelectOption key={id} value={id}>
               {copy.t.jobs[id]}
@@ -49,11 +51,11 @@ export function QuoteForm({ copy, point, renderedAt }: { copy: QuoteFormWidgetCo
       </Field>
       <Field className={FIELD}>
         <FieldLabel className={LABEL}>{q.zipLabel}</FieldLabel>
-        <Input className={CONTROL} type="text" name={LEAD.wire.locality} autoComplete="postal-code" placeholder={q.zipPlaceholder} required />
+        <Input size="lg" className={CONTROL} type="text" name={LEAD.wire.locality} autoComplete="postal-code" placeholder={q.zipPlaceholder} required />
       </Field>
       <Field className={FIELD}>
         <FieldLabel className={LABEL}>{q.mobileLabel}</FieldLabel>
-        <Input className={CONTROL} {...PHONE_INPUT_PROPS} name={LEAD.wire.mobile} placeholder={q.mobilePlaceholder} required />
+        <Input size="lg" className={CONTROL} {...PHONE_INPUT_PROPS} name={LEAD.wire.mobile} placeholder={q.mobilePlaceholder} required />
       </Field>
       <Button type="submit" size="xl" className={`w-full ${CTA_FACE}`}>
         {q.submit}
