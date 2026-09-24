@@ -6,12 +6,19 @@
 # Explicit because the defaults are dev's: without HOSTNAME the standalone
 # server binds one interface the readiness probe may not reach, and without
 # LEADS_DB_PATH leads would be written outside the mounted volume — which the
-# server refuses in production (instrumentation.ts): every request, /health
-# included, answers 500, so the pod never turns ready rather than losing a lead.
+# server refuses in production (instrumentation.ts), as it refuses a missing
+# TRUSTED_PROXY: every request, /health included, answers 500, so the pod never
+# turns ready rather than losing a lead.
 { port }:
 {
   # The mount, not $HOME. Leads are the only durable state this service has.
   LEADS_DB_PATH = "/data/leads.db";
+  # Whose address the rate limit counts; production refuses to start without
+  # it. The origin is reached only through the cloudflared tunnel (Cloudflare
+  # → cloudflared → Traefik `web` → here; devops flake.nix), so
+  # CF-Connecting-IP is the visitor. Anything reaching the pod around the
+  # tunnel could write that header itself: then "xff:<n>" for n proxies.
+  TRUSTED_PROXY = "cloudflare";
   HOSTNAME = "0.0.0.0";
   PORT = toString port;
   NODE_ENV = "production";

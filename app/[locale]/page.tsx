@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { copyFor } from "@/entities/content";
-import { listPlaces } from "@/entities/place/server";
+import { placeSource } from "@/entities/place/server";
 import { brandMetadata } from "@/features/seo";
 import { CARD, site } from "@/shared/config/site";
 import { isLocale } from "@/shared/config/i18n";
@@ -28,5 +28,5 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function BrandPage({ params }: Props) {
   const copy = await brandCopy(params);
-  return <BrandHome copy={copy} locations={await listPlaces(copy.locale, "page")} />;
+  return <BrandHome copy={copy} locations={await placeSource.listPlaces(copy.locale, "page")} />;
 }

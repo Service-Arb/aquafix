@@ -1,10 +1,9 @@
+import { FORM_ID_FIELD, HONEYPOT_FIELD, LOCALE_FIELD, LOCATION_FIELD, RENDERED_AT_FIELD } from "@evinvest/kitstart";
 import { Button, Check, Field, FieldLabel, Input, NativeSelect, NativeSelectOption } from "@evinvest/uikit";
 import type { CopyOf, Text } from "@/entities/content";
 import type { PlaceView } from "@/entities/place";
 import { LEAD } from "@/shared/config/lead";
 import { CTA_FACE } from "@/shared/ui/brand";
-import { HONEYPOT_FIELD, RENDERED_AT_FIELD } from "../model/antispam";
-import { FORM_ID_FIELD, LOCALE_FIELD, LOCATION_FIELD } from "../model/accept";
 
 /** Taller and roomier than the kit's default control, on the card plane. */
 const CONTROL =
