@@ -1,5 +1,5 @@
-import { placeGraph, type JsonLdNode, type OfferInput, type PageGraphCopy, type QuestionAnswer } from "@evinvest/kitstart";
-import { PRICE_LIST, type Copy } from "@/entities/content";
+import { placeGraph, type JsonLdNode, type OfferInput, type PageGraphCopy } from "@evinvest/kitstart";
+import { faqItems, PRICE_LIST, type Copy } from "@/entities/content";
 import type { PlaceView } from "@/entities/place";
 import { site, type PageKey } from "@/shared/config/site";
 
@@ -16,10 +16,6 @@ function offers(copy: Copy): OfferInput[] {
   return PRICE_LIST.map(row => ({ name: copy.t.prices[row.id].job, price: row.fromEur }));
 }
 
-function faq(copy: Copy): QuestionAnswer[] {
-  return copy.t.faqs.map(item => ({ q: item.q(copy.f), a: item.a(copy.f) }));
-}
-
 /**
  * The words one page's graph quotes. The price list is on the home page and
  * /prices, the FAQ only on /prices: emitting either where it is not rendered
@@ -32,7 +28,7 @@ function graphCopy(copy: Copy, page: PageKey): PageGraphCopy {
     title: meta.title(copy.f),
     description: meta.description(copy.f),
     ...(page === "home" || page === "prices" ? { offers: offers(copy) } : {}),
-    ...(page === "prices" ? { faq: faq(copy) } : {}),
+    ...(page === "prices" ? { faq: faqItems(copy) } : {}),
   };
 }
 

@@ -4,10 +4,11 @@
  * committed copy to its source. */
 @import "./brand.css";
 
-/* The kit and the marketing layer ship class literals in their bundles, which
- * Tailwind's detection skips with the rest of node_modules. */
+/* The kit, the marketing layer and kitstart's widgets ship class literals in
+ * their bundles, which Tailwind's detection skips with the rest of node_modules. */
 @source "../node_modules/@evinvest/uikit/dist";
 @source "../node_modules/@evinvest/marketing/dist";
+@source "../node_modules/@evinvest/kitstart/dist";
 
 /* The brand's two families, self-hosted through next/font (shared/ui/fonts.ts).
  * The kit's display face is a serif; this brand's is Archivo. */

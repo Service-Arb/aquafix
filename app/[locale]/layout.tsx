@@ -1,10 +1,8 @@
 import "../globals.css";
+import { loadLocale, metadataBase } from "@evinvest/kitstart/next";
 import type { Metadata, Viewport } from "next";
-import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
-import { brandOrigin } from "@/entities/place";
 import { site } from "@/shared/config/site";
-import { isLocale } from "@/shared/config/i18n";
 import { archivo, inter } from "@/shared/ui/fonts";
 
 /**
@@ -14,7 +12,7 @@ import { archivo, inter } from "@/shared/ui/fonts";
  * to `body` and stay inside both without a provider.
  */
 export const metadata: Metadata = {
-  metadataBase: new URL(brandOrigin()),
+  metadataBase: metadataBase(site),
   applicationName: site.brand.name,
   formatDetection: { telephone: false },
 };
@@ -28,8 +26,7 @@ export default async function RootLayout({
   children: ReactNode;
   params: Promise<{ locale: string }>;
 }) {
-  const { locale } = await params;
-  if (!isLocale(locale)) notFound();
+  const locale = await loadLocale(site, params);
   return (
     <html lang={locale} data-brand={site.brand.id} className={`light ${archivo.variable} ${inter.variable}`}>
       <body>{children}</body>

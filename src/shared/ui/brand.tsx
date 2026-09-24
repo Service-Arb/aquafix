@@ -1,7 +1,7 @@
 /**
  * The mark, the wordmark and the lock-up — shared byte-for-byte with the
  * printed card through `assets/mark.svg` (inlined at build, see
- * `shared/config/build-env.ts`).
+ * kitstart's `withLanding` in `next.config.ts`).
  */
 
 const MARK_PATH = process.env.SITE_MARK_PATH ?? "";

@@ -5,8 +5,8 @@ import type { Place } from "@/entities/place";
 import { CARD, site } from "@/shared/config/site";
 import { perLocale } from "@/shared/config/i18n";
 import { Lockup } from "@/shared/ui/brand";
-import { LangSwitch } from "@/shared/ui/LangSwitch";
 import { LocationList } from "@/widgets/location-list";
+import { BrandLangSwitch } from "@/shared/ui/BrandLangSwitch";
 
 /**
  * The apex, `aquafix.top`: the brand and its points, nothing to convert on
@@ -19,7 +19,8 @@ export function BrandHome({ copy, locations }: { copy: Copy; locations: readonly
       <header className="dark flex items-center bg-background px-[var(--page-px)] py-4 md:py-5">
         <Lockup mark="h-7 w-[24px] text-primary" word="text-[23px] text-ink" />
         <div className="flex-1" />
-        <LangSwitch
+        <BrandLangSwitch
+          label={copy.t.langLabel}
           current={copy.locale}
           hrefs={perLocale(l => `/${l}`)}
           className="text-[13px] font-medium text-ink-soft"

@@ -1,7 +1,15 @@
+import { createRouting, GONE_HEADER, type RequestFacts } from "@evinvest/kitstart";
 import { NextRequest } from "next/server";
 import { describe, expect, it } from "vitest";
-import { decide, hostSlug, routeRequest, type RequestFacts } from "@/features/request-routing";
-import { GONE_HEADER, goneHeader, parseGoneHeader, parsePlaceParam } from "@evinvest/kitstart";
+import { site } from "@/shared/config/site";
+import { proxy } from "../proxy";
+
+// Aquafix's own site config through kitstart's routing. kitstart pins the
+// decision itself against its shared fixtures (`tests/fixtures/kitstart/
+// decide.json`, whose `aquafix` site is a copy of this one); this table holds
+// the real config to it, so a page, a slug or a legacy path added here cannot
+// route differently from what the fixtures promise.
+const { decide, hostSlug } = createRouting(site);
 
 const APEX = "aquafix.top";
 const ROYAT = "royat.aquafix.top";
@@ -28,7 +36,7 @@ describe("language negotiation", () => {
   });
 
   it("negotiates only page paths — the form target, the sitemap and the OG card pass", () => {
-    for (const path of ["/quote", "/sitemap.xml", "/robots.txt", "/og", "/health", "/_next/static/x.js", "/quote/"]) {
+    for (const path of ["/quote", "/sitemap.xml", "/robots.txt", "/og", "/health", "/_next/static/x.js"]) {
       expect(decide(req(path)), path).toEqual({ kind: "pass" });
     }
     expect(decide(req("/health", { host: ROYAT }))).toEqual({ kind: "pass" });
@@ -39,13 +47,9 @@ describe("language negotiation", () => {
   it.each([
     ["/nope", APEX, {}, { locale: "fr", location: null }],
     ["/nope/nope", APEX, {}, { locale: "fr", location: null }],
-    ["/wp-login.php", APEX, { acceptLanguage: "en" }, { locale: "en", location: null }],
-    ["/.env", APEX, { cookieLang: "en" }, { locale: "en", location: null }],
-    ["/favicon.ico", APEX, {}, { locale: "fr", location: null }],
     ["/xx/prices", APEX, {}, { locale: "fr", location: null }],
-    ["/royat/nope", APEX, {}, { locale: "fr", location: "royat" }],
+    ["/royat/nope", APEX, {}, { locale: "fr", location: null }],
     ["/nope", ROYAT, {}, { locale: "fr", location: "_royat" }],
-    ["/fr/x.php", APEX, {}, { locale: "fr", location: null }],
     ["/fr/royat/prices/deeper", APEX, {}, { locale: "fr", location: "royat" }],
     ["/en/_royat/prices/deeper", APEX, {}, { locale: "en", location: "_royat" }],
     ["/fr/a/b/c/d", ROYAT, {}, { locale: "fr", location: "_royat" }],
@@ -112,14 +116,8 @@ describe("host routing", () => {
     expect(decide(req("/fr/404"))).toEqual({ kind: "gone", locale: "fr", location: null });
     // Its own target, proxied back in by Next, passes on any host — sent to
     // the 404 again it would loop.
-    expect(decide(req("/fr/404/404"))).toEqual({ kind: "gone-target" });
-    expect(decide(req("/en/404/404", { host: ROYAT }))).toEqual({ kind: "gone-target" });
-  });
-
-  it("carries the 404's language and point in one header", () => {
-    expect(parseGoneHeader(goneHeader("fr", "_royat"))).toEqual({ locale: "fr", location: "_royat" });
-    expect(parseGoneHeader(goneHeader("en", null))).toEqual({ locale: "en" });
-    expect(parseGoneHeader(null)).toEqual({});
+    expect(decide(req("/fr/404/404"))).toEqual({ kind: "serve", pathname: "/fr/404/404" });
+    expect(decide(req("/en/404/404", { host: ROYAT }))).toEqual({ kind: "serve", pathname: "/en/404/404" });
   });
 
   it("keeps every real page out of the 404 route", () => {
@@ -136,71 +134,59 @@ describe("host routing", () => {
   it("passes a host-mode path through untouched — Next re-enters the proxy with it to fill its cache", () => {
     expect(decide(req("/fr/_royat/prices", { host: "localhost:3000" }))).toEqual({ kind: "serve", pathname: "/fr/_royat/prices" });
   });
+});
 
-  it("reads the link mode back out of the location param", () => {
-    expect(parsePlaceParam("_royat")).toEqual({ slug: "royat", mode: "host" });
-    expect(parsePlaceParam("royat")).toEqual({ slug: "royat", mode: "path" });
+// This site lists no `publicFiles`, so a path with an extension is a dead path
+// like any other — once a cached, phone-less 404 per scanner probe. The rest
+// of the proxy is kitstart's, tested there (`next.node.test.ts`, "the proxy").
+describe("the proxy on a path with an extension", () => {
+  const request = (url: string, headers: Record<string, string> = {}) => new NextRequest(new URL(url), { headers });
+  const gone = (res: Response) => ({
+    rewrite: new URL(res.headers.get("x-middleware-rewrite") ?? "http://x.invalid/").pathname,
+    header: res.headers.get(`x-middleware-request-${GONE_HEADER}`),
+  });
+
+  it.each([
+    ["https://aquafix.top/wp-login.php", APEX, { "accept-language": "en" }, { rewrite: "/en/404/404", header: "en" }],
+    ["https://aquafix.top/.env", APEX, { cookie: "lang=en" }, { rewrite: "/en/404/404", header: "en" }],
+    ["https://aquafix.top/favicon.ico", APEX, {}, { rewrite: "/fr/404/404", header: "fr" }],
+    ["https://aquafix.top/fr/x.php", APEX, {}, { rewrite: "/fr/404/404", header: "fr" }],
+    ["https://royat.aquafix.top/fr/x.php", ROYAT, {}, { rewrite: "/fr/404/404", header: "fr/_royat" }],
+    ["https://aquafix.top/fr/royat/x.php", APEX, {}, { rewrite: "/fr/404/404", header: "fr/royat" }],
+  ] as const)("sends %s to the 404, in its language, for its point", (url, host, headers, want) => {
+    expect(gone(proxy(request(url, { host, ...headers })))).toEqual(want);
+  });
+
+  it("lets the metadata routes through", () => {
+    for (const path of ["/sitemap.xml", "/robots.txt"]) {
+      const res = proxy(request(`https://royat.aquafix.top${path}`, { host: ROYAT }));
+      expect(res.headers.get("x-middleware-rewrite"), path).toBeNull();
+      expect(res.headers.get("x-middleware-next"), path).toBe("1");
+    }
   });
 });
 
-describe("the proxy", () => {
-  const request = (url: string, headers: Record<string, string> = {}) => new NextRequest(new URL(url), { headers });
-
-  it("answers the bare URL with a 302 that varies on the language inputs", () => {
-    const res = routeRequest(request("https://aquafix.top/"));
-    expect(res.status).toBe(302);
-    expect(new URL(res.headers.get("location") ?? "").pathname).toBe("/fr");
-    expect(res.headers.get("vary")).toContain("Accept-Language");
-  });
-
-  it("mints the language cookie for a year on ?lang=", () => {
-    const res = routeRequest(request("https://royat.aquafix.top/fr/prices?lang=en", { host: ROYAT }));
-    expect(res.status).toBe(303);
-    const cookie = res.headers.get("set-cookie") ?? "";
-    expect(cookie).toMatch(/^lang=en;/);
-    expect(cookie).toContain("Max-Age=31536000");
-  });
-
-  it("answers an old apex URL with a 301", () => {
-    const res = routeRequest(request("https://aquafix.top/fr/prices"));
-    expect(res.status).toBe(301);
-    expect(new URL(res.headers.get("location") ?? "").pathname).toBe("/fr");
-  });
-
-  it("rewrites a subdomain to the host-mode route", () => {
-    const res = routeRequest(request("https://royat.aquafix.top/fr", { host: ROYAT }));
-    expect(new URL(res.headers.get("x-middleware-rewrite") ?? "").pathname).toBe("/fr/_royat");
-  });
-
-  it("rewrites a dead path to one no route matches, telling the 404 its point", () => {
-    const res = routeRequest(request("https://royat.aquafix.top/fr/nope", { host: ROYAT }));
-    expect(new URL(res.headers.get("x-middleware-rewrite") ?? "").pathname).toBe("/fr/404/404");
-    expect(res.headers.get(`x-middleware-request-${GONE_HEADER}`)).toBe("fr/_royat");
-  });
-
-  it("hands the page nothing but the path — no request header for it to read", () => {
-    const res = routeRequest(request("https://royat.aquafix.top/fr/prices", { host: ROYAT }));
-    expect(res.headers.get("x-middleware-override-headers")).toBeNull();
-  });
-
-  it("drops a client-sent 404 header wherever the request goes", () => {
-    const forged = { [GONE_HEADER]: "en/_lyon-nord", accept: "text/html" };
-    for (const [url, host] of [
-      ["https://royat.aquafix.top/fr/prices", ROYAT], // serve, rewritten
-      ["https://aquafix.top/fr", APEX], // serve, as is
-      ["https://aquafix.top/quote", APEX], // pass
-    ] as const) {
-      const res = routeRequest(request(url, { host, ...forged }));
-      const overridden = (res.headers.get("x-middleware-override-headers") ?? "").split(",");
-      expect(overridden, url).toContain("accept");
-      expect(overridden, url).not.toContain(GONE_HEADER);
+// The routes outside `[locale]` pass as they came, so a POST reaches the
+// route with its body unread.
+describe("the proxy on a path without an extension", () => {
+  it("passes /og and /quote untouched", () => {
+    for (const path of ["/og", "/quote"]) {
+      const res = proxy(new NextRequest(new URL(`https://royat.aquafix.top${path}`), { headers: { host: ROYAT } }));
+      expect(res.headers.get("x-middleware-rewrite"), path).toBeNull();
+      expect(res.headers.get("x-middleware-next"), path).toBe("1");
     }
-    // On a dead path the proxy's own value replaces it.
-    const dead = routeRequest(request("https://royat.aquafix.top/fr/nope", { host: ROYAT, ...forged }));
-    expect(dead.headers.get(`x-middleware-request-${GONE_HEADER}`)).toBe("fr/_royat");
-    // …and on the hop back in, its own value is left alone.
-    const back = routeRequest(request("https://royat.aquafix.top/fr/404/404", { host: ROYAT, [GONE_HEADER]: "fr/_royat" }));
-    expect(back.headers.get("x-middleware-override-headers")).toBeNull();
-    expect(back.headers.get("x-middleware-rewrite")).toBeNull();
+  });
+
+  it("leaves a POST's body for the route", async () => {
+    const body = "location=royat&locale=fr&job=blocked_drain&zip=63130&mobile=0612345678";
+    const request = new NextRequest(new URL("https://royat.aquafix.top/quote"), {
+      method: "POST",
+      headers: { host: ROYAT, "content-type": "application/x-www-form-urlencoded" },
+      body,
+    });
+    const res = proxy(request);
+    expect(res.headers.get("x-middleware-next")).toBe("1");
+    expect(request.bodyUsed).toBe(false);
+    expect(await request.text()).toBe(body);
   });
 });

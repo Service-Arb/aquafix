@@ -1,10 +1,9 @@
+import { loadLocale } from "@evinvest/kitstart/next";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import { copyFor } from "@/entities/content";
 import { placeSource } from "@/entities/place/server";
 import { brandMetadata } from "@/features/seo";
 import { CARD, site } from "@/shared/config/site";
-import { isLocale } from "@/shared/config/i18n";
 import { BrandHome } from "@/views/brand";
 
 type Props = { params: Promise<{ locale: string }> };
@@ -17,8 +16,7 @@ export function generateStaticParams(): Array<{ locale: string }> {
 export const revalidate = 600;
 
 async function brandCopy(params: Props["params"]) {
-  const { locale } = await params;
-  if (!isLocale(locale)) notFound();
+  const locale = await loadLocale(site, params);
   return copyFor({ locale, place: site.brand.name, phone: CARD.phone });
 }
 

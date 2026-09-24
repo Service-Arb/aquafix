@@ -60,6 +60,8 @@ export const FR = {
   callLabel: f => `Appeler le ${f.phone}`,
   whatsappLabel: "Écrire sur WhatsApp",
   whatsappShort: "WhatsApp",
+  /** The mobile call bar's accessible name. */
+  callBarLabel: "Nous joindre",
   menuLabel: "Menu",
   whatsappMessage: f => `Bonjour, j’ai besoin d’un plombier à ${f.place}.`,
   quoteForm: {
@@ -382,5 +384,7 @@ export const FR = {
   },
   backHome: "← Retour à l’accueil",
   tryAgain: "Réessayer",
+  /** The language switch's accessible name. */
+  langLabel: "Langue",
   langName: "Français",
 } satisfies Text;

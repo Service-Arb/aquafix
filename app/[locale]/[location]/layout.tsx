@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { AnalyticsBoundary } from "@/features/analytics";
+import { AnalyticsBoundary } from "@evinvest/kitstart/react";
 import { serverEnv } from "@/shared/config/env";
 import { site } from "@/shared/config/site";
 import { loadPoint, type LocationParams } from "@/views/location/server";
@@ -9,7 +9,7 @@ import { loadPoint, type LocationParams } from "@/views/location/server";
  * sandbox with no network that would bake the fallback into the artefact —
  * so the list is empty: the first request for a path renders it, the result
  * is cached and served as a static page, and it re-renders in the background
- * once the live fetch's TTL (`PLACE_REVALIDATE_SECONDS`) has passed. A
+ * once the live fetch's TTL (kitstart's `PLACE_REVALIDATE_SECONDS`) has passed. A
  * failing source during that re-render keeps the last good live data only
  * while its fetch-cache entry lives: after a restart or an eviction (the
  * cache is in memory, `isrFlushToDisk: false`) a re-render during the outage
@@ -41,7 +41,7 @@ export default async function LocationLayout({
   return (
     <AnalyticsBoundary
       target={{ key: env.posthogKey, host: env.posthogHost, brandId: site.brand.id }}
-      locationId={point.place.slug}
+      placeSlug={point.place.slug}
     >
       {children}
     </AnalyticsBoundary>
