@@ -6,8 +6,12 @@ import { PHOTO_SETS } from "@/shared/assets/photos";
 import { CTA_FACE } from "@/shared/ui/brand";
 import heroWide from "../../../../assets/photos/hero-wide.jpg";
 
-/** Tailwind's `md` is `min-width: 48rem`; this is its complement. */
-const BELOW_MD = "(width < 48rem)";
+/**
+ * Tailwind's `md` is `min-width: 48rem`; this is its complement. Not the
+ * range syntax `(width < 48rem)`: a `<source media>` in a browser without it
+ * never matches, and would load the wide frame on a phone.
+ */
+const BELOW_MD = "(max-width: 47.99rem)";
 
 /**
  * The one place the page's rule is visible as geometry: the photograph is the
