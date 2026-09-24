@@ -5,10 +5,10 @@ import { bakedPlace, contactOf, placeView } from "@/entities/place";
 import { analyticsSink, EVENTS } from "@/features/analytics/events";
 import { acceptLead, clientKey, RateLimiter } from "@/features/quote-form";
 import { hostSlug } from "@/features/request-routing";
-import { site } from "@/shared/config/site";
+import { CARD, site } from "@/shared/config/site";
 import { serverEnv } from "@/shared/config/env";
 import type { Locale } from "@/shared/config/i18n";
-import { THANKS } from "@/shared/landing/core/routing";
+import { THANKS } from "@evinvest/kitstart";
 
 /**
  * The no-JS path, and the one that has to keep working: a plain form POST
@@ -43,7 +43,7 @@ function href(request: Request, slug: string | null, locale: Locale, suffix: str
 
 function unavailable(slug: string | null, locale: Locale): Response {
   const location = slug ? bakedPlace(slug) : undefined;
-  const phone = location ? contactOf(location).phone : site.brand.phone;
+  const phone = location ? contactOf(location).phone : CARD.phone;
   const copy = copyFor({ locale, place: location?.name[locale] ?? site.brand.name, phone });
   const s = copy.t.serverError;
   const tel = `tel:${copy.f.phone.replace(/[^\d+]/g, "")}`;

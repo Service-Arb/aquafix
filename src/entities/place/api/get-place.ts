@@ -2,7 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { serverEnv } from "@/shared/config/env";
 import type { Locale } from "@/shared/config/i18n";
-import { mergeLive } from "@/shared/landing/core/place";
+import { mergeLive } from "@evinvest/kitstart";
 import { bakedPlace, parseLive, PLACES } from "../model/place";
 import type { Place } from "../model/types";
 

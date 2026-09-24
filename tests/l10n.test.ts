@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { describe, expect, it } from "vitest";
 import { decide, hostSlug, routeRequest, type RequestFacts } from "@/features/request-routing";
-import { GONE_HEADER, goneHeader, parseGoneHeader, parseLocationParam } from "@/shared/landing/core/routing";
+import { GONE_HEADER, goneHeader, parseGoneHeader, parsePlaceParam } from "@evinvest/kitstart";
 
 const APEX = "aquafix.top";
 const ROYAT = "royat.aquafix.top";
@@ -138,8 +138,8 @@ describe("host routing", () => {
   });
 
   it("reads the link mode back out of the location param", () => {
-    expect(parseLocationParam("_royat")).toEqual({ slug: "royat", mode: "host" });
-    expect(parseLocationParam("royat")).toEqual({ slug: "royat", mode: "path" });
+    expect(parsePlaceParam("_royat")).toEqual({ slug: "royat", mode: "host" });
+    expect(parsePlaceParam("royat")).toEqual({ slug: "royat", mode: "path" });
   });
 });
 

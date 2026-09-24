@@ -1,6 +1,6 @@
-import { LOCALES, type Locale } from "@/shared/config/i18n";
-import { site } from "@/shared/config/site";
 import {
+  bakedPlace as bakedOn,
+  contactOf as contactOn,
   createPlaceView,
   isPublished as isPublishedBy,
   parsePlaceLive,
@@ -8,30 +8,37 @@ import {
   placeUrl as placeUrlOn,
   publicationGaps as gapsBy,
   siteOrigin,
+  type LinkMode,
   type PublicationField,
-} from "@/shared/landing/core/place";
-import type { LinkMode } from "@/shared/landing/core/routing";
+} from "@evinvest/kitstart";
+import { LOCALES, type Locale } from "@/shared/config/i18n";
+import { site } from "@/shared/config/site";
 import type { Place, PlaceLive, PlaceView } from "./types";
 
 /**
  * The place machinery bound to this site: its domain, its gate, its locales.
- * Everything below is the landing core with the site filled in, so the pages
- * keep calling `isPublished(place)` and never pass the policy by hand.
+ * Everything below is kitstart with the site filled in, so the pages keep
+ * calling `isPublished(place)` and never pass the policy by hand.
  */
 export const PLACES: readonly Place[] = site.places;
 export const PLACE_SLUGS: readonly string[] = site.placeSlugs;
 
 export function bakedPlace(slug: string): Place | undefined {
-  return PLACES.find(p => p.slug === slug);
+  return bakedOn(site, slug);
 }
 
-export const brandOrigin = (): string => siteOrigin(site.brand.domain);
-export const placeOrigin = (slug: string): string => placeOriginOn(site.brand.domain, slug);
-export const placeUrl = (slug: string, locale: Locale, suffix: string): string =>
-  placeUrlOn(site.brand.domain, slug, locale, suffix);
+/** An origin of a site with a domain; the card always carries one. */
+function known(origin: string | null): string {
+  if (origin === null) throw new Error("site.brand.domain is empty — assets/card.toml must name the site");
+  return origin;
+}
+
+export const brandOrigin = (): string => known(siteOrigin(site));
+export const placeOrigin = (slug: string): string => known(placeOriginOn(site, slug));
+export const placeUrl = (slug: string, locale: Locale, suffix: string): string => placeUrlOn(site, slug, locale, suffix);
 
 export function placeView(place: Place, locale: Locale, mode: LinkMode): PlaceView {
-  return createPlaceView(site.brand.domain, place, locale, mode);
+  return createPlaceView(site, place, locale, mode);
 }
 
 export const publicationGaps = (place: Place): PublicationField[] => gapsBy(place, site.publication);
@@ -39,7 +46,13 @@ export const isPublished = (place: Place): boolean => isPublishedBy(place, site.
 
 export const parseLive = (body: unknown): PlaceLive => parsePlaceLive(body, LOCALES);
 
-/** The numbers a point answers on: its own, or the card's until it has one. */
+/**
+ * The numbers a point answers on: its own, or the brand's until it has one
+ * (kitstart's `contactOf`). Never null here — the brand's is the card's, which
+ * the build refuses to leave out — so the pages can print it as it is.
+ */
 export function contactOf(place: Place): { phone: string; whatsapp: string } {
-  return { phone: place.channels.phone ?? site.brand.phone, whatsapp: place.channels.whatsapp ?? site.brand.phone };
+  const { phone, whatsapp } = contactOn(site, place);
+  if (phone === null || whatsapp === null) throw new Error(`${place.slug}: no phone — assets/card.toml must carry one`);
+  return { phone, whatsapp };
 }

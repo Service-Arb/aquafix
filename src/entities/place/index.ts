@@ -19,4 +19,4 @@ export {
   servedLocalities,
   storefrontOf,
   type PublicationField,
-} from "@/shared/landing/core/place";
+} from "@evinvest/kitstart";

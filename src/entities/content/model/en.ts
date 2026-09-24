@@ -336,9 +336,10 @@ export const EN = {
     line: "Ready for a number? Get your flat price in ninety seconds.",
     button: "Get my flat price  →",
   },
+  /** The registration facts, under the footer and every status screen. */
+  facts: f => [`SIRET ${f.siret}`, `Assurance décennale · ${f.insurer}`, "Prices include TVA", "Every plumber vetted"],
   footer: {
     columns: { services: "SERVICES", areas: "AREAS", company: "COMPANY", contact: "CONTACT" },
-    facts: f => [`SIRET ${f.siret}`, `Assurance décennale · ${f.insurer}`, "Prices include TVA", "Every plumber vetted"],
     legal: ["Legal notice", "Privacy", "Insurance certificate"],
     company: {
       guarantee: "Our guarantee",

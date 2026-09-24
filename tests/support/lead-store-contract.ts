@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { Lead, LeadStore } from "@/shared/landing/core/lead";
+import type { Lead } from "@evinvest/kitstart";
+import type { LeadStore } from "@/entities/lead/server";
 
 /**
  * What every `LeadStore` adapter promises the funnel, whatever it keeps leads

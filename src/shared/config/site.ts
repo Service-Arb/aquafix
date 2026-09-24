@@ -1,5 +1,4 @@
-import { STOREFRONT_GATE } from "@/shared/landing/core/place";
-import { defineSite } from "@/shared/landing/core/site";
+import { defineSite, STOREFRONT_GATE, type OwnerTodo } from "@evinvest/kitstart";
 import { i18n } from "./i18n";
 import { LEAD } from "./lead";
 import { PLACES } from "./places";
@@ -45,6 +44,9 @@ export const site = defineSite({
     priceRange: "€€",
   },
   i18n,
+  // `og:locale` needs a region, unlike `hreflang`; English is read in Ireland
+  // and Britain, not the US.
+  ogLocale: { fr: "fr_FR", en: "en_GB" },
   topology: { kind: "subdomains", apex: "directory" },
   /**
    * The pages a point has, as locale- and point-free suffixes. The proxy, the
@@ -83,18 +85,18 @@ export const TRADE = {
   radiusKm: 30,
 } as const;
 
-export interface OwnerTodo {
-  field: string;
-  why: string;
-}
-
+/**
+ * None blocks launch: the site already answers on its domain, and a blocking
+ * fact would refuse the build (`assertLaunchable`). Which of these should
+ * have held the launch back is the owner's call.
+ */
 export const OWNER_TODO: readonly OwnerTodo[] = [
-  { field: "site.brand.legalName", why: "raison sociale as registered" },
-  { field: "TRADE.siret", why: "SIRET of the operating entity" },
-  { field: "TRADE.decennale", why: "insurer and policy number of the assurance décennale" },
-  { field: "site.brand.email", why: "card.toml carries val@; confirm the public mailbox" },
-  { field: "TRADE.calloutEur / surchargeEur", why: "EUR amounts carried over from the USD draft, not priced" },
-  { field: "TRADE.radiusKm", why: "service radius per point" },
-  { field: "PRICE_LIST", why: "every fromEur is the USD draft's integer, not a French price" },
-  { field: "Text.crew / Text.reviews / proof stats", why: "copy placeholders from the Portland draft" },
+  { field: "site.brand.legalName", why: "raison sociale as registered", blocksLaunch: false },
+  { field: "TRADE.siret", why: "SIRET of the operating entity", blocksLaunch: false },
+  { field: "TRADE.decennale", why: "insurer and policy number of the assurance décennale", blocksLaunch: false },
+  { field: "site.brand.email", why: "card.toml carries val@; confirm the public mailbox", blocksLaunch: false },
+  { field: "TRADE.calloutEur / surchargeEur", why: "EUR amounts carried over from the USD draft, not priced", blocksLaunch: false },
+  { field: "TRADE.radiusKm", why: "service radius per point", blocksLaunch: false },
+  { field: "PRICE_LIST", why: "every fromEur is the USD draft's integer, not a French price", blocksLaunch: false },
+  { field: "Text.crew / Text.reviews / proof stats", why: "copy placeholders from the Portland draft", blocksLaunch: false },
 ];

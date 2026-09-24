@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { copyFor } from "@/entities/content";
 import { PLACES } from "@/entities/place";
 import { brandMetadata, locationGraph, locationMetadata, statusMetadata } from "@/features/seo";
-import { site, PAGE_KEYS } from "@/shared/config/site";
+import { CARD, site, PAGE_KEYS } from "@/shared/config/site";
 import { LOCALES } from "@/shared/config/i18n";
 import { context, publishedRoyat, royat } from "./support/fixtures";
 
@@ -56,7 +56,7 @@ describe("golden: <head> metadata", () => {
       }
     }
     for (const locale of LOCALES) {
-      const copy = copyFor({ locale, place: site.brand.name, phone: site.brand.phone });
+      const copy = copyFor({ locale, place: site.brand.name, phone: CARD.phone });
       out[`brand/${locale}`] = brandMetadata(copy);
       out[`status/${locale}`] = statusMetadata(copy.t.thanks.title);
     }

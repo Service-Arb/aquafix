@@ -1,7 +1,7 @@
 import { telHref } from "@evinvest/marketing";
 import { SERVICE_LIST, type Copy } from "@/entities/content";
 import { contactOf, servedLocalities, storefrontOf, type PlaceView } from "@/entities/place";
-import { site } from "@/shared/config/site";
+import { CARD, site } from "@/shared/config/site";
 import { Lockup } from "@/shared/ui/brand";
 import type { ReactNode } from "react";
 
@@ -20,7 +20,7 @@ export function Footer({ copy, point }: { copy: Copy; point: PlaceView }) {
           <Lockup mark="h-[30px] w-[26px] text-primary" word="text-[23px] text-ink" />
           <p className="text-[11px] font-medium tracking-[0.16em] text-primary-ink">{t.promise}</p>
           <div className="flex flex-col gap-[7px] text-[13.5px] text-ink-soft">
-            {t.footer.facts(f).map(fact => (
+            {t.facts(f).map(fact => (
               <p key={fact}>{fact}</p>
             ))}
           </div>
@@ -53,7 +53,7 @@ export function Footer({ copy, point }: { copy: Copy; point: PlaceView }) {
             </a>
             <p>{t.emergencyHours}</p>
             <p>{t.bookingHours}</p>
-            <a href={`mailto:${site.brand.email}`}>{site.brand.email}</a>
+            <a href={`mailto:${CARD.email}`}>{CARD.email}</a>
             {front && (
               <address className="not-italic">
                 {front.address.street}, {front.address.postalCode} {front.address.locality}

@@ -1,6 +1,6 @@
+import type { CopySlice } from "@evinvest/kitstart";
 import type { Locale } from "@/shared/config/i18n";
 import { TRADE } from "@/shared/config/site";
-import type { CopySlice } from "@/shared/landing/core/content";
 import { formatEur } from "@/shared/lib/money";
 import { priceOf } from "./model/catalogue";
 import { EN } from "./model/en";

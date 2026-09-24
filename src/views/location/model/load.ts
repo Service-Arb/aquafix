@@ -4,7 +4,7 @@ import { copyFor, type Copy } from "@/entities/content";
 import { contactOf, placeView, type PlaceView } from "@/entities/place";
 import { getPlace } from "@/entities/place/server";
 import { isLocale } from "@/shared/config/i18n";
-import { parseLocationParam } from "@/shared/landing/core/routing";
+import { parsePlaceParam } from "@evinvest/kitstart";
 
 export interface LocationParams {
   locale: string;
@@ -23,7 +23,7 @@ export interface LocationParams {
 export async function loadPoint(params: Promise<LocationParams>): Promise<{ point: PlaceView; copy: Copy }> {
   const { locale, location: param } = await params;
   if (!isLocale(locale)) notFound();
-  const { slug, mode } = parseLocationParam(param);
+  const { slug, mode } = parsePlaceParam(param);
   const location = await getPlace(slug, locale);
   if (!location) notFound();
   return {

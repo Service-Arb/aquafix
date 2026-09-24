@@ -1,4 +1,4 @@
-import type { Place, PostalAddress } from "@/shared/landing/core/place";
+import type { Place, PostalAddress } from "@evinvest/kitstart";
 import type { Locale } from "./i18n";
 
 /**

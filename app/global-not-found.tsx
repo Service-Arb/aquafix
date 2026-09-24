@@ -2,7 +2,7 @@ import "./globals.css";
 import { headers } from "next/headers";
 import { DEFAULT_LOCALE, isLocale } from "@/shared/config/i18n";
 import { site } from "@/shared/config/site";
-import { GONE_HEADER, parseGoneHeader } from "@/shared/landing/core/routing";
+import { GONE_HEADER, parseGoneHeader } from "@evinvest/kitstart";
 import { archivo, inter } from "@/shared/ui/fonts";
 import { Gone } from "@/views/not-found/server";
 

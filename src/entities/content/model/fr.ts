@@ -336,9 +336,10 @@ export const FR = {
     line: "Prêt pour un chiffre ? Obtenez votre prix fixe en quatre-vingt-dix secondes.",
     button: "Obtenir mon prix fixe  →",
   },
+  /** The registration facts, under the footer and every status screen. */
+  facts: f => [`SIRET ${f.siret}`, `Assurance décennale · ${f.insurer}`, "Prix TTC", "Chaque plombier vérifié"],
   footer: {
     columns: { services: "SERVICES", areas: "ZONES", company: "ENTREPRISE", contact: "CONTACT" },
-    facts: f => [`SIRET ${f.siret}`, `Assurance décennale · ${f.insurer}`, "Prix TTC", "Chaque plombier vérifié"],
     legal: ["Mentions légales", "Confidentialité", "Attestation d’assurance"],
     company: {
       guarantee: "Notre garantie",
