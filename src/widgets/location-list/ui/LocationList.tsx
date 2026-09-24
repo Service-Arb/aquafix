@@ -12,20 +12,21 @@ export type LocationListCopy = CopyOf<{ brandPage: Pick<BrandPageCopy, "listTitl
 
 /**
  * The Figma frame's geometry over kitstart's type scale: the card corner is
- * the brand's, the lines keep the page's leading, the address its own size.
+ * the brand's, the one-line parts set solid (the frame's `normal` leading),
+ * the address at its own size and leading.
  */
 const CARDS: Partial<Record<PlaceDirectoryPart, string>> = {
   card: "rounded-[var(--corner-card)]",
-  name: "leading-[inherit]",
+  name: "leading-[normal]",
   address: "text-[14.5px] leading-[1.55]",
-  phone: "leading-[inherit]",
-  link: "leading-[inherit]",
+  phone: "leading-[normal]",
+  link: "leading-[normal]",
 };
 
 export function LocationList({ copy, locations }: { copy: LocationListCopy; locations: readonly Place[] }) {
   const { t, locale } = copy;
   return (
-    <Section id="points">
+    <Section tight id="points">
       <PlaceDirectory
         id="points-list"
         places={locations}
