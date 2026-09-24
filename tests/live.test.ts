@@ -44,9 +44,12 @@ describe("the live location source", () => {
       expect(await (await load())("royat", "fr")).toBeNull();
     });
 
-    it("throws on a 5xx, so the page is a 500 and not a soft 404", async () => {
+    it("serves the baked point on a 5xx — never a soft 404, never a phone-less bare 500", async () => {
       vi.stubGlobal("fetch", vi.fn(async () => new Response(null, { status: 502 })));
-      await expect((await load())("royat", "fr")).rejects.toThrow(/502/);
+      vi.spyOn(console, "error").mockImplementation(() => undefined);
+      const location = await (await load())("royat", "fr");
+      expect(location?.slug).toBe("royat");
+      expect(location?.hours).toBeNull();
     });
 
     it("serves the baked point when the source is unreachable", async () => {

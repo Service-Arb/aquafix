@@ -63,11 +63,6 @@ export interface SiteConfig<L extends string, P extends string, B extends BrandF
 export interface Site<L extends string, P extends string, B extends BrandFacts> extends SiteConfig<L, P, B> {
   readonly pageKeys: readonly (P | "home")[];
   readonly placeSlugs: readonly string[];
-  /**
-   * Request headers only the proxy may set: how a point's links are written
-   * on this host, and the internal path a request was routed to.
-   */
-  readonly headers: { readonly linkMode: string; readonly route: string };
 }
 
 export function defineSite<L extends string, P extends string, B extends BrandFacts>(
@@ -78,6 +73,5 @@ export function defineSite<L extends string, P extends string, B extends BrandFa
     ...config,
     pageKeys,
     placeSlugs: config.places.map(p => p.slug),
-    headers: { linkMode: `x-${config.brand.id}-link-mode`, route: `x-${config.brand.id}-route` },
   };
 }

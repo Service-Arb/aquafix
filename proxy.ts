@@ -6,8 +6,9 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Everything but the build output and files with an extension. `/quote`,
-  // `/og` and `/health` enter and are passed through by `decide`, which owns
-  // the list of what is a page — a second list here would drift from it.
-  matcher: ["/((?!_next/|.*\\.[a-z0-9]+$).*)"],
+  // Everything but the build output. Files with an extension enter too: the
+  // app serves none from `public/`, and a scanner's `/wp-login.php` let past
+  // here would reach `[locale]` and be cached as a 404 page. `decide` owns the
+  // list of what passes (`NON_PAGE_ROUTES`) — a second list here would drift.
+  matcher: ["/((?!_next/).*)"],
 };

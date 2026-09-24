@@ -3,6 +3,10 @@ import { buildEnv } from "./src/shared/config/build-env";
 
 const config: NextConfig = {
   poweredByHeader: false,
+  // Pages are cached (ISR) and say so: `s-maxage` is the live data's TTL, and
+  // this bounds the `stale-while-revalidate` tail a CDN may serve while it
+  // refetches — a day, not Next's default year.
+  expireTime: 86_400,
   // The image ships `.next/standalone`: the server plus only the files it was
   // traced to need, not the dev toolchain `npm ci` installed to build it.
   output: "standalone",
@@ -30,6 +34,10 @@ const config: NextConfig = {
     // cache stays in memory: per pod, which a restart forgetting costs one
     // round trip, instead of a write the store refuses.
     isrFlushToDisk: false,
+    // `app/global-not-found.tsx` answers every path no route matches — the
+    // proxy sends dead paths there (see `GONE`). The root layout lives under
+    // `[locale]`, so without it that 404 is Next's bare default page.
+    globalNotFound: true,
   },
 };
 

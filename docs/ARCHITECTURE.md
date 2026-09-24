@@ -109,11 +109,25 @@ owner chose to keep on the page, not in the schema.
 
 ```text
 royat.aquafix.top/                → 302 /fr or /en (cookie, then Accept-Language), Vary
-royat.aquafix.top/fr/prices       → renders app/[locale]/[location]/prices for royat
+royat.aquafix.top/fr/prices       → rewritten to /fr/_royat/prices (host link mode)
 aquafix.top/fr                    → the brand page, listing the points
 aquafix.top/fr/royat/prices       → the same point page, through the apex (fallback)
 …?lang=en                         → cookie for a year, 303 to the clean URL
+royat.aquafix.top/fr/nope         → 404: royat's screen, from app/global-not-found
+aquafix.top/fr/nowhere            → 404: the brand's screen, the same way
+aquafix.top/wp-login.php          → 404 in the visitor's language (cookie, then Accept-Language)
 ```
+
+A dead path is answered by the proxy, not by a `notFound()`: Next 16 sends
+that as an empty document the browser fills in, and the 404 must work without
+JavaScript like every other page. The proxy knows every point and page, so it
+rewrites a dead path to one no route matches (`/fr/404/404`) and names the
+language and point in a header that only `app/global-not-found.tsx` reads —
+it is a route of its own, so the cached pages never see it. An unprefixed path
+that is not a page or one of `NON_PAGE_ROUTES` goes the same way: let through,
+it would land in `[locale]` and Next would cache its `notFound()` as a page —
+one in-memory ISR entry per scanner probe, crowding out the real pages. The
+404 renders per request (`no-store`), so junk never takes a cache entry.
 
 Both languages carry a prefix and French is the default: there are no legacy
 URLs to keep, and a header-less crawler lands on French and reaches English
@@ -122,6 +136,16 @@ visitor. Only page paths are negotiated — `/quote`, the sitemap and assets pas
 straight through. The canonical host of a point is always its subdomain, so the
 apex fallback never competes with it. Locally, `<slug>.localhost:3000` gets the
 subdomain behaviour and `localhost:3000/fr/<slug>` the fallback.
+
+**Pages are cached, so nothing reads the request.** Every page is incremental
+static regeneration: rendered on its first request, served from cache after,
+re-rendered in the background when the live data's TTL
+(`PLACE_REVALIDATE_SECONDS`, 600 s) has passed. The proxy tells a page how to
+write its links through the path it rewrites to, not a header — the subdomain
+lands on `[location]` = `_royat`, the apex fallback on `royat` — so the two link
+modes are two cache entries and no page calls `headers()`. The not-found and
+error boundaries follow the same rule (route params, not request data) and are
+loaded on demand, since Next ships a segment's boundaries with every page.
 
 ## Boundaries
 
@@ -149,8 +173,11 @@ Rust server's, brought forward in place by numbered steps under `PRAGMA user_ver
 
 **Live data is an overlay, not a dependency.** `getPlace` merges
 `LOCATIONS_API_URL`'s answer over the baked point, with the TTL on the fetch
-itself. A 404 is `notFound()`; a 5xx throws (a 500, not a soft 404); an
-unreachable source serves the baked point. The sitemap is stricter: with a
+itself. A 404 is `notFound()`; a 5xx or an unreachable source serves the
+baked point (a cold render that threw would get Next's bare-text 500, with no
+phone). A re-render during an outage still sees the last live answer while its
+fetch-cache entry lives; after a restart or an eviction — the cache is in
+memory — it renders the baked point, and that page is cached for 600 s. The sitemap is stricter: with a
 source configured, any failure throws, because a truncated sitemap tells a
 crawler the points are gone.
 

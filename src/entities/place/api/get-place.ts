@@ -69,10 +69,14 @@ export const getPlace = cache(async (slug: string, locale: Locale): Promise<Plac
     case "unreachable":
       console.error(`live location ${baked.slug}: source unreachable, serving baked`, fetched.cause);
       return baked;
-    // A failing source is a 5xx, thrown so the error boundary answers 500
-    // instead of a soft 404 that would teach a crawler the page is gone.
+    // A failing source is treated like an unreachable one — the baked point,
+    // never a 404 that would teach a crawler the page is gone. It is not
+    // thrown for a 500: the pages are cached (ISR), so a warm page keeps its
+    // last good render through an outage anyway, and a cold one that throws
+    // gets Next's bare-text 500 with no phone on it, not the error boundary.
     case "failed":
-      throw new PlaceSourceError(`live location ${baked.slug}: source answered ${fetched.status}`);
+      console.error(`live location ${baked.slug}: source answered ${fetched.status}, serving baked`);
+      return baked;
   }
 });
 
