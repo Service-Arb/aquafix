@@ -67,6 +67,27 @@
         "type": "github"
       }
     },
+    "ev": {
+      "inputs": {
+        "v_flakes": [
+          "v_flakes"
+        ]
+      },
+      "locked": {
+        "lastModified": 1790204943,
+        "narHash": "sha256-arSyBoyCkx3aA1/BYK5+Rb6Qb8DYpQXb6sWdak/Ux/U=",
+        "owner": "EV-invest",
+        "repo": "lib",
+        "rev": "465505be17fcea8b22ffcfcf2a03b95c188478b5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "EV-invest",
+        "repo": "lib",
+        "rev": "465505be17fcea8b22ffcfcf2a03b95c188478b5",
+        "type": "github"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -236,6 +257,7 @@
     },
     "root": {
       "inputs": {
+        "ev": "ev",
         "v_flakes": "v_flakes"
       }
     },

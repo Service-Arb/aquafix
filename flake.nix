@@ -6,9 +6,18 @@
 
   inputs = {
     v_flakes.url = "github:valeratrades/v_flakes?ref=v1.6";
+    # TODO: re-pin to ?ref=@evinvest/kitstart-v0.1.0 once it is published —
+    # the tag does not exist yet, so this is lib main with mkLanding's
+    # `packageSourceOverrides` (465505b).
+    ev.url = "github:EV-invest/lib?rev=465505be17fcea8b22ffcfcf2a03b95c188478b5";
+    ev.inputs.v_flakes.follows = "v_flakes";
   };
 
-  outputs = { self, v_flakes }:
+  # The landing machinery (hermetic build, image, bundle budget, container
+  # smoke, dev and test apps) is the lib's `mkLanding`; what stays here is
+  # Aquafix's config, the print materials, the generated repo files and the
+  # release tag.
+  outputs = { self, v_flakes, ev }:
     let
       inherit (v_flakes) flake-utils pre-commit-hooks;
       manifest = builtins.fromJSON (builtins.readFile ./package.json);
@@ -40,107 +49,54 @@
       let
         pkgs = import v_flakes.default_nixpkgs { inherit system; };
         lib = pkgs.lib;
-        # `node:sqlite` without a flag needs ≥ 22.13 (package.json `engines`).
-        # The build and the image run the same major; the image gets the slim
-        # build, which is the same node without npm.
-        nodejs = pkgs.nodejs_22;
-        nodeRuntime = pkgs.nodejs-slim_22;
 
         # Single source for the dev server, the container's exposed port and the
         # prod env. The Rust server listened here too; the cluster's Service did
-        # not have to change.
+        # not have to change. (vifnet is on 59082.)
         sitePort = "59081";
-
-        # ── the hermetic build ──────────────────────────────────────────────
-        # `importNpmLock` fetches each package by the `integrity` the lockfile
-        # already pins, so there is no second hash to keep in step with
-        # package-lock.json, and nothing else reaches the network.
-        npmLock = lib.importJSON ./package-lock.json;
-        npmOs = if pkgs.stdenv.hostPlatform.isDarwin then "darwin" else "linux";
-        npmCpu = if pkgs.stdenv.hostPlatform.isAarch64 then "arm64" else "x64";
-        # npm's `os`/`cpu`/`libc` fields: a list of names, or of `!name` exclusions.
-        fits = want: list:
-          let positive = builtins.filter (x: !(lib.hasPrefix "!" x)) list;
-          in !(builtins.elem "!${want}" list) && (positive == [ ] || builtins.elem want positive);
-        foreign = m:
-          (m ? os && !(fits npmOs m.os))
-          || (m ? cpu && !(fits npmCpu m.cpu))
-          || (m ? libc && !(fits "glibc" m.libc));
-        npmSourceOverrides = lib.concatMapAttrs
-          (path: m:
-            # TODO: drop with the npm swap — @evinvest/{uikit,marketing,kitstart}
-            # are vendored tarballs (`file:vendor/…`) until they are published,
-            # and `importNpmLock` would read the spec as a path with the scheme
-            # still on it.
-            if lib.hasPrefix "file:" (m.resolved or "") then
-              { ${path} = ./. + "/${lib.removePrefix "file:" m.resolved}"; }
-            # Every platform's native binary is in the lockfile — @next/swc
-            # alone is ~100 MB per platform. npm skips the foreign ones without
-            # reading them, so they are never fetched either.
-            else if (m.optional or false) && foreign m then
-              { ${path} = pkgs.emptyFile; }
-            else { })
-          npmLock.packages;
-
-        buildSrc = lib.fileset.toSource {
-          root = ./.;
-          fileset = lib.fileset.unions [
-            ./package.json
-            ./package-lock.json
-            ./app
-            ./src
-            ./assets
-            ./next.config.ts
-            ./tsconfig.json
-            ./postcss.config.mjs
-            ./proxy.ts
-            ./instrumentation.ts
-          ];
-        };
-
-        # `.next/standalone` plus the static chunks `postbuild` copies into it:
-        # the server and only the files it was traced to need. The diagnostics
-        # ride along for the bundle-budget check; nothing serves them.
-        site = pkgs.buildNpmPackage {
-          inherit pname nodejs;
-          version = manifest.version;
-          src = buildSrc;
-          npmDeps = pkgs.importNpmLock {
-            npmRoot = ./.;
-            packageSourceOverrides = npmSourceOverrides;
-          };
-          npmConfigHook = pkgs.importNpmLock.npmConfigHook;
-          env.NEXT_TELEMETRY_DISABLED = "1";
-          installPhase = ''
-            runHook preInstall
-            test -f .next/standalone/server.js
-            test -d .next/standalone/.next/static
-            test -f .next/standalone/assets/fonts/Archivo-Bold.ttf
-            cp -a .next/standalone "$out"
-            cp -a .next/diagnostics "$out/.next/diagnostics"
-            runHook postInstall
-          '';
-          # The traced `node_modules` keep their bin shebangs; rewritten, each
-          # would pull the full nodejs, npm included, into the image. Nothing in
-          # the server executes them.
-          dontPatchShebangs = true;
-        };
-
         # Secret-free prod env, authored in nix and baked into the image.
         # Without it the server would take its dev defaults — see deploy/config.nix.
         prodEnv = import ./deploy/config.nix { port = sitePort; };
-        containerStd = v_flakes.container.implement {
-          inherit pkgs pname;
-          containers."" = {
-            port = lib.toInt sitePort;
-            mounts = [ "/data" ];
-            healthPath = "/health";
-            # A down landing is a lost lead, not a stale chart.
-            criticality = "high";
-            entrypoint = [ "${nodeRuntime}/bin/node" "${site}/server.js" ];
-            workingDir = "/data";
-            imageEnv = [ "HOME=/data" ] ++ lib.mapAttrsToList (n: v: "${n}=${v}") prodEnv;
+
+        # TODO: drop with the npm swap (package.json `file:` → versions).
+        # @evinvest/{uikit,marketing,kitstart} are vendored tarballs until they
+        # are published; `importNpmLock` would read a `file:` spec as a path
+        # with the scheme still on it, so each is handed over from vendor/.
+        vendored = lib.concatMapAttrs
+          (path: m:
+            if lib.hasPrefix "file:" (m.resolved or "") then
+              { ${path} = ./. + "/${lib.removePrefix "file:" m.resolved}"; }
+            else { })
+          (lib.importJSON ./package-lock.json).packages;
+
+        landing = ev.lib.mkLanding {
+          inherit pkgs v_flakes pname sitePort prodEnv;
+          root = ./.;
+          buildFiles = [
+            "package.json"
+            "package-lock.json"
+            "app"
+            "src"
+            "assets"
+            "next.config.ts"
+            "tsconfig.json"
+            "postcss.config.mjs"
+            "proxy.ts"
+            "instrumentation.ts"
+          ];
+          # The OG card sets type in these; tracing cannot infer a path read at run time.
+          requiredFiles = [ "assets/fonts/Archivo-Bold.ttf" "assets/fonts/Inter-Medium.ttf" ];
+          # A point on its own host, its OG card, and a person's quote landing in /data.
+          smoke = {
+            page = "/fr";
+            host = "royat.aquafix.top";
+            og = "/og?l=royat";
+            quote = { location = "royat"; job = "blocked_drain"; zip = "63130"; mobile = "0612345678"; };
           };
+          packageSourceOverrides = vendored;
+          # TODO: drop with the re-pin above — the lock's @evinvest/kitstart is
+          # 0.1.0 and this lib revision still says 0.0.0 until it is published.
+          checkKitstartVersion = false;
         };
 
         # Print-ready: the card with bleed on and trim guide off, the A4 sheet as it
@@ -177,88 +133,6 @@
             '') (builtins.attrNames cardCopy.langs)}
           '';
 
-        # The gate, on the hermetic build: `nix flake check` fails over budget.
-        bundleBudget = pkgs.runCommand "aquafix-bundle-budget"
-          {
-            nativeBuildInputs = [ nodejs ];
-            src = lib.fileset.toSource {
-              root = ./.;
-              fileset = lib.fileset.unions [ ./scripts/bundle-budget.ts ./tests/bundle_budget.txt ];
-            };
-          } ''
-          cd "$src"
-          node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/bundle-budget.ts ${site}
-          touch "$out"
-        '';
-
-        # ── apps ────────────────────────────────────────────────────────────
-        # IMPORTANT: resolve the repo at *runtime* via `git rev-parse`, never
-        # `toString ./.` — the latter pins the wrapper to the read-only
-        # /nix/store snapshot, where npm cannot write.
-        #
-        # `npm ci` wipes node_modules, so it runs only when the lockfile moved.
-        ensureDeps = ''
-          stamp="node_modules/.aquafix-lock"
-          want="$(sha256sum package-lock.json | cut -d' ' -f1)"
-          if [ "$(cat "$stamp" 2>/dev/null)" != "$want" ]; then
-            npm ci
-            echo "$want" > "$stamp"
-          fi
-        '';
-        # The spec's `@playwright/test` is the flake's, pinned with its browsers;
-        # linked where tsc and the config resolve it from.
-        linkPlaywright = ''
-          ln -sfn ${pkgs.playwright-test}/lib/node_modules tests/e2e/node_modules
-        '';
-
-        runDev = pkgs.writeShellApplication {
-          name = "run-dev";
-          runtimeInputs = [ nodejs pkgs.git pkgs.coreutils ];
-          text = ''
-            cd "$(git rev-parse --show-toplevel)"
-            ${ensureDeps}
-            echo "  ▶ a point:  http://royat.localhost:${sitePort}/fr"
-            echo "  ▶ the brand: http://localhost:${sitePort}/fr"
-            exec npm run dev -- --port ${sitePort}
-          '';
-        };
-
-        runTest = pkgs.writeShellApplication {
-          name = "run-test";
-          runtimeInputs = [ nodejs pkgs.git pkgs.coreutils pkgs.playwright-test ];
-          text = ''
-            cd "$(git rev-parse --show-toplevel)"
-            ${ensureDeps}
-            ${linkPlaywright}
-            echo "▶ tsc";      npm run -s typecheck && npx tsc --noEmit -p tests/e2e
-            echo "▶ eslint";   npx eslint .
-            echo "▶ vitest";   npx vitest run
-            echo "▶ build";    npm run -s build >/dev/null
-            echo "▶ size";     npm run -s size
-            echo "▶ playwright (1440 + 390)"
-            playwright test -c tests/e2e "$@"
-          '';
-        };
-
-        # Screenshot baselines are Linux's (CI's); a mac shoots different glyphs.
-        runAcceptTest = pkgs.writeShellApplication {
-          name = "accept-test";
-          runtimeInputs = [ nodejs pkgs.git pkgs.coreutils pkgs.playwright-test ];
-          text = ''
-            if [ "$(uname -s)" != Linux ]; then
-              echo "✘ baselines are Linux's. Take them from CI instead — README, \"Visual baselines\"." >&2
-              exit 1
-            fi
-            cd "$(git rev-parse --show-toplevel)"
-            ${ensureDeps}
-            ${linkPlaywright}
-            npm run -s build >/dev/null
-            filter="''${1:-}"
-            echo "▶ accepting screenshot baselines ''${filter:+for $filter}"
-            playwright test -c tests/e2e --update-snapshots=all ''${filter:+-g "$filter"}
-          '';
-        };
-
         # Advisory, not a gate: it catches "the hero drifted two sections down",
         # never sub-pixel type rendering.
         runFigmaParity = pkgs.writeShellApplication {
@@ -267,18 +141,6 @@
           text = ''
             repo="$(git rev-parse --show-toplevel)"
             cd "$repo/brand_materials" && ./tests/figma_parity.sh
-          '';
-        };
-
-        # The one number worth gating: our visitor is on mobile data mid-emergency.
-        runSize = pkgs.writeShellApplication {
-          name = "bundle-size";
-          runtimeInputs = [ nodejs pkgs.git pkgs.coreutils ];
-          text = ''
-            cd "$(git rev-parse --show-toplevel)"
-            ${ensureDeps}
-            npm run -s build >/dev/null
-            npm run -s size
           '';
         };
 
@@ -335,17 +197,18 @@
           name = "help";
           text = ''
             cat <<'EOF'
-              nix run .#dev            next dev on ${sitePort} (royat.localhost for a point)
-              nix run .#test           tsc, eslint, vitest, build, size, playwright   [pre-push hook]
-              nix run .#accept-test    accept screenshot baselines (Linux only); `-- <name>` for a subset
-              nix run .#size           build, then the first-load JS budget          [the one hard gate]
-              nix run .#figma-parity   blur-diff against the Figma export            [advisory]
-              nix run .#publish        bump the latest remote tag: major|minor|patch [note] — the tag ships
-              nix build                the standalone server (.next/standalone)
-              nix build .#container    OCI image (Linux)
+              nix run .#dev              next dev on ${sitePort} (royat.localhost:${sitePort}/fr for a point)
+              nix run .#test             tsc, eslint, vitest, build, size, playwright   [pre-push hook]
+              nix run .#accept-test      accept screenshot baselines (Linux only); `-- <name>` for a subset
+              nix run .#size             build, then the first-load JS budget          [the one hard gate]
+              nix run .#container-smoke  boot the image and hold it to its contract    (Linux + docker)
+              nix run .#figma-parity     blur-diff against the Figma export            [advisory]
+              nix run .#publish          bump the latest remote tag: major|minor|patch [note] — the tag ships
+              nix build                  the standalone server (.next/standalone)
+              nix build .#container      OCI image (Linux)
               nix build .#brand-materials  print -> result/<lang>-{card,sheet.{light,dark}[.explicit]}.pdf + <lang>.vcf
-              nix run .#generate       rewrite workflows, .gitignore, .treefmt.toml, README (the devShell does too)
-              nix flake check          the hermetic build + the bundle budget against it
+              nix run .#generate         rewrite workflows, .gitignore, .treefmt.toml, README (the devShell does too)
+              nix flake check            the hermetic build + the bundle budget against it
             EOF
           '';
         };
@@ -424,7 +287,7 @@
             test = {
               enable = true;
               name = "nix run .#test";
-              entry = "${runTest}/bin/run-test";
+              entry = landing.apps.test.program;
               pass_filenames = false;
               stages = [ "pre-push" ];
             };
@@ -432,47 +295,29 @@
         });
       in
       {
-        apps = {
-          default = { type = "app"; program = "${runDev}/bin/run-dev"; };
-          dev = { type = "app"; program = "${runDev}/bin/run-dev"; };
-          test = { type = "app"; program = "${runTest}/bin/run-test"; };
-          accept-test = { type = "app"; program = "${runAcceptTest}/bin/accept-test"; };
-          figma-parity = { type = "app"; program = "${runFigmaParity}/bin/figma-parity"; };
-          size = { type = "app"; program = "${runSize}/bin/bundle-size"; };
-          publish = { type = "app"; program = "${runPublish}/bin/publish"; };
+        apps = landing.apps // {
+          default = landing.apps.dev;
           help = { type = "app"; program = "${runHelp}/bin/help"; };
+          figma-parity = { type = "app"; program = "${runFigmaParity}/bin/figma-parity"; };
+          publish = { type = "app"; program = "${runPublish}/bin/publish"; };
           generate = { type = "app"; program = "${runGenerate}/bin/generate"; };
         };
 
-        packages = {
-          default = site;
-          site = site;
-          container = containerStd.packages."${pname}-container";
+        packages = landing.packages // {
           brand-materials = brandMaterials;
-        } // containerStd.packages;
-
-        containers = containerStd.containers;
-
-        checks = {
-          inherit site;
-          bundle-budget = bundleBudget;
         };
 
-        devShells.default = pkgs.mkShell {
-          shellHook = pre-commit-check.shellHook + ''
+        inherit (landing) containers checks;
+
+        devShells.default = landing.devShell.overrideAttrs (old: {
+          shellHook = (old.shellHook or "") + pre-commit-check.shellHook + ''
             # Generated files are written only from the repo root, and never in
             # CI, where the checkout is the thing under test.
             if [ -z "''${CI:-}" ] && [ "$PWD" = "$(git rev-parse --show-toplevel 2>/dev/null)" ]; then
               ${generateRepoFiles}
             fi
           '';
-
-          packages = [
-            nodejs
-            # runner + nixpkgs-pinned browsers; its wrapper exports NODE_PATH and
-            # PLAYWRIGHT_BROWSERS_PATH. `nix run .#test` links it for tsc.
-            pkgs.playwright-test
-            pkgs.sqlite # inspecting the lead store
+          nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [
             # brand_materials/
             pkgs.typst
             pkgs.typstyle
@@ -480,11 +325,9 @@
             pkgs.treefmt
             pkgs.nixpkgs-fmt
           ] ++ pre-commit-check.enabledPackages ++ readme.enabledPackages;
-
-          env.PORT = sitePort;
-          env.NEXT_TELEMETRY_DISABLED = "1";
-          env.E2E_PLAYWRIGHT_MODULES = "${pkgs.playwright-test}/lib/node_modules";
-        };
+          # Where CI links the flake's `@playwright/test` for the e2e specs' tsc.
+          E2E_PLAYWRIGHT_MODULES = "${pkgs.playwright-test}/lib/node_modules";
+        });
       }
     );
 }

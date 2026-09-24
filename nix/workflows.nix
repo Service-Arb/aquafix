@@ -106,7 +106,7 @@ let
         name = "Container smoke (the release image)";
         runs-on = "ubuntu-latest";
         timeout-minutes = 45;
-        steps = lib.take 3 setup ++ [{ name = "Boot the image"; run = "bash nix/container-smoke.sh"; }];
+        steps = lib.take 3 setup ++ [{ name = "Boot the image"; run = "nix run .#container-smoke"; }];
       };
     };
   };

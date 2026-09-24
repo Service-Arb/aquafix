@@ -1,5 +1,5 @@
 # Maximum gzip bytes of first-load JavaScript on a point page
-# (`/[locale]/[location]`), checked by `nix run .#size` (scripts/bundle-budget.ts).
+# (`/[locale]/[location]`), checked by `nix run .#size` (kitstart-size).
 #
 # The visitor this page is designed for is on mobile data in the middle of an
 # emergency, so this is the one number worth gating. The quote form posts
