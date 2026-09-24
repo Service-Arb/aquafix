@@ -1,6 +1,7 @@
+import { telHref } from "@evinvest/marketing";
 import { Button } from "@evinvest/uikit";
 import { NAV_IDS, NAV_SUFFIX, type Copy } from "@/entities/content";
-import type { PlaceView } from "@/entities/place";
+import { contactOf, type PlaceView } from "@/entities/place";
 import { perLocale } from "@/shared/config/i18n";
 import { CTA_FACE, Lockup } from "@/shared/ui/brand";
 import { BrandLangSwitch } from "@/shared/ui/BrandLangSwitch";
@@ -8,10 +9,14 @@ import { BrandLangSwitch } from "@/shared/ui/BrandLangSwitch";
 /**
  * The home page's header: transparent and laid over the photograph, so the
  * hero owns the whole first screen. It scrolls away with the hero; the bottom
- * bar carries the contact channels on mobile from there.
+ * bar carries the contact channels on mobile from there. From `xl` — the
+ * width the row fits in — it carries the phone as the sub-pages' header does,
+ * and the rating beside it (the draft's, or Google's while fresh: `ShownRating`);
+ * narrower, the hero's own phone link is on the same screen.
  */
 export function OverlayHeader({ copy, point }: { copy: Copy; point: PlaceView }) {
   const { t } = copy;
+  const { phone } = contactOf(point.place);
   return (
     <header className="dark absolute inset-x-0 top-0 z-20 bg-gradient-to-b from-background/75 to-transparent">
       <div className="flex items-center gap-8 px-[var(--page-px)] py-4 md:py-5">
@@ -35,6 +40,11 @@ export function OverlayHeader({ copy, point }: { copy: Copy; point: PlaceView })
           hrefs={perLocale(l => point.href("", l))}
           className="hidden text-[13px] font-medium text-ink-soft md:flex"
         />
+        <p className="hidden whitespace-nowrap text-[14px] font-medium text-ink-mid xl:block">{t.home.headerRating(copy.f)}</p>
+        <a href={telHref(phone)} className="hidden flex-col leading-[normal] xl:flex">
+          <span className="text-[10.5px] font-medium tracking-[0.08em] text-ink-soft">{t.headerPhoneLabel}</span>
+          <span className="whitespace-nowrap font-display text-[18px] font-bold text-ink">{phone}</span>
+        </a>
         <Button
           href={point.href("#quote")}
           size="lg"

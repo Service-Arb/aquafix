@@ -11,13 +11,12 @@ import { APEX_ORIGIN } from "./env";
 const SECTIONS = [
   { name: "header", url: "/fr", selector: "header" },
   { name: "hero", url: "/fr", selector: "main > section >> nth=0" },
+  { name: "stats", url: "/fr#stats", selector: "#stats" },
   { name: "work", url: "/fr#work", selector: "#work" },
   { name: "prices", url: "/fr#prices", selector: "#prices" },
   { name: "guarantee", url: "/fr#guarantee", selector: "#guarantee" },
   { name: "reviews", url: "/fr#reviews", selector: "#reviews" },
   { name: "coverage", url: "/fr#areas", selector: "#areas" },
-  // `#quote` is the link every CTA points at; the band around it is the section.
-  { name: "closing", url: "/fr#quote", selector: "#quote-band" },
   { name: "footer", url: "/fr#footer", selector: "footer" },
   { name: "callbar", url: "/fr", selector: "#callbar" },
   { name: "faq", url: "/fr/prices#faq", selector: "#faq" },

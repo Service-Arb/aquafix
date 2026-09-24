@@ -107,13 +107,16 @@ export const FR = {
     lede: () =>
       "Un tarif ferme écrit sur votre pas de porte avant de commencer. Fenêtre de 2 h, ou le déplacement est offert.",
     cta: "Obtenir mon prix fixe",
-    stats: [
-      { figure: "4,9★", label: "612 AVIS" },
+    decennaleBadge: "Assurance décennale",
+    headerRating: f => `★ ${f.rating.value} · ${f.rating.count} avis`,
+    stats: f => [
+      { figure: `${f.rating.value}★`, label: `${f.rating.count} AVIS` },
       { figure: "43 MIN", label: "ARRIVÉE MOY." },
       { figure: "96 %", label: "RÉPARÉ LE JOUR" },
       { figure: "12 MOIS", label: "GARANTIE" },
     ],
-    workTitle: "Le travail.",
+    workEyebrow: "CE QUE NOUS FAISONS · PRIX FIXES",
+    workTitle: "Le travail. Et ce qu’il coûte.",
     work: {
       drains: {
         caption: "Débouchage",
@@ -134,16 +137,19 @@ export const FR = {
     },
     workMore: "Ce que ça implique",
     workClose: "Fermer",
-    pricesTitle: "Ce que ça coûte.",
     pricesNote: f => `Déplacement ${f.callout}, déduit intégralement des travaux que vous acceptez. Prix TTC.`,
+    guaranteeEyebrow: "NOTRE GARANTIE, PAR ÉCRIT",
     guaranteeTitle: "Trois choses que nous payons si nous les manquons.",
+    guaranteeLink: "Lire notre garantie",
+    reviewsEyebrow: "AVIS",
     reviewsTitle: "Ce que disent les voisins.",
+    reviewsRating: f => `${f.rating.value} sur 5 · ${f.rating.count} avis${f.rating.google ? " Google" : ""}`,
+    reviewsCallAside: ["ou appelez le ", " — nous décrochons 24h/24"],
+    coverageEyebrow: f => `ZONE D’INTERVENTION · ${f.radiusKm} KM AUTOUR DE ${f.place.toUpperCase()}`,
     coverageTitle: "Où nous allons.",
     coverageLede: f => `${f.place} et les communes alentour. Si vous êtes en dehors, nous vous le dirons au téléphone.`,
     mapShow: "Afficher la carte",
     mapTitle: f => `Carte : Aquafix ${f.place}`,
-    closingTitle: "Obtenez votre prix fixe.",
-    closingLede: "Quatre-vingt-dix secondes. Si le chiffre ne vous plaît pas, vous n’avez rien payé.",
     backToTop: "Haut de page",
   },
   pillars: [
@@ -151,22 +157,19 @@ export const FR = {
       n: "01",
       title: "Le prix ne peut pas bouger.",
       body: () =>
-        "Votre tarif fixe est signé avant le début des travaux. Sur 4 100 interventions, nous n’avons jamais envoyé de facture supérieure au devis — si nous sous-estimons l’intervention, nous absorbons la différence.",
-      short: () => "Signé avant le début des travaux. 4 100 interventions, jamais de facture au-dessus du devis.",
+        "Tarif fixe écrit avant qu’un seul outil ne sorte de la camionnette. Trois heures de plus que prévu ? C’est notre problème.",
     },
     {
       n: "02",
       title: "Le chrono est à notre charge.",
       body: f =>
-        `Fenêtre d’arrivée de deux heures, choisie par vous. Une seule minute de retard et les ${f.callout} de déplacement sont annulés automatiquement — vous n’avez ni à le demander ni à discuter.`,
-      short: f => `Fenêtre de deux heures. Une minute de retard et les ${f.callout} de déplacement sautent automatiquement.`,
+        `Une fenêtre d’arrivée de 2 heures. Fenêtre manquée : les ${f.callout} de déplacement sont annulés automatiquement.`,
     },
     {
       n: "03",
       title: "Le travail est garanti.",
       body: () =>
-        "Douze mois sur les pièces et la main-d’œuvre. Si la même panne revient, nous revenons gratuitement, et nous ne vous facturons toujours pas de frais de diagnostic pour l’examiner.",
-      short: () => "Douze mois, pièces et main-d’œuvre. La même panne revient, nous revenons gratuitement.",
+        "12 mois sur les pièces et la main-d’œuvre. Si la même panne revient, nous revenons la réparer sans frais.",
     },
   ],
   guaranteeCtaAside: f => `ou appelez le ${f.phone} — un humain décroche, 24 heures sur 24`,
@@ -236,7 +239,11 @@ export const FR = {
     from: "à partir de",
     quoted: "sur devis",
   },
-  faqHead: { eyebrow: "AVANT D’APPELER", title: "Les questions que tout le monde pose." },
+  faqHead: {
+    eyebrow: "AVANT D’APPELER",
+    title: "Les questions que tout le monde pose.",
+    callAside: ["Encore une question ? Un humain répond 24h/24 au ", "."],
+  },
   faqs: [
     {
       q: f => `Les ${f.callout} de déplacement s’ajoutent-ils au prix de l’intervention ?`,
@@ -343,6 +350,7 @@ export const FR = {
   footer: {
     columns: { services: "SERVICES", areas: "ZONES", company: "ENTREPRISE", contact: "CONTACT" },
     legal: ["Mentions légales", "Confidentialité", "Attestation d’assurance"],
+    siret: f => `SIRET ${f.siret}`,
     company: {
       guarantee: "Notre garantie",
       prices: "Prix publiés",

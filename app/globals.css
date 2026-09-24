@@ -64,22 +64,21 @@
  * words are, so the crew stays legible without type ever sitting on a face. It
  * is drawn from the dark scope's own background, not a literal. */
 .hero-scrim {
-  background:
-    linear-gradient(
-      to right,
-      color-mix(in srgb, var(--background) 95%, transparent) 0%,
-      color-mix(in srgb, var(--background) 88%, transparent) 30%,
-      color-mix(in srgb, var(--background) 55%, transparent) 62%,
-      color-mix(in srgb, var(--background) 32%, transparent) 100%
-    ),
-    linear-gradient(to top, color-mix(in srgb, var(--background) 55%, transparent) 0%, transparent 45%);
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--background) 95%, transparent) 0%,
+    color-mix(in srgb, var(--background) 88%, transparent) 30%,
+    color-mix(in srgb, var(--background) 55%, transparent) 62%,
+    color-mix(in srgb, var(--background) 32%, transparent) 100%
+  );
 }
 /* Below the breakpoint the words stack over the photo rather than beside it,
- * so the horizontal ramp would leave the lower half unreadable. */
+ * so the horizontal ramp would leave them unreadable; they start at the top
+ * and the form card closes the column, so the ramp runs downwards. */
 @media (max-width: 767px) {
   .hero-scrim {
     background: linear-gradient(
-      to top,
+      to bottom,
       color-mix(in srgb, var(--background) 96%, transparent) 0%,
       color-mix(in srgb, var(--background) 88%, transparent) 45%,
       color-mix(in srgb, var(--background) 50%, transparent) 100%
