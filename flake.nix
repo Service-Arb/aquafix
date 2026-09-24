@@ -68,10 +68,16 @@
           || (m ? libc && !(fits "glibc" m.libc));
         npmSourceOverrides = lib.concatMapAttrs
           (path: m:
+            # TODO: drop with the npm swap — @evinvest/{uikit,marketing,kitstart}
+            # are vendored tarballs (`file:vendor/…`) until they are published,
+            # and `importNpmLock` would read the spec as a path with the scheme
+            # still on it.
+            if lib.hasPrefix "file:" (m.resolved or "") then
+              { ${path} = ./. + "/${lib.removePrefix "file:" m.resolved}"; }
             # Every platform's native binary is in the lockfile — @next/swc
             # alone is ~100 MB per platform. npm skips the foreign ones without
             # reading them, so they are never fetched either.
-            if (m.optional or false) && foreign m then
+            else if (m.optional or false) && foreign m then
               { ${path} = pkgs.emptyFile; }
             else { })
           npmLock.packages;
