@@ -13,9 +13,12 @@ import { Gone } from "@/views/not-found/server";
  * A document of its own: the root layout lives under `[locale]`.
  *
  * It reads the proxy's header, which only this route does: it is not a
- * boundary inside the cached pages, so they stay static. A client-sent value
- * can at most pick another real point's phone or the other language. No
- * `robots` here: Next already emits `noindex` for a 404.
+ * boundary inside the cached pages, so they stay static. The proxy drops a
+ * client-sent value everywhere but on its own target, where a forged one can
+ * at most pick another real point's phone or the other language; anything
+ * unreadable falls back to the brand. Rendered per request (`private, no-store`): nothing a scanner
+ * asks for takes a cache entry. No `robots` here: Next already emits
+ * `noindex` for a 404.
  */
 export default async function GlobalNotFound() {
   const gone = parseGoneHeader((await headers()).get(GONE_HEADER));

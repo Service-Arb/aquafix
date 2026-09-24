@@ -29,6 +29,13 @@ export function parseLocationParam(param: string): { slug: string; mode: LinkMod
 export const THANKS = "/thanks";
 
 /**
+ * The routes that are not pages: the proxy passes them untouched and sends
+ * every other unprefixed path to the 404. One list, checked against `app/`
+ * by a test, so a new route cannot be forgotten here.
+ */
+export const NON_PAGE_ROUTES: readonly string[] = ["/quote", "/og", "/health", "/sitemap.xml", "/robots.txt"];
+
+/**
  * How a dead path reaches a 404 a visitor without JavaScript can read.
  *
  * Next 16 cannot put a `notFound()` boundary into the HTML: that response is
@@ -48,7 +55,8 @@ export function gonePath(locale: string): string {
 
 /**
  * Read only by the global not-found page, a route of its own: a page that
- * read it would render per request, and none does.
+ * read it would render per request, and none does. Set by the proxy, which
+ * drops a client-sent value on every path but the 404's own target.
  */
 export const GONE_HEADER = "x-landing-not-found";
 
