@@ -6,10 +6,9 @@
 
   inputs = {
     v_flakes.url = "github:valeratrades/v_flakes?ref=v1.6";
-    # TODO: re-pin to ?ref=@evinvest/kitstart-v0.1.0 once it is published —
-    # the tag does not exist yet, so this is lib main with mkLanding's
-    # `packageSourceOverrides` (465505b).
-    ev.url = "github:EV-invest/lib?rev=465505be17fcea8b22ffcfcf2a03b95c188478b5";
+    # The lib flake at the tag of the @evinvest/kitstart version in
+    # package-lock.json — mkLanding refuses a mismatch.
+    ev.url = "github:EV-invest/lib?ref=@evinvest/kitstart-v0.1.0";
     ev.inputs.v_flakes.follows = "v_flakes";
   };
 
@@ -58,17 +57,6 @@
         # Without it the server would take its dev defaults — see deploy/config.nix.
         prodEnv = import ./deploy/config.nix { port = sitePort; };
 
-        # TODO: drop with the npm swap (package.json `file:` → versions).
-        # @evinvest/kitstart is a vendored tarball until it is published;
-        # `importNpmLock` would read a `file:` spec as a path with the scheme
-        # still on it, so it is handed over from vendor/.
-        vendored = lib.concatMapAttrs
-          (path: m:
-            if lib.hasPrefix "file:" (m.resolved or "") then
-              { ${path} = ./. + "/${lib.removePrefix "file:" m.resolved}"; }
-            else { })
-          (lib.importJSON ./package-lock.json).packages;
-
         landing = ev.lib.mkLanding {
           inherit pkgs v_flakes pname sitePort prodEnv;
           root = ./.;
@@ -93,10 +81,6 @@
             og = "/og?l=royat";
             quote = { location = "royat"; job = "blocked_drain"; zip = "63130"; mobile = "0612345678"; };
           };
-          packageSourceOverrides = vendored;
-          # TODO: drop with the re-pin above — the lock's @evinvest/kitstart is
-          # 0.1.0 and this lib revision still says 0.0.0 until it is published.
-          checkKitstartVersion = false;
         };
 
         # Print-ready: the card with bleed on and trim guide off, the A4 sheet as it
