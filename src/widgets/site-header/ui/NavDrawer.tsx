@@ -29,7 +29,7 @@ export function NavDrawer({
   const { t } = copy;
   return (
     <details className={`group ${className}`}>
-      <summary className="flex size-9 cursor-pointer list-none items-center justify-center text-[20px] text-ink" aria-label={t.menuLabel}>
+      <summary className="flex size-9 cursor-pointer list-none items-center [&::-webkit-details-marker]:hidden justify-center text-[20px] text-ink" aria-label={t.menuLabel}>
         ☰
       </summary>
       <nav className="absolute inset-x-0 top-full z-20 hidden flex-col group-open:flex gap-1 border-b border-border bg-background px-[var(--page-px)] py-3 text-[15px] font-medium text-ink-mid shadow-elevated">
