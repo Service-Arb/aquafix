@@ -12,7 +12,8 @@ import { BrandLangSwitch } from "@/shared/ui/BrandLangSwitch";
  * bar carries the contact channels on mobile from there. From `xl` — the
  * width the row fits in — it carries the phone as the sub-pages' header does,
  * and the rating beside it (the draft's, or Google's while fresh: `ShownRating`);
- * narrower, the hero's own phone link is on the same screen.
+ * narrower, the hero's own phone link is on the same screen. The nav needs
+ * `lg`: at 768 it pushed the button past the viewport.
  */
 export function OverlayHeader({ copy, point }: { copy: Copy; point: PlaceView }) {
   const { t } = copy;
@@ -27,7 +28,7 @@ export function OverlayHeader({ copy, point }: { copy: Copy; point: PlaceView })
           />
         </a>
         <div className="flex-1" />
-        <nav className="hidden items-center gap-8 text-[14.5px] font-medium text-ink-mid md:flex">
+        <nav className="hidden items-center gap-8 text-[14.5px] font-medium text-ink-mid lg:flex">
           {NAV_IDS.map(id => (
             <a key={id} href={point.href(NAV_SUFFIX[id])} className="hover:text-primary-ink">
               {t.nav[id]}
@@ -41,7 +42,7 @@ export function OverlayHeader({ copy, point }: { copy: Copy; point: PlaceView })
           className="hidden text-[13px] font-medium text-ink-soft md:flex"
         />
         <p className="hidden whitespace-nowrap text-[14px] font-medium text-ink-mid xl:block">{t.home.headerRating(copy.f)}</p>
-        <a href={telHref(phone)} className="hidden flex-col leading-[normal] xl:flex">
+        <a href={telHref(phone)} aria-label={`${t.headerPhoneLabel}, ${phone}`} className="hidden flex-col leading-[normal] xl:flex">
           <span className="text-[10.5px] font-medium tracking-[0.08em] text-ink-soft">{t.headerPhoneLabel}</span>
           <span className="whitespace-nowrap font-display text-[18px] font-bold text-ink">{phone}</span>
         </a>

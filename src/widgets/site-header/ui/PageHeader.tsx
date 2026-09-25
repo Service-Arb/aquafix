@@ -7,8 +7,12 @@ import { CTA_FACE, Lockup } from "@/shared/ui/brand";
 import { BrandLangSwitch } from "@/shared/ui/BrandLangSwitch";
 
 /**
- * The sub-pages' header. The mobile drawer is a `<details>`: a nav that opens
- * without hydration is one less thing on the critical path.
+ * The sub-pages' header. The drawer is a `<details>`: a nav that opens
+ * without hydration is one less thing on the critical path. The phone is in
+ * the row at every width, on one line: below `lg` the nav and the language
+ * switch go into the drawer, and the button waits for `xl` — below it the
+ * drawer carries it, and from `lg` the proof card's is on the same screen —
+ * so the row never runs past the viewport.
  */
 export function PageHeader({ copy, point, suffix }: { copy: Copy; point: PlaceView; suffix: string }) {
   const { t, f } = copy;
@@ -24,30 +28,35 @@ export function PageHeader({ copy, point, suffix }: { copy: Copy; point: PlaceVi
           />
         </a>
         <div className="flex-1" />
-        <nav className="hidden items-center gap-[30px] text-[15px] font-medium text-ink-mid md:flex">
+        <nav className="hidden items-center gap-[30px] text-[15px] font-medium text-ink-mid lg:flex">
           {NAV_IDS.map(id => (
             <a key={id} href={point.href(NAV_SUFFIX[id])} className="hover:text-primary-ink">
               {t.nav[id]}
             </a>
           ))}
         </nav>
-        <div className="hidden flex-1 md:block" />
-        <div className="hidden items-center gap-5 md:flex">
+        <div className="hidden flex-1 lg:block" />
+        <div className="flex items-center gap-3 md:gap-5">
           <BrandLangSwitch
             label={copy.t.langLabel}
             current={copy.locale}
             hrefs={hrefs}
-            className="text-[13px] font-medium text-ink-mid"
+            className="hidden text-[13px] font-medium text-ink-mid lg:flex"
           />
-          <a href={telHref(phone)} className="flex flex-col">
-            <span className="text-[10px] font-medium tracking-[0.12em] text-ink-soft">{t.headerPhoneLabel}</span>
-            <span className="font-display text-[22px] font-bold text-ink">{phone}</span>
+          <a href={telHref(phone)} aria-label={`${t.headerPhoneLabel}, ${phone}`} className="flex flex-col">
+            <span className="hidden text-[10px] font-medium tracking-[0.12em] text-ink-soft xl:block">{t.headerPhoneLabel}</span>
+            <span className="whitespace-nowrap font-display text-[16px] font-bold text-ink md:text-[20px] xl:text-[22px]">{phone}</span>
           </a>
-          <Button href={point.href("#quote")} size="xl" data-intent="form_open" className={CTA_FACE}>
+          <Button
+            href={point.href("#quote")}
+            size="xl"
+            data-intent="form_open"
+            className={`hidden xl:inline-flex ${CTA_FACE}`}
+          >
             {t.cta}
           </Button>
         </div>
-        <details className="md:hidden">
+        <details className="ml-1 lg:hidden">
           <summary className="flex size-9 items-center justify-center text-[20px] text-ink" aria-label={t.menuLabel}>
             ☰
           </summary>
@@ -57,15 +66,15 @@ export function PageHeader({ copy, point, suffix }: { copy: Copy; point: PlaceVi
                 {t.nav[id]}
               </a>
             ))}
-            <a href={telHref(phone)} className="py-2 font-display text-[18px] font-bold text-ink">
-              {phone}
-            </a>
             <BrandLangSwitch
               label={copy.t.langLabel}
               current={copy.locale}
               hrefs={hrefs}
               className="py-2 text-[14px] font-medium text-ink-mid"
             />
+            <Button href={point.href("#quote")} size="lg" data-intent="form_open" className={`my-2 w-full ${CTA_FACE}`}>
+              {t.cta}
+            </Button>
           </nav>
         </details>
       </div>
