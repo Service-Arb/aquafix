@@ -42,8 +42,42 @@ for (const { url, viewport } of CASES) {
     await open(page);
     await details.locator(":scope > nav").click({ position: { x: 5, y: 5 } });
     await expect(details).toHaveAttribute("open", "");
+
+    // An Escape something else already handled is not the menu's.
+    await page.evaluate(() => {
+      document.addEventListener("keydown", e => e.preventDefault(), { capture: true, once: true });
+    });
+    await page.keyboard.press("Escape");
+    await expect(details).toHaveAttribute("open", "");
   });
 }
+
+// The work band's detail is a popover, in the top layer: Escape is its.
+test("Escape closes an open popover, not the menu under it", async ({ page }) => {
+  await page.setViewportSize({ width: 768, height: 900 });
+  await page.goto("/fr");
+  await page.waitForLoadState("networkidle");
+  const details = await open(page);
+  // Shown by script: a press on its tile would be a press outside the menu.
+  await page.locator("[popover]").first().evaluate(el => {
+    if (el instanceof HTMLElement) el.showPopover();
+  });
+  await page.keyboard.press("Escape");
+  await expect(page.locator("[popover]").first()).toBeHidden();
+  await expect(details).toHaveAttribute("open", "");
+});
+
+// "Avis" on the home page is `#reviews` on the same page: the page scrolls
+// and stays, so without this the menu stayed open over the reviews.
+test("following a link in the menu closes it", async ({ page }) => {
+  await page.setViewportSize({ width: 768, height: 900 });
+  await page.goto("/fr");
+  await page.waitForLoadState("networkidle");
+  const details = await open(page);
+  await details.locator(':scope > nav a[href$="#reviews"]').click();
+  await expect(page).toHaveURL(/#reviews$/);
+  await expect(details).not.toHaveAttribute("open");
+});
 
 test.describe("without JavaScript", () => {
   test.use({ javaScriptEnabled: false });
