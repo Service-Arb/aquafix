@@ -1,11 +1,12 @@
 import type { ReactNode } from "react";
 import { NAV_IDS, NAV_SUFFIX, type Copy } from "@/entities/content";
 import type { PlaceView } from "@/entities/place";
+import { DetailsDismiss } from "@/shared/ui/DetailsDismiss";
 
 /**
  * Both headers' menu for the widths their row has no room for the nav. A
  * `<details>`: it opens without hydration, one less thing on the critical
- * path. The panel
+ * path; once hydrated, Escape and a press outside close it too. The panel
  * spans the header, which is its containing block (`relative` on the
  * sub-pages, `absolute` over the hero). `children` go under the links — what
  * else the row dropped at that width.
@@ -35,6 +36,7 @@ export function NavDrawer({
         ))}
         {children}
       </nav>
+      <DetailsDismiss />
     </details>
   );
 }
