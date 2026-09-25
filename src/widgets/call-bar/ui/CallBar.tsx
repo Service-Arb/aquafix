@@ -10,12 +10,14 @@ import { CTA_FACE } from "@/shared/ui/brand";
 
 /**
  * The kit's buttons keep their label on one line, so at 320 the three ran 22px
- * past the viewport. The two that share the row may shrink, and the longest
- * label wraps rather than push the bar out; from ~360 it fits on one line.
+ * past the viewport. Below 360 the two that share the row may shrink, and the
+ * longest label wraps rather than push the bar out. Only there: `flex-1` is a
+ * zero basis, so a shrinkable button would split the row evenly and wrap its
+ * label at 390 too, where it fits on one line.
  */
 const PARTS: PartClassNames<CallBarPart> = {
-  whatsapp: "min-w-0",
-  quote: "min-w-0 whitespace-normal leading-[1.15]",
+  whatsapp: "max-[359px]:min-w-0",
+  quote: "max-[359px]:min-w-0 max-[359px]:whitespace-normal max-[359px]:leading-[1.15]",
 };
 export type CallBarCopy = CopyOf<Pick<Text, "callLabel" | "whatsappMessage" | "whatsappShort" | "ctaShort" | "callBarLabel">>;
 
