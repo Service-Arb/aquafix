@@ -37,7 +37,7 @@ export function Faq({ copy }: { copy: Copy }) {
             {/* The mobile frame has no subtitle: the call bar is the same offer. */}
             <p className="hidden text-[16px] leading-[1.5] text-ink-soft md:block">
               {before}
-              <a href={telHref(f.phone)} className="hover:text-primary-ink">
+              <a href={telHref(f.phone)} className="text-primary-ink underline underline-offset-2 hover:no-underline">
                 {f.phone}
               </a>
               {after}

@@ -58,7 +58,7 @@ export function Reviews({ copy, point }: { copy: Copy; point: PlaceView }) {
           </Button>
           <p className="text-[15px] text-ink-soft">
             {before}
-            <a href={telHref(phone)} className="hover:text-primary-ink">
+            <a href={telHref(phone)} className="text-primary-ink underline underline-offset-2 hover:no-underline">
               {phone}
             </a>
             {after}

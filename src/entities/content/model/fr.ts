@@ -102,6 +102,7 @@ export const FR = {
     repipe: { job: "Réfection de la tuyauterie — maison T4", time: "2–3 jours" },
   },
   priceColumns: { job: "INTERVENTION", price: "PRIX FIXE À PARTIR DE", time: "DURÉE TYPIQUE SUR PLACE" },
+  priceCaption: "Ce que ça coûte",
   home: {
     eyebrow: f => `PLOMBIER · ${f.place.toUpperCase()}`,
     display: ["PRIX FIXE.", "RÉPARÉ CE JOUR.", "GARANTI."],

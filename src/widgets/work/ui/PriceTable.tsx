@@ -18,6 +18,7 @@ export function PriceTable({ copy }: { copy: Copy }) {
     <div id="prices" className="flex flex-col gap-7 md:gap-9">
       <div className="overflow-hidden rounded-[var(--corner-card)] border border-border">
         <Table className="border-collapse text-left">
+          <caption className="sr-only">{t.priceCaption}</caption>
           <TableHeader>
             <TableRow className="border-b border-ink bg-muted text-[10.5px] font-medium leading-[normal] tracking-[0.14em] text-ink-soft md:text-[11px]">
               <TableHead className="h-auto whitespace-normal px-4 py-3 font-medium text-ink-soft md:pl-7 md:pr-0 md:py-4">{cols.job}</TableHead>

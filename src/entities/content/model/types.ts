@@ -177,6 +177,8 @@ export interface Text extends CoreText<PageKey, Facts> {
   jobs: Record<JobId, string>;
   prices: Record<PriceId, { job: string; time: string }>;
   priceColumns: { job: string; price: string; time: string };
+  /** The price table's `<caption>`, for a screen reader. */
+  priceCaption: string;
   home: HomeCopy;
   pillars: readonly [Pillar, Pillar, Pillar];
   guaranteeCtaAside: Said;

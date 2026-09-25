@@ -104,6 +104,7 @@ export const EN = {
     repipe: { job: "Full repipe — 3 bedroom house", time: "2–3 days" },
   },
   priceColumns: { job: "JOB", price: "FLAT PRICE FROM", time: "TYPICAL TIME ON SITE" },
+  priceCaption: "What it costs",
   home: {
     eyebrow: f => `PLUMBER · ${f.place.toUpperCase()}`,
     display: ["FIXED PRICE.", "FIXED TODAY.", "GUARANTEED."],
