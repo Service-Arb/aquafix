@@ -7,7 +7,8 @@ import { MAP_FACE, MAP_FACE_PARTS } from "@/shared/ui/map";
 /**
  * The refusal is the point: a window we cannot hit is worth nothing, so the
  * radius is published and everything past it is turned down. The map is the
- * home page's facade, beside the words from `md`; the mobile frame has none.
+ * home page's facade: under the words from `md`, beside them from `lg`; the
+ * mobile frame has none.
  */
 
 /** The Figma frame's chips over kitstart's: on the card plane, taller, the page's leading. */
@@ -20,8 +21,8 @@ export function ServiceArea({ copy, point }: { copy: Copy; point: PlaceView }) {
   const map = mapOf(point.place);
   return (
     <Section tight id="areas">
-      <div className="flex flex-col gap-6 md:flex-row md:items-center md:gap-14">
-        <div className="flex flex-col gap-3 md:w-[460px] md:shrink-0 md:gap-3.5">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:gap-14">
+        <div className="flex flex-col gap-3 md:gap-3.5 lg:w-[460px] lg:shrink-0">
           <Eyebrow>{head.eyebrow}</Eyebrow>
           <Display>{head.title(f)}</Display>
           <p className="text-[15px] leading-[1.62] text-ink-soft md:text-[16.5px]">{head.lede}</p>
@@ -33,7 +34,7 @@ export function ServiceArea({ copy, point }: { copy: Copy; point: PlaceView }) {
             title={t.home.mapTitle(f)}
             show={t.home.mapShow}
             address={map.address}
-            className={`hidden md:block md:h-[360px] md:flex-1 md:aspect-auto ${MAP_FACE}`}
+            className={`hidden md:block md:h-[320px] lg:h-[360px] lg:flex-1 ${MAP_FACE}`}
             classNames={MAP_FACE_PARTS}
           />
         )}

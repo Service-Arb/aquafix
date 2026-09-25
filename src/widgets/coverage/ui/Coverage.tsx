@@ -14,7 +14,10 @@ import { MAP_FACE, MAP_FACE_PARTS } from "@/shared/ui/map";
  *
  * kitstart's `AreaChips` and `MapFacade` laid out here rather than through its
  * `Coverage`, which stacks head, chips and map in one column and has no place
- * for the facts: the v2 frame puts the map in a column of its own.
+ * for the facts: the v2 frame puts the map in a column of its own — from
+ * `lg`, where both columns have room; below it the map goes under the facts
+ * rather than shrinking beside a 440px column. With both sides of the box
+ * set, the kit's aspect ratio has nothing left to decide.
  */
 
 /** The Figma frame's chips over kitstart's. */
@@ -29,8 +32,8 @@ export function Coverage({ copy, point }: { copy: Copy; point: PlaceView }) {
   const map = mapOf(place);
   return (
     <Section tight id="areas">
-      <div className="flex flex-col gap-6 md:flex-row md:items-center md:gap-16">
-        <div className="flex flex-col gap-6 md:w-[440px] md:shrink-0">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:gap-16">
+        <div className="flex flex-col gap-6 lg:w-[440px] lg:shrink-0">
           <BandHead eyebrow={h.coverageEyebrow(f)} title={h.coverageTitle} lede={h.coverageLede(f)} />
           <AreaChips areas={servedLocalities(place)} chipClassName={CHIP} />
           {front?.landmark && <p className="text-[14.5px] text-ink-soft">{front.landmark[locale]}</p>}
@@ -50,7 +53,7 @@ export function Coverage({ copy, point }: { copy: Copy; point: PlaceView }) {
             title={h.mapTitle(f)}
             show={h.mapShow}
             address={map.address}
-            className={`h-[180px] aspect-auto md:h-[380px] md:flex-1 md:aspect-auto ${MAP_FACE}`}
+            className={`h-[180px] md:h-[320px] lg:h-[380px] lg:flex-1 ${MAP_FACE}`}
             classNames={MAP_FACE_PARTS}
           />
         )}
