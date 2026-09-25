@@ -37,7 +37,7 @@ export function BrandHome({ copy, locations }: { copy: Copy; locations: readonly
             <p className="text-[15.5px] leading-[1.6] text-ink-soft md:text-[18px]">{t.brandPage.lede}</p>
           </div>
           {/* The apex has no form: its one action is choosing a point, below. */}
-          <ProofAside copy={copy} href="#points" opensForm={false} />
+          <ProofAside copy={copy} href="#points" label={t.brandPage.chooseCta} opensForm={false} />
         </Section>
         <LocationList copy={copy} locations={locations} />
       </main>

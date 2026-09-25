@@ -50,6 +50,7 @@ export const EN = {
     lede: "Pick the point closest to you — each has its own van, its own number and the same written terms.",
     listTitle: "Our points",
     open: "Open this point",
+    chooseCta: "Choose my point ↓",
   },
   nav: { prices: "Prices", guarantee: "Guarantee", reviews: "Reviews", about: "About" },
   promise: "FIXED PRICE. FIXED TODAY.",

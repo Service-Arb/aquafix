@@ -25,7 +25,7 @@ export function LocationSubpage({ copy: base, point, page, now }: { copy: Copy; 
       <JsonLd data={locationGraph(point, copy, page, now)} />
       <PageHeader copy={copy} point={point} suffix={PAGES[page]} />
       <main>
-        <PageHead copy={copy} page={page} aside={<ProofAside copy={copy} href={point.href("#quote")} opensForm />} />
+        <PageHead copy={copy} page={page} aside={<ProofAside copy={copy} href={point.href("#quote")} label={copy.t.cta} opensForm />} />
         {page === "prices" && (
           <>
             <Services copy={copy} />

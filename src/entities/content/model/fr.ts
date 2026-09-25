@@ -48,6 +48,7 @@ export const FR = {
     lede: "Choisissez le point le plus proche — chacun a sa camionnette, son numéro et les mêmes conditions écrites.",
     listTitle: "Nos points",
     open: "Voir ce point",
+    chooseCta: "Choisir mon point ↓",
   },
   nav: { prices: "Prix", guarantee: "Garantie", reviews: "Avis", about: "À propos" },
   promise: "PRIX FIXE. RÉPARÉ AUJOURD’HUI.",

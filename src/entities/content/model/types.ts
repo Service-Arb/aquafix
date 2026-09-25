@@ -140,6 +140,8 @@ export interface BrandPageCopy {
   lede: string;
   listTitle: string;
   open: string;
+  /** The proof card's action on the apex, which has no form: it goes to the list. */
+  chooseCta: string;
 }
 
 /**
