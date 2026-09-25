@@ -3,9 +3,11 @@ import { APEX_ORIGIN } from "./env";
 
 // Between the two designed widths the page is interpolation, and the bugs
 // live there: a row that fits at 1440 and a column that fits at 390 can both
-// overflow at 768. These are the widths a visitor actually brings — a phone,
-// a tablet upright and on its side, a laptop — with the height each has.
+// overflow at 768. These are the widths a visitor actually brings — the
+// narrowest phone still sold (320), a phone, a tablet upright and on its side,
+// a laptop — with the height each has.
 const VIEWPORTS = [
+  { width: 320, height: 568 },
   { width: 390, height: 844 },
   { width: 768, height: 900 },
   { width: 1024, height: 768 },
@@ -29,6 +31,10 @@ for (const url of PAGES) {
       await page.evaluate(() => document.fonts.ready);
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect.soft(overflow, `${url} at ${viewport.width}`).toBeLessThanOrEqual(0);
+      // A word wider than its column overflows the heading without scrolling
+      // the page when an ancestor clips it: the page check alone misses it.
+      const h1 = await page.locator("h1").evaluate(el => el.scrollWidth - el.clientWidth);
+      expect.soft(h1, `${url} h1 at ${viewport.width}`).toBeLessThanOrEqual(0);
     }
   });
 }

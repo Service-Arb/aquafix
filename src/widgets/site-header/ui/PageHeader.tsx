@@ -5,14 +5,14 @@ import { contactOf, type PlaceView } from "@/entities/place";
 import { perLocale } from "@/shared/config/i18n";
 import { CTA_FACE, Lockup } from "@/shared/ui/brand";
 import { BrandLangSwitch } from "@/shared/ui/BrandLangSwitch";
+import { NavDrawer } from "./NavDrawer";
 
 /**
- * The sub-pages' header. The drawer is a `<details>`: a nav that opens
- * without hydration is one less thing on the critical path. The phone is in
- * the row at every width, on one line: below `lg` the nav and the language
- * switch go into the drawer, and the button waits for `xl` — below it the
- * drawer carries it, and from `lg` the proof card's is on the same screen —
- * so the row never runs past the viewport.
+ * The sub-pages' header; the drawer is `NavDrawer`, shared with the home
+ * page's header. The phone is in the row at every width, on one line: below
+ * `lg` the nav and the language switch go into the drawer, and the button
+ * waits for `xl` — below it the drawer carries it, and from `lg` the proof
+ * card's is on the same screen — so the row never runs past the viewport.
  */
 export function PageHeader({ copy, point, suffix }: { copy: Copy; point: PlaceView; suffix: string }) {
   const { t, f } = copy;
@@ -36,7 +36,7 @@ export function PageHeader({ copy, point, suffix }: { copy: Copy; point: PlaceVi
           ))}
         </nav>
         <div className="hidden flex-1 lg:block" />
-        <div className="flex items-center gap-3 md:gap-5">
+        <div className="ml-2 flex items-center gap-3 md:gap-5">
           <BrandLangSwitch
             label={copy.t.langLabel}
             current={copy.locale}
@@ -45,7 +45,7 @@ export function PageHeader({ copy, point, suffix }: { copy: Copy; point: PlaceVi
           />
           <a href={telHref(phone)} aria-label={`${t.headerPhoneLabel}, ${phone}`} className="flex flex-col">
             <span className="hidden text-[10px] font-medium tracking-[0.12em] text-ink-soft xl:block">{t.headerPhoneLabel}</span>
-            <span className="whitespace-nowrap font-display text-[16px] font-bold text-ink md:text-[20px] xl:text-[22px]">{phone}</span>
+            <span className="whitespace-nowrap font-display text-[16px] font-bold text-ink max-[359px]:text-[13px] md:text-[20px] xl:text-[22px]">{phone}</span>
           </a>
           <Button
             href={point.href("#quote")}
@@ -56,27 +56,17 @@ export function PageHeader({ copy, point, suffix }: { copy: Copy; point: PlaceVi
             {t.cta}
           </Button>
         </div>
-        <details className="ml-1 lg:hidden">
-          <summary className="flex size-9 items-center justify-center text-[20px] text-ink" aria-label={t.menuLabel}>
-            ☰
-          </summary>
-          <nav className="absolute inset-x-0 top-full z-20 flex flex-col gap-1 border-b border-border bg-background px-[var(--page-px)] py-3 text-[15px] font-medium text-ink-mid shadow-elevated">
-            {NAV_IDS.map(id => (
-              <a key={id} href={point.href(NAV_SUFFIX[id])} className="py-2">
-                {t.nav[id]}
-              </a>
-            ))}
-            <BrandLangSwitch
-              label={copy.t.langLabel}
-              current={copy.locale}
-              hrefs={hrefs}
-              className="py-2 text-[14px] font-medium text-ink-mid"
-            />
-            <Button href={point.href("#quote")} size="lg" data-intent="form_open" className={`my-2 w-full ${CTA_FACE}`}>
-              {t.cta}
-            </Button>
-          </nav>
-        </details>
+        <NavDrawer copy={copy} point={point} className="ml-1 max-[359px]:ml-0 lg:hidden">
+          <BrandLangSwitch
+            label={copy.t.langLabel}
+            current={copy.locale}
+            hrefs={hrefs}
+            className="py-2 text-[14px] font-medium text-ink-mid"
+          />
+          <Button href={point.href("#quote")} size="lg" data-intent="form_open" className={`my-2 w-full ${CTA_FACE}`}>
+            {t.cta}
+          </Button>
+        </NavDrawer>
       </div>
     </header>
   );
