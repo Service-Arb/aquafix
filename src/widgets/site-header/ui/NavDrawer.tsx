@@ -10,6 +10,10 @@ import { DetailsDismiss } from "@/shared/ui/DetailsDismiss";
  * spans the header, which is its containing block (`relative` on the
  * sub-pages, `absolute` over the hero). `children` go under the links — what
  * else the row dropped at that width.
+ *
+ * `hidden` until open: a closed `<details>` still lays its content out in a
+ * contained box — the details itself, not the header — where the panel's
+ * gutters stuck 2px past a 320 viewport.
  */
 export function NavDrawer({
   copy,
@@ -24,11 +28,11 @@ export function NavDrawer({
 }) {
   const { t } = copy;
   return (
-    <details className={className}>
+    <details className={`group ${className}`}>
       <summary className="flex size-9 cursor-pointer list-none items-center justify-center text-[20px] text-ink" aria-label={t.menuLabel}>
         ☰
       </summary>
-      <nav className="absolute inset-x-0 top-full z-20 flex flex-col gap-1 border-b border-border bg-background px-[var(--page-px)] py-3 text-[15px] font-medium text-ink-mid shadow-elevated">
+      <nav className="absolute inset-x-0 top-full z-20 hidden flex-col group-open:flex gap-1 border-b border-border bg-background px-[var(--page-px)] py-3 text-[15px] font-medium text-ink-mid shadow-elevated">
         {NAV_IDS.map(id => (
           <a key={id} href={point.href(NAV_SUFFIX[id])} className="py-2">
             {t.nav[id]}
