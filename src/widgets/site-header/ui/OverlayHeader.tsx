@@ -5,6 +5,7 @@ import { contactOf, type PlaceView } from "@/entities/place";
 import { perLocale } from "@/shared/config/i18n";
 import { CTA_FACE, Lockup } from "@/shared/ui/brand";
 import { BrandLangSwitch } from "@/shared/ui/BrandLangSwitch";
+import { NavDrawer } from "./NavDrawer";
 
 /**
  * The home page's header: transparent and laid over the photograph, so the
@@ -13,7 +14,8 @@ import { BrandLangSwitch } from "@/shared/ui/BrandLangSwitch";
  * width the row fits in — it carries the phone as the sub-pages' header does,
  * and the rating beside it (the draft's, or Google's while fresh: `ShownRating`);
  * narrower, the hero's own phone link is on the same screen. The nav needs
- * `lg`: at 768 it pushed the button past the viewport.
+ * `lg`: at 768 it pushed the button past the viewport, so between `md` and
+ * `lg` it is in the sub-pages' drawer. A phone has the call bar instead.
  */
 export function OverlayHeader({ copy, point }: { copy: Copy; point: PlaceView }) {
   const { t } = copy;
@@ -54,6 +56,7 @@ export function OverlayHeader({ copy, point }: { copy: Copy; point: PlaceView })
         >
           {t.home.cta}
         </Button>
+        <NavDrawer copy={copy} point={point} className="-ml-4 hidden md:block lg:hidden" />
       </div>
     </header>
   );
