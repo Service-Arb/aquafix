@@ -5,7 +5,11 @@ import { CARD, site } from "@/shared/config/site";
 import { Lockup } from "@/shared/ui/brand";
 import type { ReactNode } from "react";
 
-/** The sub-pages' footer. Local, not the kit's `Footer`: that one is EV-shaped. */
+/**
+ * The sub-pages' footer. Local, not the kit's `Footer`: that one is EV-shaped.
+ * The brand block sits beside the columns from `lg`; at 768 its 320px pushed
+ * the phone column past the viewport.
+ */
 export function Footer({ copy, point }: { copy: Copy; point: PlaceView }) {
   const { t, f } = copy;
   const { phone } = contactOf(point.place);
@@ -15,8 +19,8 @@ export function Footer({ copy, point }: { copy: Copy; point: PlaceView }) {
   const areas = servedLocalities(point.place);
   return (
     <footer id="footer" className="dark bg-background px-[var(--page-px)] pt-9 md:pt-14">
-      <div className="flex flex-col gap-8 md:flex-row md:gap-12">
-        <div className="flex flex-col gap-4 md:w-80 md:gap-[18px]">
+      <div className="flex flex-col gap-8 lg:flex-row lg:gap-12">
+        <div className="flex flex-col gap-4 md:gap-[18px] lg:w-80">
           <Lockup mark="h-[30px] w-[26px] text-primary" word="text-[23px] text-ink" />
           <p className="text-[11px] font-medium tracking-[0.16em] text-primary-ink">{t.promise}</p>
           <div className="flex flex-col gap-[7px] text-[13.5px] text-ink-soft">
