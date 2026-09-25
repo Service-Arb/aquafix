@@ -2,7 +2,7 @@ import { AreaChips, MapFacade } from "@evinvest/kitstart/react";
 import { Display, Eyebrow, Section } from "@evinvest/uikit";
 import type { Copy } from "@/entities/content";
 import { mapOf, servedLocalities, type PlaceView } from "@/entities/place";
-import { MAP_FACE } from "@/shared/ui/map";
+import { MAP_FACE, MAP_FACE_PARTS } from "@/shared/ui/map";
 
 /**
  * The refusal is the point: a window we cannot hit is worth nothing, so the
@@ -11,8 +11,8 @@ import { MAP_FACE } from "@/shared/ui/map";
  */
 
 /** The Figma frame's chips over kitstart's: on the card plane, taller, the page's leading. */
-const CHIPS =
-  "content-start gap-2.5 [&>li]:whitespace-nowrap [&>li]:bg-card [&>li]:py-2.5 [&>li]:text-[14px] [&>li]:leading-[inherit]";
+const CHIPS = "content-start gap-2.5";
+const CHIP = "whitespace-nowrap bg-card py-2.5 text-[14px] leading-[inherit]";
 
 export function ServiceArea({ copy, point }: { copy: Copy; point: PlaceView }) {
   const { t, f } = copy;
@@ -25,7 +25,7 @@ export function ServiceArea({ copy, point }: { copy: Copy; point: PlaceView }) {
           <Eyebrow>{head.eyebrow}</Eyebrow>
           <Display>{head.title(f)}</Display>
           <p className="text-[15px] leading-[1.62] text-ink-soft md:text-[16.5px]">{head.lede}</p>
-          <AreaChips areas={servedLocalities(point.place)} className={CHIPS} />
+          <AreaChips areas={servedLocalities(point.place)} className={CHIPS} chipClassName={CHIP} />
         </div>
         {map && (
           <MapFacade
@@ -34,6 +34,7 @@ export function ServiceArea({ copy, point }: { copy: Copy; point: PlaceView }) {
             show={t.home.mapShow}
             address={map.address}
             className={`hidden md:block md:h-[360px] md:flex-1 md:aspect-auto ${MAP_FACE}`}
+            classNames={MAP_FACE_PARTS}
           />
         )}
       </div>

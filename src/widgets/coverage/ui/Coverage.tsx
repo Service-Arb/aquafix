@@ -4,7 +4,7 @@ import { Section } from "@evinvest/uikit";
 import type { Copy } from "@/entities/content";
 import { contactOf, mapOf, servedLocalities, storefrontOf, type PlaceView } from "@/entities/place";
 import { BandHead } from "@/shared/ui/BandHead";
-import { MAP_FACE } from "@/shared/ui/map";
+import { MAP_FACE, MAP_FACE_PARTS } from "@/shared/ui/map";
 
 /**
  * A visitor's first question is whether you come to them at all, so the
@@ -17,8 +17,8 @@ import { MAP_FACE } from "@/shared/ui/map";
  * for the facts: the v2 frame puts the map in a column of its own.
  */
 
-/** The Figma frame's chips over kitstart's; no slot yet: EV-invest/lib#156. */
-const CHIPS = "[&>li]:text-[13.5px] [&>li]:leading-[inherit] md:[&>li]:text-[14.5px]";
+/** The Figma frame's chips over kitstart's. */
+const CHIP = "text-[13.5px] leading-[inherit] md:text-[14.5px]";
 
 export function Coverage({ copy, point }: { copy: Copy; point: PlaceView }) {
   const { t, f, locale } = copy;
@@ -32,7 +32,7 @@ export function Coverage({ copy, point }: { copy: Copy; point: PlaceView }) {
       <div className="flex flex-col gap-6 md:flex-row md:items-center md:gap-16">
         <div className="flex flex-col gap-6 md:w-[440px] md:shrink-0">
           <BandHead eyebrow={h.coverageEyebrow(f)} title={h.coverageTitle} lede={h.coverageLede(f)} />
-          <AreaChips areas={servedLocalities(place)} className={CHIPS} />
+          <AreaChips areas={servedLocalities(place)} chipClassName={CHIP} />
           {front?.landmark && <p className="text-[14.5px] text-ink-soft">{front.landmark[locale]}</p>}
           <div className="flex flex-col gap-1.5 text-[15px]">
             {/* One line on a phone, three from `md`: the frame's two layouts. */}
@@ -51,6 +51,7 @@ export function Coverage({ copy, point }: { copy: Copy; point: PlaceView }) {
             show={h.mapShow}
             address={map.address}
             className={`h-[180px] aspect-auto md:h-[380px] md:flex-1 md:aspect-auto ${MAP_FACE}`}
+            classNames={MAP_FACE_PARTS}
           />
         )}
       </div>
