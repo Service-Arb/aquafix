@@ -58,7 +58,7 @@ export function mapOf(place: Place): { address: string; query: string } | null {
   return { address, query: `${place.gbpName}, ${address}` };
 }
 
-export const parseLive =(body: unknown): PlaceLive => parsePlaceLive(body, LOCALES);
+export const parseLive = (body: unknown): PlaceLive => parsePlaceLive(body, LOCALES);
 
 /**
  * The numbers a point answers on: its own, or the brand's until it has one
