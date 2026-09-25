@@ -25,7 +25,9 @@ const BELOW_MD = "(max-width: 47.99rem)";
  * standing in water does not have to scroll to reach it. The two other
  * channels sit under the headline — WhatsApp first, the phone after, as the
  * owner ranks them. `#quote` is the form card (kitstart's shell sets the id),
- * which every CTA points at.
+ * which every CTA points at. Side by side only from `lg`: at 768 the form's
+ * 460px left the headline a ~100px column, and the phone fell off the first
+ * screen; between `md` and `lg` the form sits under the words instead.
  *
  * A hero crop, not the library shot: the master carries the depot signage
  * across its top third, which puts a second wordmark under the header.
@@ -51,10 +53,10 @@ export function Hero({ copy, point, renderedAt }: { copy: Copy; point: PlaceView
         />
       </picture>
       <div className="hero-scrim absolute inset-0 -z-10" />
-      <div className="flex w-full flex-col gap-8 px-[var(--page-px)] pb-10 pt-28 md:flex-row md:items-center md:gap-16 md:pb-[72px] md:pt-32">
+      <div className="flex w-full flex-col gap-8 px-[var(--page-px)] pb-10 pt-28 md:pb-[72px] md:pt-32 lg:flex-row lg:items-center lg:gap-16">
         <div className="flex min-w-0 flex-1 flex-col">
           <p className={EYEBROW}>{h.eyebrow(f)}</p>
-          <h1 className="mt-4 font-display text-[2.6rem] font-bold uppercase leading-[0.99] tracking-[-0.02em] text-ink md:mt-5 md:text-[4rem]">
+          <h1 className="mt-4 font-display text-[clamp(2.6rem,4.4vw+0.5rem,4rem)] font-bold uppercase leading-[0.99] tracking-[-0.02em] text-ink md:mt-5">
             {h.display[0]}
             <br />
             <span className="text-primary">{h.display[1]}</span>
@@ -88,7 +90,7 @@ export function Hero({ copy, point, renderedAt }: { copy: Copy; point: PlaceView
             ))}
           </ul>
         </div>
-        <div className="w-full md:w-[460px] md:shrink-0">
+        <div className="w-full md:max-w-[560px] lg:w-[460px] lg:shrink-0">
           <QuoteForm copy={copy} point={point} renderedAt={renderedAt} />
         </div>
       </div>
