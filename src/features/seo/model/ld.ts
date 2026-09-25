@@ -18,8 +18,10 @@ function offers(copy: Copy): OfferInput[] {
 
 /**
  * The words one page's graph quotes. The price list is on the home page and
- * /prices, the FAQ only on /prices: emitting either where it is not rendered
- * is a structured-data mismatch.
+ * /prices: emitting it where it is not rendered is a structured-data mismatch.
+ * The FAQ is printed on both too, but its FAQPage node stays on /prices only —
+ * the same questions marked up on two pages of one site read as duplicate
+ * markup, and /prices is the page they answer.
  */
 function graphCopy(copy: Copy, page: PageKey): PageGraphCopy {
   const meta = copy.t.pages[page];

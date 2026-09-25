@@ -2,10 +2,11 @@ import type { CopySlice, QuestionAnswer } from "@evinvest/kitstart";
 import type { Locale } from "@/shared/config/i18n";
 import { TRADE } from "@/shared/config/site";
 import { formatEur } from "@/shared/lib/money";
+import { formatRating } from "@/shared/lib/rating";
 import { priceOf } from "./model/catalogue";
 import { EN } from "./model/en";
 import { FR } from "./model/fr";
-import type { Facts, Text } from "./model/types";
+import type { Facts, ShownRating, Text } from "./model/types";
 
 export type * from "./model/types";
 export {
@@ -44,7 +45,23 @@ export function factsFor(input: { locale: Locale; place: string; phone: string }
     insurer: TRADE.decennale.insurer,
     policy: TRADE.decennale.policy,
     radiusKm: TRADE.radiusKm,
+    rating: shown(TRADE.proofRating, locale, false),
   };
+}
+
+function shown(rating: { value: number; count: number }, locale: Locale, google: boolean): ShownRating {
+  return { ...formatRating(rating, locale), stars: Math.round(rating.value), google };
+}
+
+/**
+ * The copy with Google's rating in place of the draft's, when the live source
+ * has a fresh one (`freshRating`, the rule schema.org follows) — so the
+ * header, the stats and the reviews line say one number, and only a real one
+ * is called Google's.
+ */
+export function withLiveRating(copy: Copy, live: { value: number; count: number } | null): Copy {
+  if (!live) return copy;
+  return { ...copy, f: { ...copy.f, rating: shown(live, copy.locale, true) } };
 }
 
 /** What a section needs to say something: the language, its words, and the facts they quote. */

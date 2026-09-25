@@ -83,6 +83,11 @@ export const TRADE = {
   surchargeEur: 60,
   /** How far a van drives from its point. */
   radiusKm: 30,
+  /**
+   * The rating the draft prints until a point's live Google rating arrives.
+   * Never reaches schema.org; see `ShownRating` in `entities/content`.
+   */
+  proofRating: { value: 4.9, count: 612 },
 } as const;
 
 /**
@@ -99,4 +104,14 @@ export const OWNER_TODO: readonly OwnerTodo[] = [
   { field: "TRADE.radiusKm", why: "service radius per point", blocksLaunch: false },
   { field: "PRICE_LIST", why: "every fromEur is the USD draft's integer, not a French price", blocksLaunch: false },
   { field: "Text.crew / Text.reviews / proof stats", why: "copy placeholders from the Portland draft", blocksLaunch: false },
+  {
+    field: "TRADE.proofRating",
+    why: "the draft's rating; Figma v2 calls it «avis Google vérifiés», printed as plain «avis» until it is Google's own",
+    blocksLaunch: false,
+  },
+  {
+    field: "reviews link per point",
+    why: "Google Business Profile reviews URL for «Lire tous les avis sur Google»",
+    blocksLaunch: false,
+  },
 ];

@@ -25,7 +25,9 @@ const ROOT = [
 /**
  * The Figma frame's paddings and type sizes over kitstart's screen. On a phone
  * the lock-up, the switch and the number share one line — kitstart wraps the
- * switch onto its own.
+ * switch onto its own. The outline's rule takes `ink-soft` at 60 % (4.14:1 on
+ * the dark background): `brand.toml` pins the dark `input` to #1b3a57 for the
+ * printed card, and that is 1.55:1 — under the 3:1 a control's edge needs.
  */
 const PARTS: Partial<Record<StatusScreenPart, string>> = {
   header: "flex-nowrap gap-0 py-4 md:gap-0 md:py-[22px]",
@@ -36,6 +38,7 @@ const PARTS: Partial<Record<StatusScreenPart, string>> = {
   code: "text-[88px] leading-none tracking-[-0.02em] tabular-nums md:text-[150px]",
   headline: "text-[26px] leading-[1.25] md:text-[40px]",
   body: "max-w-[41rem] text-[15px] leading-[1.6] md:text-[17px]",
+  secondaryButton: "border-ink-soft/60",
   strip: "text-[14px] leading-[inherit] sm:gap-[26px]",
   footer: "text-[11.5px] leading-[inherit] tracking-[0.08em]",
 };

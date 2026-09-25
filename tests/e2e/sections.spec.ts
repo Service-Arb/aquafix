@@ -11,15 +11,15 @@ import { APEX_ORIGIN } from "./env";
 const SECTIONS = [
   { name: "header", url: "/fr", selector: "header" },
   { name: "hero", url: "/fr", selector: "main > section >> nth=0" },
+  { name: "stats", url: "/fr#stats", selector: "#stats" },
   { name: "work", url: "/fr#work", selector: "#work" },
   { name: "prices", url: "/fr#prices", selector: "#prices" },
   { name: "guarantee", url: "/fr#guarantee", selector: "#guarantee" },
   { name: "reviews", url: "/fr#reviews", selector: "#reviews" },
   { name: "coverage", url: "/fr#areas", selector: "#areas" },
-  // `#quote` is the link every CTA points at; the band around it is the section.
-  { name: "closing", url: "/fr#quote", selector: "#quote-band" },
   { name: "footer", url: "/fr#footer", selector: "footer" },
   { name: "callbar", url: "/fr", selector: "#callbar" },
+  { name: "page-head", url: "/fr/prices", selector: "main > section >> nth=0" },
   { name: "faq", url: "/fr/prices#faq", selector: "#faq" },
   { name: "crew", url: "/fr/about#crew", selector: "#crew" },
   { name: "areas", url: "/fr/about#areas", selector: "#areas" },
@@ -33,6 +33,10 @@ const SECTIONS = [
 
 // `md:hidden` in the design: at 1440 there is nothing to shoot.
 const MOBILE_ONLY = new Set<string>(["callbar"]);
+
+// The sections that change shape between `md` and `lg`: the only ones the
+// tablet project shoots.
+const TABLET = new Set<string>(["header", "hero", "page-head"]);
 
 // The site scrolls smoothly for everyone who has not asked it not to, and an
 // animated scroll is exactly the moving target above. `use.reducedMotion` does
@@ -78,6 +82,7 @@ async function settle(page: Page, selector: string): Promise<void> {
 for (const { name, url, selector } of SECTIONS) {
   test(`section: ${name}`, async ({ page }, testInfo) => {
     test.skip(MOBILE_ONLY.has(name) && testInfo.project.name !== "mobile");
+    test.skip(testInfo.project.name === "tablet" && !TABLET.has(name));
     await page.goto(url);
     const section = page.locator(selector);
     await expect(section).toBeVisible();
@@ -91,3 +96,31 @@ for (const { name, url, selector } of SECTIONS) {
     );
   });
 }
+
+// The quote form's job list, open. It is portalled out of the hero, so no
+// section crop holds it: the shot is the form card and the list together,
+// the first item under the keyboard's highlight.
+test("section: hero job list", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "tablet");
+  await page.goto("/fr#quote");
+  const form = page.locator("form#quote");
+  const trigger = form.locator("button[role=combobox]");
+  await expect(trigger).toBeVisible();
+  await settle(page, "form#quote");
+  await trigger.focus();
+  await page.keyboard.press("ArrowDown");
+  const list = page.getByRole("listbox");
+  await expect(list).toBeVisible();
+  await settle(page, "form#quote");
+  const [a, b] = await Promise.all([form.boundingBox(), list.boundingBox()]);
+  if (!a || !b) throw new Error("the form or its list has no box");
+  const x = Math.min(a.x, b.x);
+  const y = Math.min(a.y, b.y);
+  const clip = {
+    x,
+    y,
+    width: Math.max(a.x + a.width, b.x + b.width) - x,
+    height: Math.max(a.y + a.height, b.y + b.height) - y,
+  };
+  await expect(page).toHaveScreenshot(`hero-job-list-${testInfo.project.name}.png`, { clip });
+});

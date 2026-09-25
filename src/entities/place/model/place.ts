@@ -8,6 +8,7 @@ import {
   placeUrl as placeUrlOn,
   publicationGaps as gapsBy,
   siteOrigin,
+  storefrontOf,
   type LinkMode,
   type PublicationField,
 } from "@evinvest/kitstart";
@@ -43,6 +44,19 @@ export function placeView(place: Place, locale: Locale, mode: LinkMode): PlaceVi
 
 export const publicationGaps = (place: Place): PublicationField[] => gapsBy(place, site.publication);
 export const isPublished = (place: Place): boolean => isPublishedBy(place, site.publication, site.brand);
+
+/**
+ * A storefront's printed address and the query its map searches for — what
+ * kitstart's `Coverage` builds for its `MapFacade`, for the bands that lay the
+ * facade out themselves. `null` for a service-area point: it has no address.
+ */
+export function mapOf(place: Place): { address: string; query: string } | null {
+  const front = storefrontOf(place);
+  if (!front) return null;
+  const { street, postalCode, locality } = front.address;
+  const address = `${street}, ${postalCode} ${locality}`;
+  return { address, query: `${place.gbpName}, ${address}` };
+}
 
 export const parseLive = (body: unknown): PlaceLive => parsePlaceLive(body, LOCALES);
 

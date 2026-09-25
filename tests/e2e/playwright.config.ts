@@ -43,11 +43,18 @@ export default defineConfig({
     locale: "fr-FR",
   },
 
-  // The design specifies exactly two breakpoints, so there are exactly two
-  // projects. Anything between them is interpolation we have not designed.
+  // The design specifies two breakpoints, 1440 and 390. The tablet is the
+  // interpolation between them where the layout breaks first (the hero's form
+  // once squeezed the headline to a 100px column at 768), so it gets a project
+  // of its own — for the sections that change shape there, and nothing else.
   projects: [
     { name: "desktop", use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } } },
     { name: "mobile", use: { ...devices["Desktop Chrome"], viewport: { width: 390, height: 844 } } },
+    {
+      name: "tablet",
+      testMatch: "sections.spec.ts",
+      use: { ...devices["Desktop Chrome"], viewport: { width: 768, height: 900 } },
+    },
   ],
 
   // The artefact that ships, not `next dev`: the standalone server, with the

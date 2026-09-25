@@ -4,6 +4,7 @@ export {
   brandOrigin,
   contactOf,
   isPublished,
+  mapOf,
   parseLive,
   PLACE_SLUGS,
   PLACES,

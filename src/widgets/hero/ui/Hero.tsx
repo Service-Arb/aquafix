@@ -1,8 +1,10 @@
 import { telHref, whatsappHref } from "@evinvest/marketing";
-import { Button } from "@evinvest/uikit";
+import { Badge, Button } from "@evinvest/uikit";
 import type { Copy } from "@/entities/content";
 import { contactOf, type PlaceView } from "@/entities/place";
+import { QuoteForm } from "@/features/quote-form";
 import { PHOTO_SETS } from "@/shared/assets/photos";
+import { EYEBROW } from "@/shared/ui/BandHead";
 import { CTA_FACE } from "@/shared/ui/brand";
 import heroWide from "../../../../assets/photos/hero-wide.jpg";
 
@@ -15,18 +17,27 @@ const BELOW_MD = "(max-width: 47.99rem)";
 
 /**
  * The one place the page's rule is visible as geometry: the photograph is the
- * only element that answers the viewport. The message sits in a fixed measure
- * pinned to the gutter, the same block of pixels at 1440 and at 2560.
+ * only element that answers the viewport. The message and the form sit inside
+ * the gutter, the same block of pixels at 1440 and at 2560.
+ *
+ * The quote form is here, beside the headline, rather than after the prices:
+ * the owner's v2 design puts the one action on the first screen, so a visitor
+ * standing in water does not have to scroll to reach it. The two other
+ * channels sit under the headline — WhatsApp first, the phone after, as the
+ * owner ranks them. `#quote` is the form card (kitstart's shell sets the id),
+ * which every CTA points at. Side by side only from `lg`: at 768 the form's
+ * 460px left the headline a ~100px column, and the phone fell off the first
+ * screen; between `md` and `lg` the form sits under the words instead.
  *
  * A hero crop, not the library shot: the master carries the depot signage
  * across its top third, which puts a second wordmark under the header.
  */
-export function Hero({ copy, point }: { copy: Copy; point: PlaceView }) {
+export function Hero({ copy, point, renderedAt }: { copy: Copy; point: PlaceView; renderedAt: number }) {
   const { t, f } = copy;
   const h = t.home;
   const { phone, whatsapp } = contactOf(point.place);
   return (
-    <section className="dark relative isolate flex min-h-[580px] flex-col justify-end overflow-hidden md:min-h-[76vh] md:justify-center">
+    <section className="dark relative isolate overflow-hidden">
       {/* The LCP element. Below `md` a crop of the region a phone can show, not
           the whole wide frame; AVIF, then WebP, then the jpg for the rest. */}
       <picture>
@@ -42,10 +53,10 @@ export function Hero({ copy, point }: { copy: Copy; point: PlaceView }) {
         />
       </picture>
       <div className="hero-scrim absolute inset-0 -z-10" />
-      <div className="w-full px-[var(--page-px)] pb-12 pt-28 md:pb-20 md:pt-32">
-        <div className="flex max-w-[var(--measure)] flex-col">
-          <p className="text-[10.5px] font-semibold tracking-[0.16em] text-primary-ink md:text-[12px]">{h.eyebrow(f)}</p>
-          <h1 className="mt-4 font-display text-[clamp(2.6rem,9vw,4.75rem)] font-bold uppercase leading-[0.99] tracking-[-0.02em] text-ink md:mt-5">
+      <div className="flex w-full flex-col gap-8 px-[var(--page-px)] pb-10 pt-28 md:pb-[72px] md:pt-32 lg:flex-row lg:items-center lg:gap-16">
+        <div className="flex min-w-0 flex-1 flex-col">
+          <p className={EYEBROW}>{h.eyebrow(f)}</p>
+          <h1 className="mt-4 font-display text-[clamp(2.6rem,4.4vw+0.5rem,4rem)] font-bold uppercase leading-[0.99] tracking-[-0.02em] text-ink md:mt-5">
             {h.display[0]}
             <br />
             <span className="text-primary">{h.display[1]}</span>
@@ -54,9 +65,6 @@ export function Hero({ copy, point }: { copy: Copy; point: PlaceView }) {
           </h1>
           <p className="mt-5 text-[15.5px] leading-[1.6] text-ink-soft md:mt-6 md:text-[18px]">{h.lede(f)}</p>
           <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-4 md:mt-8">
-            <Button href={point.href("#quote")} size="xl" data-intent="form_open" className={CTA_FACE}>
-              {h.cta}
-            </Button>
             <Button
               href={whatsappHref(whatsapp, t.whatsappMessage(f))}
               size="xl"
@@ -67,22 +75,23 @@ export function Hero({ copy, point }: { copy: Copy; point: PlaceView }) {
             </Button>
             <a
               href={telHref(phone)}
-              className="font-display text-[19px] font-bold text-ink hover:text-primary-ink md:text-[21px]"
+              className="font-display text-[19px] font-bold leading-[normal] text-ink hover:text-primary-ink md:text-[21px]"
             >
               {phone}
             </a>
           </div>
-          {/* Four figures under a rule say what the proof band said, inside the measure. */}
-          <div className="mt-9 border-t border-ink/20 pt-6 md:mt-11">
-            <dl className="grid grid-cols-2 gap-x-6 gap-y-5 md:flex md:flex-wrap md:gap-x-10">
-              {h.stats.map(s => (
-                <div key={s.label} className="flex flex-col-reverse gap-1">
-                  <dt className="text-[10px] font-medium tracking-[0.1em] text-ink-soft md:text-[10.5px]">{s.label}</dt>
-                  <dd className="font-display font-num text-[21px] font-bold text-ink md:text-[25px]">{s.figure}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
+          <ul className="mt-9 flex flex-wrap gap-2 md:mt-11">
+            {[...t.statusStrip, h.decennaleBadge].map(label => (
+              <li key={label}>
+                <Badge variant="outline" className="rounded-sm bg-card text-[12px] text-ink">
+                  {label}
+                </Badge>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="w-full md:max-w-[560px] lg:w-[460px] lg:shrink-0">
+          <QuoteForm copy={copy} point={point} renderedAt={renderedAt} />
         </div>
       </div>
     </section>

@@ -50,6 +50,7 @@ export const EN = {
     lede: "Pick the point closest to you — each has its own van, its own number and the same written terms.",
     listTitle: "Our points",
     open: "Open this point",
+    chooseCta: "Choose my point ↓",
   },
   nav: { prices: "Prices", guarantee: "Guarantee", reviews: "Reviews", about: "About" },
   promise: "FIXED PRICE. FIXED TODAY.",
@@ -103,18 +104,22 @@ export const EN = {
     repipe: { job: "Full repipe — 3 bedroom house", time: "2–3 days" },
   },
   priceColumns: { job: "JOB", price: "FLAT PRICE FROM", time: "TYPICAL TIME ON SITE" },
+  priceCaption: "What it costs",
   home: {
     eyebrow: f => `PLUMBER · ${f.place.toUpperCase()}`,
     display: ["FIXED PRICE.", "FIXED TODAY.", "GUARANTEED."],
     lede: () => "A written flat rate on your doorstep before we start. Two-hour window, or the call-out is free.",
     cta: "Get my flat price",
-    stats: [
-      { figure: "4.9★", label: "612 REVIEWS" },
+    decennaleBadge: "Décennale insurance",
+    headerRating: f => `★ ${f.rating.value} · ${f.rating.count} reviews`,
+    stats: f => [
+      { figure: `${f.rating.value}★`, label: `${f.rating.count} REVIEWS` },
       { figure: "43 MIN", label: "AVG. ARRIVAL" },
       { figure: "96%", label: "FIXED SAME DAY" },
       { figure: "12 MO", label: "WARRANTY" },
     ],
-    workTitle: "The work.",
+    workEyebrow: "WHAT WE DO · FLAT PRICES",
+    workTitle: "The work. And what it costs.",
     work: {
       drains: {
         caption: "Blocked drains",
@@ -135,16 +140,19 @@ export const EN = {
     },
     workMore: "What this involves",
     workClose: "Close",
-    pricesTitle: "What things cost.",
     pricesNote: f => `Call-out ${f.callout}, credited in full against work you approve. Prices include TVA.`,
+    guaranteeEyebrow: "OUR GUARANTEE, IN WRITING",
     guaranteeTitle: "Three things we pay for if we get them wrong.",
+    guaranteeLink: "Read our guarantee",
+    reviewsEyebrow: "REVIEWS",
     reviewsTitle: "What the neighbours say.",
+    reviewsRating: f => `${f.rating.value} out of 5 · ${f.rating.count}${f.rating.google ? " Google" : ""} reviews`,
+    reviewsCallAside: ["or call ", " — we pick up 24/7"],
+    coverageEyebrow: f => `SERVICE AREA · ${f.radiusKm} KM AROUND ${f.place.toUpperCase()}`,
     coverageTitle: "Where we go.",
     coverageLede: f => `${f.place} and the communes around it. If you are outside, we will say so on the phone.`,
     mapShow: "Show the map",
     mapTitle: f => `Map: Aquafix ${f.place}`,
-    closingTitle: "Get your flat price.",
-    closingLede: "Ninety seconds. If you do not like the number you have paid nothing at all.",
     backToTop: "Back to top",
   },
   pillars: [
@@ -152,22 +160,17 @@ export const EN = {
       n: "01",
       title: "The price cannot move.",
       body: () =>
-        "Your flat rate is signed before work starts. In 4,100 jobs we have never sent an invoice higher than the quote — if we underestimate the job, we absorb it.",
-      short: () => "Signed before work starts. 4,100 jobs, never an invoice above the quote.",
+        "A flat rate in writing before a single tool comes out of the van. Three hours longer than we estimated? That is our problem.",
     },
     {
       n: "02",
       title: "The clock is on us.",
-      body: f =>
-        `Two-hour arrival window, chosen by you. Late by a single minute and the ${f.callout} call-out is waived automatically — you do not have to ask, and you do not have to argue.`,
-      short: f => `Two-hour window. Late by a minute and the ${f.callout} call-out is waived automatically.`,
+      body: f => `A 2-hour arrival window. Miss the window and the ${f.callout} call-out fee is waived automatically.`,
     },
     {
       n: "03",
       title: "The work is warranted.",
-      body: () =>
-        "Twelve months on parts and labour. If the same fault comes back we return free of charge, and we still do not charge you a diagnostic fee to look at it.",
-      short: () => "Twelve months, parts and labour. Same fault returns, we come back free.",
+      body: () => "12 months on parts and labour. If the same fault comes back, we come back and fix it at no charge.",
     },
   ],
   guaranteeCtaAside: f => `or call ${f.phone} — a human picks up, 24 hours a day`,
@@ -237,7 +240,11 @@ export const EN = {
     from: "from",
     quoted: "quoted",
   },
-  faqHead: { eyebrow: "BEFORE YOU CALL", title: "The questions everybody asks." },
+  faqHead: {
+    eyebrow: "BEFORE YOU CALL",
+    title: "The questions everybody asks.",
+    callAside: ["Still have a question? A human answers 24/7 on ", "."],
+  },
   faqs: [
     {
       q: f => `Is the ${f.callout} call-out on top of the job price?`,
@@ -343,6 +350,7 @@ export const EN = {
   footer: {
     columns: { services: "SERVICES", areas: "AREAS", company: "COMPANY", contact: "CONTACT" },
     legal: ["Legal notice", "Privacy", "Insurance certificate"],
+    siret: f => `SIRET ${f.siret}`,
     company: {
       guarantee: "Our guarantee",
       prices: "Published prices",

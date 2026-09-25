@@ -6,6 +6,7 @@ import { CARD, site } from "@/shared/config/site";
 import { perLocale } from "@/shared/config/i18n";
 import { Lockup } from "@/shared/ui/brand";
 import { LocationList } from "@/widgets/location-list";
+import { ProofAside } from "@/widgets/proof-aside";
 import { BrandLangSwitch } from "@/shared/ui/BrandLangSwitch";
 
 /**
@@ -27,14 +28,16 @@ export function BrandHome({ copy, locations }: { copy: Copy; locations: readonly
         />
       </header>
       <main>
-        <Section polarity="dark">
-          <div className="flex max-w-[var(--measure)] flex-col gap-5">
+        <Section polarity="dark" className="flex items-center gap-16">
+          <div className="flex min-w-0 flex-1 flex-col gap-5">
             <p className="text-[11px] font-semibold tracking-[0.16em] text-primary-ink md:text-[12px]">{t.promise}</p>
             <h1 className="font-display text-[clamp(2.2rem,7vw,3.75rem)] font-bold leading-[1.02] tracking-[-0.02em] text-ink">
               {t.brandPage.h1}
             </h1>
             <p className="text-[15.5px] leading-[1.6] text-ink-soft md:text-[18px]">{t.brandPage.lede}</p>
           </div>
+          {/* The apex has no form: its one action is choosing a point, below. */}
+          <ProofAside copy={copy} href="#points" label={t.brandPage.chooseCta} opensForm={false} />
         </Section>
         <LocationList copy={copy} locations={locations} />
       </main>

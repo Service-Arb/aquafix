@@ -27,6 +27,21 @@ export interface Facts {
   insurer: string;
   policy: string;
   radiusKm: number;
+  /** The rating the page prints — see `ShownRating`. */
+  rating: ShownRating;
+}
+
+/**
+ * A rating, formatted: the owner's placeholder (`TRADE.proofRating`), or
+ * Google's own while the live source's copy is fresh — the same rule
+ * schema.org follows. `google` says which, so only a real one is called Google's.
+ */
+export interface ShownRating {
+  value: string;
+  count: string;
+  /** Whole stars, for the row printed beside the value. */
+  stars: number;
+  google: boolean;
 }
 
 /** A sentence that quotes a fact. */
@@ -50,8 +65,6 @@ export interface Pillar {
   n: string;
   title: string;
   body: Said;
-  /** The mobile frame carries genuinely shorter copy. */
-  short: Said;
 }
 
 export interface Review {
@@ -88,21 +101,30 @@ export interface HomeCopy {
   display: readonly [string, string, string];
   lede: Said;
   cta: string;
-  stats: readonly [Stat, Stat, Stat, Stat];
+  /** The fourth trust badge, after `statusStrip`'s three. */
+  decennaleBadge: string;
+  /** The header's rating, beside the phone. */
+  headerRating: Said;
+  stats: (f: Facts) => readonly [Stat, Stat, Stat, Stat];
+  workEyebrow: string;
   workTitle: string;
   work: Record<WorkId, { caption: string; body: string }>;
   workMore: string;
   workClose: string;
-  pricesTitle: string;
   pricesNote: Said;
+  guaranteeEyebrow: string;
   guaranteeTitle: string;
+  guaranteeLink: string;
+  reviewsEyebrow: string;
   reviewsTitle: string;
+  reviewsRating: Said;
+  /** Around the phone, which the band prints as a `tel:` link. */
+  reviewsCallAside: readonly [string, string];
+  coverageEyebrow: Said;
   coverageTitle: string;
   coverageLede: Said;
   mapShow: string;
   mapTitle: Said;
-  closingTitle: string;
-  closingLede: string;
   backToTop: string;
 }
 
@@ -118,6 +140,8 @@ export interface BrandPageCopy {
   lede: string;
   listTitle: string;
   open: string;
+  /** The proof card's action on the apex, which has no form: it goes to the list. */
+  chooseCta: string;
 }
 
 /**
@@ -153,12 +177,19 @@ export interface Text extends CoreText<PageKey, Facts> {
   jobs: Record<JobId, string>;
   prices: Record<PriceId, { job: string; time: string }>;
   priceColumns: { job: string; price: string; time: string };
+  /** The price table's `<caption>`, for a screen reader. */
+  priceCaption: string;
   home: HomeCopy;
   pillars: readonly [Pillar, Pillar, Pillar];
   guaranteeCtaAside: Said;
   reviews: readonly [Review, Review, Review];
   services: { head: Head3; items: Record<ServiceId, { name: string; body: string }>; from: string; quoted: string };
-  faqHead: { eyebrow: string; title: string };
+  faqHead: {
+    eyebrow: string;
+    title: string;
+    /** Around the phone, which the head prints as a `tel:` link. */
+    callAside: readonly [string, string];
+  };
   faqs: readonly [Faq, Faq, Faq, Faq, Faq, Faq];
   objectionsHead: Head3;
   objections: readonly [Objection, Objection, Objection, Objection];
@@ -171,6 +202,7 @@ export interface Text extends CoreText<PageKey, Facts> {
   footer: {
     columns: { services: string; areas: string; company: string; contact: string };
     legal: readonly string[];
+    siret: Said;
     company: Record<"guarantee" | "prices" | "reviews" | "crew" | "contact", string>;
   };
   statusStrip: readonly [string, string, string];
