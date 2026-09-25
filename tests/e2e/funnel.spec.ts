@@ -2,6 +2,7 @@ import { DatabaseSync } from "node:sqlite";
 import { LIBRARY_PROPS } from "@evinvest/analytics";
 import { MIN_FILL_MS } from "@evinvest/kitstart";
 import { expect, test } from "@playwright/test";
+import { JOB_IDS } from "../../src/shared/config/lead";
 import { LEADS_DB, POSTHOG_HOST } from "./env";
 
 // The funnel's floor: the form must submit before any JavaScript has loaded.
@@ -41,6 +42,43 @@ test.describe("without JavaScript", () => {
       db.close();
     }
   });
+});
+
+// Once hydrated, the job is the kit's own list in the palette, not the
+// platform's menu — and the pick still reaches the row. A native `<select>` is
+// a combobox too, so the trigger is found as the button it becomes.
+test("with JavaScript the job is the kit's listbox and the pick is stored", async ({ page }, testInfo) => {
+  const mobile = `07${String(Date.now() % 1e8).padStart(8, "0")}`;
+  const zip = `63130-js-${testInfo.project.name}`;
+
+  await page.goto("/fr#quote");
+  const form = page.locator("form#quote");
+  const trigger = form.locator("button[role=combobox]");
+  await expect(trigger).toBeVisible();
+  await expect(form.locator("select")).toHaveCount(0);
+
+  await trigger.click();
+  const list = page.getByRole("listbox");
+  await expect(list).toBeVisible();
+  await list.getByRole("option").nth(1).click();
+  await expect(list).toBeHidden();
+  await expect(form.locator("input[name=job]")).toHaveValue(JOB_IDS[1]);
+
+  await form.locator("input[name=zip]").fill(zip);
+  await form.locator("input[name=mobile]").fill(mobile);
+  await page.waitForTimeout(MIN_FILL_MS + 250);
+  const posted = page.waitForResponse(r => r.request().method() === "POST" && new URL(r.url()).pathname === "/quote");
+  await form.locator("button[type=submit]").click();
+  expect((await posted).status()).toBe(303);
+  await page.waitForURL("**/fr/thanks");
+
+  const db = new DatabaseSync(LEADS_DB, { readOnly: true });
+  try {
+    const row = db.prepare("SELECT job, zip, spam_verdict FROM leads WHERE mobile = ?").get(mobile);
+    expect(row).toEqual({ job: JOB_IDS[1], zip, spam_verdict: null });
+  } finally {
+    db.close();
+  }
 });
 
 // A tap on `tel:` hands the visitor to the dialler and tears the page down; an

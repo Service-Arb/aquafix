@@ -1,5 +1,5 @@
-import { PHONE_INPUT_PROPS, QuoteFormShell } from "@evinvest/kitstart/react";
-import { Button, Check, Field, FieldLabel, Input, NativeSelect, NativeSelectOption } from "@evinvest/uikit";
+import { FormSelect, PHONE_INPUT_PROPS, QuoteFormShell } from "@evinvest/kitstart/react";
+import { Button, Check, Field, FieldLabel, Input } from "@evinvest/uikit";
 import type { CopyOf, Text } from "@/entities/content";
 import type { PlaceView } from "@/entities/place";
 import { LEAD } from "@/shared/config/lead";
@@ -20,8 +20,10 @@ const LABEL = "text-[12.5px] font-medium leading-[normal] tracking-[0.06em] text
  * answered with a 303, carrying the hidden fields and the honeypot the funnel
  * reads — around the three fields a plumbing quote asks for. It has to work
  * before any JavaScript arrives, because that is when the visitor standing in
- * water submits it. The kit's `NativeSelect` is a real `<select>` and `Field`
- * mints the label's `for` with `useId`, so both hold with scripting off.
+ * water submits it. The job is kitstart's `FormSelect`: a real `<select name>`
+ * until the page hydrates, then the kit's `Select`, whose list is drawn in the
+ * palette rather than the platform's menu. `Field` mints the label's `for`
+ * with `useId`, which names either control, so both hold with scripting off.
  */
 export type QuoteFormWidgetCopy = CopyOf<Pick<Text, "quoteForm" | "jobs">>;
 
@@ -42,13 +44,14 @@ export function QuoteForm({ copy, point, renderedAt }: { copy: QuoteFormWidgetCo
       </div>
       <Field className={FIELD}>
         <FieldLabel className={LABEL}>{q.jobLabel}</FieldLabel>
-        <NativeSelect size="lg" name={LEAD.wire.subject} required className={CONTROL} defaultValue={LEAD.subjects[0]}>
-          {LEAD.subjects.map(id => (
-            <NativeSelectOption key={id} value={id}>
-              {copy.t.jobs[id]}
-            </NativeSelectOption>
-          ))}
-        </NativeSelect>
+        <FormSelect
+          size="lg"
+          name={LEAD.wire.subject}
+          required
+          options={LEAD.subjects.map(id => ({ value: id, label: copy.t.jobs[id] }))}
+          defaultValue={LEAD.subjects[0]}
+          classNames={{ trigger: CONTROL }}
+        />
       </Field>
       <Field className={FIELD}>
         <FieldLabel className={LABEL}>{q.zipLabel}</FieldLabel>
