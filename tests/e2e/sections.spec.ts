@@ -19,6 +19,7 @@ const SECTIONS = [
   { name: "coverage", url: "/fr#areas", selector: "#areas" },
   { name: "footer", url: "/fr#footer", selector: "footer" },
   { name: "callbar", url: "/fr", selector: "#callbar" },
+  { name: "page-head", url: "/fr/prices", selector: "main > section >> nth=0" },
   { name: "faq", url: "/fr/prices#faq", selector: "#faq" },
   { name: "crew", url: "/fr/about#crew", selector: "#crew" },
   { name: "areas", url: "/fr/about#areas", selector: "#areas" },
@@ -32,6 +33,10 @@ const SECTIONS = [
 
 // `md:hidden` in the design: at 1440 there is nothing to shoot.
 const MOBILE_ONLY = new Set<string>(["callbar"]);
+
+// The sections that change shape between `md` and `lg`: the only ones the
+// tablet project shoots.
+const TABLET = new Set<string>(["header", "hero", "page-head"]);
 
 // The site scrolls smoothly for everyone who has not asked it not to, and an
 // animated scroll is exactly the moving target above. `use.reducedMotion` does
@@ -77,6 +82,7 @@ async function settle(page: Page, selector: string): Promise<void> {
 for (const { name, url, selector } of SECTIONS) {
   test(`section: ${name}`, async ({ page }, testInfo) => {
     test.skip(MOBILE_ONLY.has(name) && testInfo.project.name !== "mobile");
+    test.skip(testInfo.project.name === "tablet" && !TABLET.has(name));
     await page.goto(url);
     const section = page.locator(selector);
     await expect(section).toBeVisible();
@@ -95,6 +101,7 @@ for (const { name, url, selector } of SECTIONS) {
 // section crop holds it: the shot is the form card and the list together,
 // the first item under the keyboard's highlight.
 test("section: hero job list", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "tablet");
   await page.goto("/fr#quote");
   const form = page.locator("form#quote");
   const trigger = form.locator("button[role=combobox]");
