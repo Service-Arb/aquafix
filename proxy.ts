@@ -6,6 +6,7 @@ export const proxy = createProxy(site);
 export const config = {
   // A literal: Next reads it statically. Everything but the build output —
   // files too: `decide` passes the routes outside `[locale]` and 404s every
-  // other path, `/wp-login.php` included (this site serves no public files).
+  // other path, `/wp-login.php` included; the app-root icons pass as the
+  // site's `publicFiles` (shared/config/site.ts).
   matcher: ["/((?!_next/).*)"],
 };

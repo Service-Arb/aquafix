@@ -22,7 +22,7 @@ export function PageHeader({ copy, point, suffix }: { copy: Copy; point: PlaceVi
   const { phone } = contactOf(point.place);
   const hrefs = perLocale(l => point.href(suffix, l));
   return (
-    <header data-site-header="page" className="sticky top-0 z-40 h-14 border-b border-border bg-background md:h-20 xl:h-[100px]">
+    <header data-site-header="page" className="sticky top-0 z-40 h-(--header-h) border-b border-border bg-background">
       <div className="flex h-full items-center gap-3 px-[var(--page-px)] max-[359px]:gap-0">
         <a href={point.href("")} className="shrink-0" aria-label={`Aquafix ${f.place}`}>
           <Lockup

@@ -109,29 +109,30 @@
   background: color-mix(in srgb, var(--brand) 60%, transparent);
 }
 
-/* The header menu (`NavDrawer`). Its scrim sits outside the <details>, so a
- * press on it is a press outside the menu; it shows while the menu is open.
- * The page behind is locked meanwhile, so it cannot drift under the panel. */
-header:has(details[data-nav-menu][open]) .nav-scrim {
-  display: block;
-}
+/* The header menu (`NavDrawer`): the page behind is locked while it is open,
+ * so it cannot drift under the panel. */
 html:has(details[data-nav-menu][open]) {
   overflow: hidden;
 }
 
 @layer base {
-  /* The sticky bar's height: a `#quote` lands below it, the menu's panel
-   * and its scrim start at it. The sub-pages' bar grows for its xl button. */
+  /* The sticky bar's height: a `#quote` lands below it, the headers take
+   * theirs from it, and the menu's panel and scrim start at it. The
+   * sub-pages' bar grows for its xl button.
+   *
+   * The gutter is kept while the menu locks the scroll: a classic scrollbar
+   * going away would widen the page and shift it sideways under the panel. */
   html {
     --header-h: 3.5rem;
     scroll-padding-top: var(--header-h);
+    scrollbar-gutter: stable;
   }
-  @media (min-width: 768px) {
+  @media (min-width: 48rem) {
     html {
       --header-h: 5rem;
     }
   }
-  @media (min-width: 1280px) {
+  @media (min-width: 80rem) {
     html:has([data-site-header="page"]) {
       --header-h: 6.25rem;
     }

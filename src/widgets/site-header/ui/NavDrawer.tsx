@@ -19,8 +19,9 @@ const ROW_HAS_NAV = "(min-width: 64rem)";
  * `hidden` until open: a closed `<details>` still lays its content out in a
  * contained box, where the panel's gutters stuck 2px past a 320 viewport.
  *
- * The scrim is outside the `<details>` so a press on it is a press outside
- * the menu, which closes it; `globals.css` shows it while the menu is open.
+ * The scrim is inside the `<details>`, marked `data-dismiss`: a click on it
+ * closes the menu (`DetailsDismiss`). The panel starts under the bar's bottom
+ * border — `100%` is the header's padding box — where the scrim starts too.
  * `children` go under the links — what else the row dropped at that width.
  */
 export function NavDrawer({
@@ -36,30 +37,28 @@ export function NavDrawer({
 }) {
   const { t } = copy;
   return (
-    <>
-      <details data-nav-menu className={`group ${className}`}>
-        <summary
-          className="flex size-11 cursor-pointer list-none items-center justify-center text-ink [&::-webkit-details-marker]:hidden"
-          aria-label={t.menuLabel}
-        >
-          <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="size-5">
-            <path d="M3 5h14M3 10h14M3 15h14" className="group-open:hidden" />
-            <path d="M5 5l10 10M15 5L5 15" className="hidden group-open:inline" />
-          </svg>
-        </summary>
-        <nav className="absolute inset-x-0 top-full z-10 hidden max-h-[calc(100dvh-var(--header-h))] flex-col gap-3 overflow-y-auto overscroll-contain border-b border-border bg-background px-[var(--page-px)] pb-5 pt-2 shadow-elevated group-open:flex">
-          <div className="flex flex-col">
-            {NAV_IDS.map(id => (
-              <a key={id} href={point.href(NAV_SUFFIX[id])} className="flex h-12 items-center text-[17px] font-medium text-ink">
-                {t.nav[id]}
-              </a>
-            ))}
-          </div>
-          {children}
-        </nav>
-        <DetailsDismiss closeFrom={ROW_HAS_NAV} />
-      </details>
-      <div aria-hidden="true" className="nav-scrim fixed inset-x-0 bottom-0 top-[var(--header-h)] hidden bg-brand/50" />
-    </>
+    <details data-nav-menu className={`group ${className}`}>
+      <summary
+        className="flex size-11 cursor-pointer list-none items-center justify-center text-ink [&::-webkit-details-marker]:hidden"
+        aria-label={t.menuLabel}
+      >
+        <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="size-5">
+          <path d="M3 5h14M3 10h14M3 15h14" className="group-open:hidden" />
+          <path d="M5 5l10 10M15 5L5 15" className="hidden group-open:inline" />
+        </svg>
+      </summary>
+      <div data-dismiss aria-hidden="true" className="fixed inset-x-0 bottom-0 top-(--header-h) hidden bg-brand/50 group-open:block" />
+      <nav className="absolute inset-x-0 top-[calc(100%+1px)] z-10 hidden max-h-[calc(100dvh-var(--header-h))] flex-col gap-3 overflow-y-auto overscroll-contain border-b border-border bg-background px-[var(--page-px)] pb-5 pt-2 shadow-elevated group-open:flex">
+        <div className="flex flex-col">
+          {NAV_IDS.map(id => (
+            <a key={id} href={point.href(NAV_SUFFIX[id])} className="flex h-12 items-center text-[17px] font-medium text-ink">
+              {t.nav[id]}
+            </a>
+          ))}
+        </div>
+        {children}
+      </nav>
+      <DetailsDismiss closeFrom={ROW_HAS_NAV} />
+    </details>
   );
 }
