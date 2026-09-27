@@ -110,12 +110,11 @@
 }
 
 /* The header menu (`NavDrawer`): the page behind is locked while it is open,
- * so it cannot drift under the panel. The gutter keeps the width the removed
- * scrollbar took; only while locked, so an overlay-scrollbar or scrollbar-less
- * browser never gives up the width at rest. */
+ * so it cannot drift under the panel. No `scrollbar-gutter`: at rest it takes
+ * the width from browsers that hide the scrollbar, and set only while locked
+ * it shifts the page there; a classic scrollbar's shift is under the scrim. */
 html:has(details[data-nav-menu][open]) {
   overflow: hidden;
-  scrollbar-gutter: stable;
 }
 
 @layer base {
