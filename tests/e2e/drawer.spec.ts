@@ -1,8 +1,9 @@
 import { expect, test, type Page } from "@playwright/test";
 
-// The headers' menu: the home page's between `md` and `lg`, the sub-pages'
-// below `lg`. One component, so each case runs on both.
+// The headers' menu, below `lg` on every page: on a phone it also carries
+// what the row dropped. One component, so each case runs on both headers.
 const CASES = [
+  { url: "/fr", viewport: { width: 390, height: 844 } },
   { url: "/fr", viewport: { width: 768, height: 900 } },
   { url: "/fr/prices", viewport: { width: 390, height: 844 } },
 ] as const;
@@ -20,7 +21,7 @@ async function open(page: Page) {
 }
 
 for (const { url, viewport } of CASES) {
-  test(`the menu closes on Escape and on a press outside: ${url}`, async ({ page }) => {
+  test(`the menu closes on Escape and on a press outside: ${url} at ${viewport.width}`, async ({ page }) => {
     await page.setViewportSize(viewport);
     await page.goto(url);
     // Hydrated: the dismiss listeners are attached with the page's islands.
@@ -32,7 +33,7 @@ for (const { url, viewport } of CASES) {
     await expect(details.locator("summary")).toBeFocused();
 
     await open(page);
-    // Below the panel, which covers the top of the page while open.
+    // On the scrim below the panel, which covers the page while open.
     await page.mouse.click(viewport.width / 2, viewport.height - 10);
     await expect(details).not.toHaveAttribute("open");
     // …and not because the press followed a link off the page.
@@ -79,11 +80,20 @@ test("following a link in the menu closes it", async ({ page }) => {
   await expect(details).not.toHaveAttribute("open");
 });
 
+test("the menu closes when the row grows room for the nav", async ({ page }) => {
+  await page.setViewportSize({ width: 768, height: 900 });
+  await page.goto("/fr/prices");
+  await page.waitForLoadState("networkidle");
+  const details = await open(page);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await expect(details).not.toHaveAttribute("open");
+});
+
 test.describe("without JavaScript", () => {
   test.use({ javaScriptEnabled: false });
 
   for (const { url, viewport } of CASES) {
-    test(`the menu is the platform's disclosure: ${url}`, async ({ page }) => {
+    test(`the menu is the platform's disclosure: ${url} at ${viewport.width}`, async ({ page }) => {
       await page.setViewportSize(viewport);
       await page.goto(url);
       const details = await open(page);
