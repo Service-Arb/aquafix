@@ -60,6 +60,8 @@ export const site = defineSite({
     about: "/about",
   },
   places: PLACES,
+  // The app-root icons; the proxy would send any other file to the 404.
+  publicFiles: ["/apple-icon.png", "/icon.svg"],
   publication: STOREFRONT_GATE,
   lead: LEAD,
   // Unprefixed was English. `/fr/thanks` and `/en/thanks` are not moved: the

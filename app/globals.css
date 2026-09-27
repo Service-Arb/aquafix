@@ -109,9 +109,34 @@
   background: color-mix(in srgb, var(--brand) 60%, transparent);
 }
 
+/* The header menu (`NavDrawer`): the page behind is locked while it is open,
+ * so it cannot drift under the panel. No `scrollbar-gutter`: at rest it takes
+ * the width from browsers that hide the scrollbar, and set only while locked
+ * it shifts the page there; a classic scrollbar's shift is under the scrim. */
+html:has(details[data-nav-menu][open]) {
+  overflow: hidden;
+}
+
 @layer base {
+  /* The sticky bar's height: a `#quote` lands below it, the headers take
+   * theirs from it, and the menu's panel and scrim start at it. The
+   * sub-pages' bar grows for its xl button.
+   *
+   * The gutter is kept while the menu locks the scroll: a classic scrollbar
+   * going away would widen the page and shift it sideways under the panel. */
   html {
-    scroll-padding-top: 1rem;
+    --header-h: 3.5rem;
+    scroll-padding-top: var(--header-h);
+  }
+  @media (min-width: 48rem) {
+    html {
+      --header-h: 5rem;
+    }
+  }
+  @media (min-width: 80rem) {
+    html:has([data-site-header="page"]) {
+      --header-h: 6.25rem;
+    }
   }
   @media (prefers-reduced-motion: no-preference) {
     html {

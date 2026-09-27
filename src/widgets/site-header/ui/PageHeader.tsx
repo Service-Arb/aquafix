@@ -5,22 +5,25 @@ import { contactOf, type PlaceView } from "@/entities/place";
 import { perLocale } from "@/shared/config/i18n";
 import { CTA_FACE, Lockup } from "@/shared/ui/brand";
 import { BrandLangSwitch } from "@/shared/ui/BrandLangSwitch";
+import { MenuExtras } from "./MenuExtras";
 import { NavDrawer } from "./NavDrawer";
 
 /**
- * The sub-pages' header; the drawer is `NavDrawer`, shared with the home
- * page's header. The phone is in the row at every width, on one line: below
- * `lg` the nav and the language switch go into the drawer, and the button
- * waits for `xl` — below it the drawer carries it, and from `lg` the proof
- * card's is on the same screen — so the row never runs past the viewport.
+ * The sub-pages' header, sticky at the top; the menu is `NavDrawer`, shared
+ * with the home page's header. The phone is in the row at every width, on one
+ * line: below `lg` the nav and the language switch go into the menu, and the
+ * button waits for `xl` — below it the menu carries it, and from `lg` the
+ * proof card's is on the same screen — so the row never runs past the
+ * viewport — at 320 with no gaps at all, the three fill it to the pixel. Its
+ * heights (56 / 80 / 100) are `--header-h` in `globals.css`.
  */
 export function PageHeader({ copy, point, suffix }: { copy: Copy; point: PlaceView; suffix: string }) {
   const { t, f } = copy;
   const { phone } = contactOf(point.place);
   const hrefs = perLocale(l => point.href(suffix, l));
   return (
-    <header className="relative border-b border-border bg-background">
-      <div className="flex items-center px-[var(--page-px)] py-2.5 md:py-[18px]">
+    <header data-site-header="page" className="sticky top-0 z-40 h-(--header-h) border-b border-border bg-background">
+      <div className="flex h-full items-center gap-3 px-[var(--page-px)] max-[359px]:gap-0">
         <a href={point.href("")} className="shrink-0" aria-label={`Aquafix ${f.place}`}>
           <Lockup
             mark="h-[26px] w-[22.5px] text-primary md:h-8 md:w-[27.7px]"
@@ -36,7 +39,7 @@ export function PageHeader({ copy, point, suffix }: { copy: Copy; point: PlaceVi
           ))}
         </nav>
         <div className="hidden flex-1 lg:block" />
-        <div className="ml-2 flex items-center gap-3 md:gap-5">
+        <div className="flex items-center gap-3 md:gap-5">
           <BrandLangSwitch
             label={copy.t.langLabel}
             current={copy.locale}
@@ -56,16 +59,8 @@ export function PageHeader({ copy, point, suffix }: { copy: Copy; point: PlaceVi
             {t.cta}
           </Button>
         </div>
-        <NavDrawer copy={copy} point={point} className="ml-1 max-[359px]:ml-0 lg:hidden">
-          <BrandLangSwitch
-            label={copy.t.langLabel}
-            current={copy.locale}
-            hrefs={hrefs}
-            className="py-2 text-[14px] font-medium text-ink-mid"
-          />
-          <Button href={point.href("#quote")} size="lg" data-intent="form_open" className={`my-2 w-full ${CTA_FACE}`}>
-            {t.cta}
-          </Button>
+        <NavDrawer copy={copy} point={point} className="lg:hidden">
+          <MenuExtras copy={copy} point={point} hrefs={hrefs} />
         </NavDrawer>
       </div>
     </header>
