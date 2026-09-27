@@ -5,28 +5,38 @@ import { contactOf, type PlaceView } from "@/entities/place";
 import { perLocale } from "@/shared/config/i18n";
 import { CTA_FACE, Lockup } from "@/shared/ui/brand";
 import { BrandLangSwitch } from "@/shared/ui/BrandLangSwitch";
+import { HeaderSurface } from "./HeaderSurface";
+import { MenuExtras } from "./MenuExtras";
 import { NavDrawer } from "./NavDrawer";
 
 /**
- * The home page's header: transparent and laid over the photograph, so the
- * hero owns the whole first screen. It scrolls away with the hero; the bottom
- * bar carries the contact channels on mobile from there. From `xl` — the
- * width the row fits in — it carries the phone as the sub-pages' header does,
- * and the rating beside it (the draft's, or Google's while fresh: `ShownRating`);
- * narrower, the hero's own phone link is on the same screen. The nav needs
- * `lg`: at 768 it pushed the button past the viewport, so between `md` and
- * `lg` it is in the sub-pages' drawer. A phone has the call bar instead.
+ * The home page's header: sticky, and laid over the photograph — the negative
+ * margin gives back its height, so the hero still owns the whole first
+ * screen. At the top it is the dark overlay on the photo; scrolled, or with
+ * the menu open, it is the sub-pages' light bar (`HeaderSurface`). The bar's
+ * height is the same in both, `--header-h` in `globals.css`.
+ *
+ * From `xl` — the width the row fits in — it carries the phone as the
+ * sub-pages' header does, and the rating beside it (the draft's, or Google's
+ * while fresh: `ShownRating`). The nav needs `lg`: below it the links are in
+ * the menu, and on a phone the menu also carries what the row has no room
+ * for — the button, the language switch and the phone.
  */
 export function OverlayHeader({ copy, point }: { copy: Copy; point: PlaceView }) {
   const { t } = copy;
   const { phone } = contactOf(point.place);
+  const hrefs = perLocale(l => point.href("", l));
   return (
-    <header className="dark absolute inset-x-0 top-0 z-20 bg-gradient-to-b from-background/75 to-transparent">
-      <div className="flex items-center gap-8 px-[var(--page-px)] py-4 md:py-5">
+    <header
+      data-site-header="home"
+      className="group/hdr dark sticky top-0 z-40 -mb-14 h-14 border-b border-transparent bg-gradient-to-b from-background/75 to-transparent md:-mb-20 md:h-20 [&.light]:border-border [&.light]:bg-background [&.light]:bg-none"
+    >
+      <HeaderSurface />
+      <div className="flex h-full items-center gap-3 px-[var(--page-px)] md:gap-8">
         <a href={point.href("")} className="shrink-0" aria-label={`Aquafix ${copy.f.place}`}>
           <Lockup
             mark="h-[26px] w-[22.5px] text-primary md:h-7 md:w-[24px]"
-            word="text-[20px] text-ink md:text-[23px]"
+            word="text-[20px] text-ink group-[.light]/hdr:text-brand md:text-[23px]"
           />
         </a>
         <div className="flex-1" />
@@ -40,7 +50,7 @@ export function OverlayHeader({ copy, point }: { copy: Copy; point: PlaceView })
         <BrandLangSwitch
           label={copy.t.langLabel}
           current={copy.locale}
-          hrefs={perLocale(l => point.href("", l))}
+          hrefs={hrefs}
           className="hidden text-[13px] font-medium text-ink-soft md:flex"
         />
         <p className="hidden whitespace-nowrap text-[14px] font-medium text-ink-mid xl:block">{t.home.headerRating(copy.f)}</p>
@@ -56,7 +66,9 @@ export function OverlayHeader({ copy, point }: { copy: Copy; point: PlaceView })
         >
           {t.home.cta}
         </Button>
-        <NavDrawer copy={copy} point={point} className="-ml-4 hidden md:block lg:hidden" />
+        <NavDrawer copy={copy} point={point} className="md:-ml-4 lg:hidden">
+          <MenuExtras copy={copy} point={point} hrefs={hrefs} phone={phone} className="md:hidden" />
+        </NavDrawer>
       </div>
     </header>
   );

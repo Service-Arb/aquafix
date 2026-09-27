@@ -20,8 +20,12 @@ function popoverOpen(): boolean {
  * section it just scrolled to. Before hydration, or without script, the
  * `<details>` is the platform's own and still opens and closes on its
  * summary. A leaf of its own so the menu around it stays server-rendered.
+ *
+ * `closeFrom`, a media query: once it matches — a phone turned on its side, a
+ * window widened — the menu closes, since from there the row carries what it
+ * held and an open `<details>` would keep the page locked behind nothing.
  */
-export function DetailsDismiss() {
+export function DetailsDismiss({ closeFrom }: { closeFrom?: string }) {
   const anchor = useRef<HTMLSpanElement>(null);
   useEffect(() => {
     const details = anchor.current?.closest("details");
@@ -39,14 +43,20 @@ export function DetailsDismiss() {
     const onFollow = (e: MouseEvent) => {
       if (e.target instanceof Element && e.target.closest("a[href]")) details.open = false;
     };
+    const wide = closeFrom ? window.matchMedia(closeFrom) : null;
+    const onWide = () => {
+      if (wide?.matches) details.open = false;
+    };
     document.addEventListener("keydown", onKey);
     document.addEventListener("pointerdown", onPress);
     details.addEventListener("click", onFollow);
+    wide?.addEventListener("change", onWide);
     return () => {
       document.removeEventListener("keydown", onKey);
       document.removeEventListener("pointerdown", onPress);
       details.removeEventListener("click", onFollow);
+      wide?.removeEventListener("change", onWide);
     };
-  }, []);
+  }, [closeFrom]);
   return <span ref={anchor} hidden />;
 }
