@@ -1,12 +1,12 @@
-import { telHref, whatsappHref } from "@evinvest/marketing";
-import { Badge, Button } from "@evinvest/uikit";
+import { Badge } from "@evinvest/uikit";
 import type { Copy } from "@/entities/content";
-import { contactOf, type PlaceView } from "@/entities/place";
+import type { PlaceView } from "@/entities/place";
 import { QuoteForm } from "@/features/quote-form";
 import { PHOTO_SETS } from "@/shared/assets/photos";
+import { CONTROL, type Assignment } from "@/shared/config/experiments";
 import { EYEBROW } from "@/shared/ui/BandHead";
-import { CTA_FACE } from "@/shared/ui/brand";
 import heroWide from "../../../../assets/photos/hero-wide.jpg";
+import { HeroActions } from "./HeroActions";
 
 /**
  * Tailwind's `md` is `min-width: 48rem`; this is its complement. Not the
@@ -31,11 +31,23 @@ const BELOW_MD = "(max-width: 47.99rem)";
  *
  * A hero crop, not the library shot: the master carries the depot signage
  * across its top third, which puts a second wordmark under the header.
+ *
+ * `variants` is the visitor's A/B assignment (docs/EXPERIMENTS.md); the
+ * control is the page as described above.
  */
-export function Hero({ copy, point, renderedAt }: { copy: Copy; point: PlaceView; renderedAt: number }) {
+export function Hero({
+  copy,
+  point,
+  renderedAt,
+  variants = CONTROL,
+}: {
+  copy: Copy;
+  point: PlaceView;
+  renderedAt: number;
+  variants?: Assignment;
+}) {
   const { t, f } = copy;
   const h = t.home;
-  const { phone, whatsapp } = contactOf(point.place);
   return (
     <section className="dark relative isolate overflow-hidden">
       {/* The LCP element. Below `md` a crop of the region a phone can show, not
@@ -64,22 +76,7 @@ export function Hero({ copy, point, renderedAt }: { copy: Copy; point: PlaceView
             {h.display[2]}
           </h1>
           <p className="mt-5 text-[15.5px] leading-[1.6] text-ink-soft md:mt-6 md:text-[18px]">{h.lede(f)}</p>
-          <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-4 md:mt-8">
-            <Button
-              href={whatsappHref(whatsapp, t.whatsappMessage(f))}
-              size="xl"
-              variant="outline"
-              className={`border-ink-soft text-ink ${CTA_FACE}`}
-            >
-              {t.whatsappLabel}
-            </Button>
-            <a
-              href={telHref(phone)}
-              className="font-display text-[19px] font-bold leading-[normal] text-ink hover:text-primary-ink md:text-[21px]"
-            >
-              {phone}
-            </a>
-          </div>
+          <HeroActions copy={copy} point={point} callFirst={variants.hero_call_first === "b"} />
           <ul className="mt-9 flex flex-wrap gap-2 md:mt-11">
             {[...t.statusStrip, h.decennaleBadge].map(label => (
               <li key={label}>
@@ -91,7 +88,7 @@ export function Hero({ copy, point, renderedAt }: { copy: Copy; point: PlaceView
           </ul>
         </div>
         <div className="w-full md:max-w-[560px] lg:w-[460px] lg:shrink-0">
-          <QuoteForm copy={copy} point={point} renderedAt={renderedAt} />
+          <QuoteForm copy={copy} point={point} renderedAt={renderedAt} priceAnchor={variants.quote_price_anchor === "b"} />
         </div>
       </div>
     </section>

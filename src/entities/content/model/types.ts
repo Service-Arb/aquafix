@@ -93,6 +93,17 @@ export interface QuoteFormCopy extends CoreQuoteFormCopy<Facts> {
   mobileLabel: string;
   zipPlaceholder: string;
   mobilePlaceholder: string;
+  /**
+   * The `quote_price_anchor` treatment (docs/EXPERIMENTS.md): each job's
+   * published "from" price beside it, and a submit that names the fixed price.
+   */
+  anchored: {
+    /** A job's option label with its formatted "from" price. */
+    option: (job: string, price: string) => string;
+    submit: string;
+    /** Under the submit: restates what the page already says, no new claim. */
+    note: string;
+  };
 }
 
 export interface HomeCopy {
@@ -103,6 +114,8 @@ export interface HomeCopy {
   cta: string;
   /** The fourth trust badge, after `statusStrip`'s three. */
   decennaleBadge: string;
+  /** The `hero_call_first` treatment's mobile actions (docs/EXPERIMENTS.md). */
+  callFirst: { call: string; writtenQuote: string };
   /** The header's rating, beside the phone. */
   headerRating: Said;
   stats: (f: Facts) => readonly [Stat, Stat, Stat, Stat];

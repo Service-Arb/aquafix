@@ -6,6 +6,7 @@
  */
 
 // The jobs are the lead schema's subjects, so they live with it in the site config.
+import type { JobId } from "@/shared/config/lead";
 export { JOB_IDS, type JobId } from "@/shared/config/lead";
 
 export type PriceId =
@@ -49,6 +50,23 @@ export function priceOf(id: PriceId): number {
   if (!row) throw new Error(`no price row ${id}`);
   return row.fromEur;
 }
+
+/**
+ * The price row a job the form offers starts at, or `null` for a job quoted on
+ * site. The lowest row where a job spans two (a tap is 129, a toilet 189), so
+ * "from" is never an understatement of the price list.
+ */
+export const JOB_PRICE: Record<JobId, PriceId | null> = {
+  blocked_drain: "drain",
+  burst_pipe: "pipe",
+  hot_water: "water_heater_repair",
+  tap_toilet: "tap",
+  sewer_line: "sewer",
+  leak_detection: "camera",
+  repipe: "repipe",
+  fit_out: null,
+  other: null,
+};
 
 export type ServiceId = "drains" | "pipes" | "heaters" | "taps" | "sewers" | "leaks" | "repipes" | "fit_out";
 

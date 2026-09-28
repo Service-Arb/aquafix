@@ -78,6 +78,11 @@ export const FR = {
     zipPlaceholder: "Commune ou code postal",
     mobilePlaceholder: "06 00 00 00 00",
     honeypotLabel: "Laissez ce champ vide",
+    anchored: {
+      option: (job, price) => `${job} · dès ${price}`,
+      submit: "Recevoir mon tarif fixe  →",
+      note: "Sans engagement · Prix TTC",
+    },
   },
   jobs: {
     blocked_drain: "Canalisation bouchée",
@@ -110,6 +115,7 @@ export const FR = {
       "Un tarif ferme écrit sur votre pas de porte avant de commencer. Fenêtre de 2 h, ou le déplacement est offert.",
     cta: "Obtenir mon prix fixe",
     decennaleBadge: "Assurance décennale",
+    callFirst: { call: "Appeler un plombier", writtenQuote: "ou recevez un devis écrit" },
     headerRating: f => `★ ${f.rating.value} · ${f.rating.count} avis`,
     stats: f => [
       { figure: `${f.rating.value}★`, label: `${f.rating.count} AVIS` },
