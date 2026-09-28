@@ -1,7 +1,10 @@
-import { createProxy } from "@evinvest/kitstart/proxy";
-import { site } from "@/shared/config/site";
+import { experimentProxy } from "@/features/experiments/proxy";
 
-export const proxy = createProxy(site);
+/**
+ * kitstart's `createProxy(site)` — which point and which language a request
+ * gets — with the A/B assignment composed on top (`features/experiments`).
+ */
+export const proxy = experimentProxy;
 
 export const config = {
   // A literal: Next reads it statically. Everything but the build output —

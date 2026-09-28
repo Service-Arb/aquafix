@@ -80,6 +80,11 @@ export const EN = {
     zipPlaceholder: "Town or postcode",
     mobilePlaceholder: "06 00 00 00 00",
     honeypotLabel: "Leave this field empty",
+    anchored: {
+      option: (job, price) => `${job} · from ${price}`,
+      submit: "Get my flat price  →",
+      note: "No obligation · Prices include TVA",
+    },
   },
   jobs: {
     blocked_drain: "Blocked drain",
@@ -111,6 +116,7 @@ export const EN = {
     lede: () => "A written flat rate on your doorstep before we start. Two-hour window, or the call-out is free.",
     cta: "Get my flat price",
     decennaleBadge: "Décennale insurance",
+    callFirst: { call: "Call a plumber", writtenQuote: "or get a written quote" },
     headerRating: f => `★ ${f.rating.value} · ${f.rating.count} reviews`,
     stats: f => [
       { figure: `${f.rating.value}★`, label: `${f.rating.count} REVIEWS` },

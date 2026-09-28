@@ -11,6 +11,7 @@ import type { Facts, ShownRating, Text } from "./model/types";
 export type * from "./model/types";
 export {
   JOB_IDS,
+  JOB_PRICE,
   NAV_IDS,
   NAV_SUFFIX,
   PRICE_LIST,

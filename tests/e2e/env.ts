@@ -1,5 +1,6 @@
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { CONTROL, EXPERIMENT_IDS } from "../../src/shared/config/experiments";
 
 /**
  * What the server under test is started with, shared by the config (which
@@ -19,3 +20,17 @@ export const LEADS_DB = join(tmpdir(), `aquafix-e2e-${PORT}`, "leads.db");
 export const POSTHOG_HOST = "https://posthog.e2e.invalid";
 /** A syntactically plausible project key, so the beacon sink is live. */
 export const POSTHOG_KEY = "phc_e2e_not_a_real_project";
+
+/** The A/B control, for both hosts the specs visit (a cookie ignores the port). */
+export const CONTROL_COOKIES = ["royat.localhost", "localhost"].flatMap(domain =>
+  EXPERIMENT_IDS.map(id => ({
+    name: `ab_${id}`,
+    value: CONTROL[id],
+    domain,
+    path: "/",
+    expires: -1,
+    httpOnly: false,
+    secure: false,
+    sameSite: "Lax" as const,
+  })),
+);

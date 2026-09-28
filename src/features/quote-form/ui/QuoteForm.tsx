@@ -1,6 +1,6 @@
 import { FormSelect, PHONE_INPUT_PROPS, QuoteFormShell } from "@evinvest/kitstart/react";
 import { Button, Check, Field, FieldLabel, Input } from "@evinvest/uikit";
-import type { CopyOf, Text } from "@/entities/content";
+import { JOB_PRICE, type CopyOf, type JobId, type Text } from "@/entities/content";
 import type { PlaceView } from "@/entities/place";
 import { LEAD } from "@/shared/config/lead";
 import { CTA_FACE } from "@/shared/ui/brand";
@@ -27,8 +27,27 @@ const LABEL = "text-[12.5px] font-medium leading-[normal] tracking-[0.06em] text
  */
 export type QuoteFormWidgetCopy = CopyOf<Pick<Text, "quoteForm" | "jobs">>;
 
-export function QuoteForm({ copy, point, renderedAt }: { copy: QuoteFormWidgetCopy; point: PlaceView; renderedAt: number }) {
+/**
+ * `priceAnchor` is the `quote_price_anchor` treatment (docs/EXPERIMENTS.md):
+ * each job's published "from" price in its option, read from the same
+ * `PRICE_LIST` integer the price table prints, and a submit that names it.
+ */
+export function QuoteForm({
+  copy,
+  point,
+  renderedAt,
+  priceAnchor = false,
+}: {
+  copy: QuoteFormWidgetCopy;
+  point: PlaceView;
+  renderedAt: number;
+  priceAnchor?: boolean;
+}) {
   const q = copy.t.quoteForm;
+  const label = (id: JobId): string => {
+    const price = priceAnchor ? JOB_PRICE[id] : null;
+    return price ? q.anchored.option(copy.t.jobs[id], copy.f.price(price)) : copy.t.jobs[id];
+  };
   return (
     <QuoteFormShell
       placeSlug={point.place.slug}
@@ -48,7 +67,7 @@ export function QuoteForm({ copy, point, renderedAt }: { copy: QuoteFormWidgetCo
           size="lg"
           name={LEAD.wire.subject}
           required
-          options={LEAD.subjects.map(id => ({ value: id, label: copy.t.jobs[id] }))}
+          options={LEAD.subjects.map(id => ({ value: id, label: label(id) }))}
           defaultValue={LEAD.subjects[0]}
           classNames={{ trigger: CONTROL }}
         />
@@ -62,8 +81,9 @@ export function QuoteForm({ copy, point, renderedAt }: { copy: QuoteFormWidgetCo
         <Input size="lg" className={CONTROL} {...PHONE_INPUT_PROPS} name={LEAD.wire.mobile} placeholder={q.mobilePlaceholder} required />
       </Field>
       <Button type="submit" size="xl" className={`w-full ${CTA_FACE}`}>
-        {q.submit}
+        {priceAnchor ? q.anchored.submit : q.submit}
       </Button>
+      {priceAnchor && <p className="-mt-2 text-center text-[13px] font-medium leading-[normal] text-ink-mid">{q.anchored.note}</p>}
       <p className="text-[13px] leading-[1.52] text-ink-soft">{q.reassurance(copy.f)}</p>
       <div className="h-px w-full bg-border" />
       <div className="flex items-center gap-2.5">

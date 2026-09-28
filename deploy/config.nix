@@ -1,7 +1,8 @@
 # The prod environment of the server, baked into the image as plain env
-# (`flake.nix: prodEnv`). Secret-free — SMTP_URL, SMS_TOKEN and POSTHOG_KEY
-# (and LEAD_NOTIFY_TO/FROM, LOCATIONS_API_URL when used) arrive from the
-# container environment the k8s Secret injects via `envFrom`.
+# (`flake.nix: prodEnv`). Secret-free — SMTP_URL and SMS_TOKEN (and
+# LEAD_NOTIFY_TO/FROM, LOCATIONS_API_URL when used) arrive from the container
+# environment the k8s Secret injects via `envFrom`, which can still override
+# anything set here.
 #
 # Explicit because the defaults are dev's: without HOSTNAME the standalone
 # server binds one interface the readiness probe may not reach, and without
@@ -23,4 +24,11 @@
   PORT = toString port;
   NODE_ENV = "production";
   NEXT_TELEMETRY_DISABLED = "1";
+  # PostHog's project token is a write-only ingest key every visitor's browser
+  # already receives in the page, so it is not a secret. The EV Invest
+  # project on US Cloud (614067), shared with the EV fronts; events carry
+  # `brand_id` = aquafix. Without it every capture is a silent no-op — the
+  # funnel and the A/B tests (docs/EXPERIMENTS.md) record nothing.
+  POSTHOG_KEY = "phc_sBwWEgdgockVmfyucBRkTTo6iZ4Y2eApSGorD22WLzj3";
+  POSTHOG_HOST = "https://us.i.posthog.com";
 }

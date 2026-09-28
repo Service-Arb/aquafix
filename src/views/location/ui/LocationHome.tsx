@@ -2,6 +2,7 @@ import { JsonLd } from "@evinvest/marketing";
 import { withLiveRating, type Copy } from "@/entities/content";
 import { freshRating, type PlaceView } from "@/entities/place";
 import { locationGraph } from "@/features/seo";
+import { CONTROL, type Assignment } from "@/shared/config/experiments";
 import { CallBar } from "@/widgets/call-bar";
 import { Coverage } from "@/widgets/coverage";
 import { Faq } from "@/widgets/faq";
@@ -18,8 +19,19 @@ import { Work } from "@/widgets/work";
  * A point's home page. Its rule: text gets a measure and stops, only media may
  * fill the viewport; a band is one heading and one object. The form is in the
  * hero, so every band below argues for an action already on the first screen.
+ * `variants` picks the A/B treatments; every one of them lives in the hero.
  */
-export function LocationHome({ copy: base, point, now }: { copy: Copy; point: PlaceView; now: Date }) {
+export function LocationHome({
+  copy: base,
+  point,
+  now,
+  variants = CONTROL,
+}: {
+  copy: Copy;
+  point: PlaceView;
+  now: Date;
+  variants?: Assignment;
+}) {
   const copy = withLiveRating(base, freshRating(point.place, now));
   return (
     <>
@@ -27,7 +39,7 @@ export function LocationHome({ copy: base, point, now }: { copy: Copy; point: Pl
       <div className="relative">
         <OverlayHeader copy={copy} point={point} />
         <main>
-          <Hero copy={copy} point={point} renderedAt={now.getTime()} />
+          <Hero copy={copy} point={point} renderedAt={now.getTime()} variants={variants} />
           <StatsBand copy={copy} />
           <Work copy={copy} />
           <GuaranteeBand copy={copy} point={point} />
