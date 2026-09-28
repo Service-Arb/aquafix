@@ -1,6 +1,6 @@
 import { dirname } from "node:path";
 import { defineConfig, devices } from "@playwright/test";
-import { LEADS_DB, POINT_ORIGIN, PORT, POSTHOG_HOST, POSTHOG_KEY } from "./env";
+import { CONTROL_COOKIES, LEADS_DB, POINT_ORIGIN, PORT, POSTHOG_HOST, POSTHOG_KEY } from "./env";
 
 // Run through the flake (`nix run .#test`), which supplies `@playwright/test`
 // and the nixpkgs-pinned browsers — the pin is what makes a screenshot render
@@ -41,6 +41,9 @@ export default defineConfig({
     deviceScaleFactor: 1,
     colorScheme: "light",
     locale: "fr-FR",
+    // Every browser starts in the A/B control, so the proxy's random draw
+    // never reaches a screenshot; `experiments.spec.ts` leaves it on purpose.
+    storageState: { cookies: CONTROL_COOKIES, origins: [] },
   },
 
   // The design specifies two breakpoints, 1440 and 390. The tablet is the
