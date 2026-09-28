@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { AnalyticsBoundary } from "@evinvest/kitstart/react";
+import { ExperimentBeacon } from "@/features/experiments";
 import { serverEnv } from "@/shared/config/env";
 import { site } from "@/shared/config/site";
 import { loadPoint, type LocationParams } from "@/views/location/server";
@@ -38,11 +39,10 @@ export default async function LocationLayout({
   const env = serverEnv();
   // The key is read from the container when the page renders, not inlined at
   // build: the image carries no secret, and PostHog's project key is public.
+  const target = { key: env.posthogKey, host: env.posthogHost, brandId: site.brand.id };
   return (
-    <AnalyticsBoundary
-      target={{ key: env.posthogKey, host: env.posthogHost, brandId: site.brand.id }}
-      placeSlug={point.place.slug}
-    >
+    <AnalyticsBoundary target={target} placeSlug={point.place.slug}>
+      <ExperimentBeacon target={target} placeSlug={point.place.slug} />
       {children}
     </AnalyticsBoundary>
   );
