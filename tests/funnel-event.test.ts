@@ -6,7 +6,7 @@ import type { Lead } from "@evinvest/kitstart";
 import { leadWebhook, parseServerEnv, type LeadWebhookContext } from "@evinvest/kitstart/server";
 import { afterEach, describe, expect, it } from "vitest";
 import { site } from "@/shared/config/site";
-import { isOpaqueId, leadCreatedBody, SA_INGEST_SIGNING, uuidV7 } from "@/shared/lib/funnel-event";
+import { isOpaqueId, leadCreatedBody, panelLeadId, SA_INGEST_SIGNING, uuidV7 } from "@/shared/lib/funnel-event";
 
 const lead: Lead = {
   subject: "blocked_drain",
@@ -25,6 +25,9 @@ const ctx: LeadWebhookContext = {
   at: new Date("2026-10-01T09:30:00.123Z"),
   idempotencyKey: "0b5c1f0e-7d1a-4e8b-9c2d-3f4a5b6c7d8e",
 };
+
+// The row id for a person, a tag from the key for uniqueness past a recreated leads file.
+const LEAD_ID = panelLeadId(ctx);
 
 /** The proto3 JSON names of each message's fields, read from the panel's contract. */
 function protoFields(): Map<string, Set<string>> {
@@ -58,7 +61,7 @@ describe("lead.created for the panel", () => {
           typeVersion: 1,
           occurredAt: "2026-10-01T09:30:00.123Z",
           source: { kind: "site", id: "aquafix-site" },
-          subject: { brandId: "aquafix", locationId: "royat", leadId: "lead-42" },
+          subject: { brandId: "aquafix", locationId: "royat", leadId: LEAD_ID },
           properties: { channel: "form" },
           pii: { phone: "06 12 34 56 78", need: "blocked_drain", locality: "63130" },
         },
@@ -102,7 +105,16 @@ describe("lead.created for the panel", () => {
 
   it("leaves the location out for a lead from no point", () => {
     const [event] = leadCreatedBody({ ...lead, placeSlug: null }, ctx, "aquafix-site").events;
-    expect(event.subject).toEqual({ brandId: "aquafix", leadId: "lead-42" });
+    expect(event.subject).toEqual({ brandId: "aquafix", leadId: LEAD_ID });
+  });
+
+  it("makes a lead id unique past a recreated leads file, and stable for one lead", () => {
+    expect(LEAD_ID).toMatch(/^lead-42-[0-9a-f]{8}$/);
+    expect(isOpaqueId(LEAD_ID)).toBe(true);
+    expect(panelLeadId(ctx)).toBe(LEAD_ID);
+    // The same row id from a fresh file carries a fresh key, so another id.
+    expect(panelLeadId({ ...ctx, idempotencyKey: "5e7a2c10-1b3d-4f6e-8a9b-0c1d2e3f4a5b" })).not.toBe(LEAD_ID);
+    expect(isOpaqueId(panelLeadId({ leadId: 12345678, idempotencyKey: ctx.idempotencyKey }))).toBe(true);
   });
 
   it("refuses ids the panel takes for phone numbers", () => {
@@ -172,7 +184,7 @@ describe("the lead webhook, wired as the site wires it", () => {
       events: [
         {
           source: { kind: "site", id: "aquafix-site" },
-          subject: { brandId: "aquafix", locationId: "royat", leadId: "lead-7" },
+          subject: { brandId: "aquafix", locationId: "royat", leadId: expect.stringMatching(/^lead-7-[0-9a-f]{8}$/) },
         },
       ],
     });
