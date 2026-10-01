@@ -28,8 +28,9 @@ nix build .#container    # OCI image, on Linux
 
 The image listens on 59081 and keeps its leads in `/data/leads.db`; `/data` is
 the mount. Its non-secret settings come from `deploy/config.nix`. Secrets —
-`SMTP_URL`, `SMS_TOKEN`, `POSTHOG_KEY` — come only from the container's
-environment. Pushing a `v*` tag builds the image and publishes it to
+`SMTP_URL`, `SMS_TOKEN`, and the lead webhook's `LEAD_WEBHOOK_URL`,
+`LEAD_WEBHOOK_KEY_ID`, `LEAD_WEBHOOK_SECRET` (all three or none) — come only
+from the container's environment. Pushing a `v*` tag builds the image and publishes it to
 `ghcr.io/service-arb/aquafix`, which deploys it: `nix run .#publish` makes the
 tag.
 
