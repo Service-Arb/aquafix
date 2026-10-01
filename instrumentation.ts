@@ -5,13 +5,16 @@
  * that boots on dev defaults and writes leads outside the mounted volume.
  * Opening the lead store and building the notifier here do the same for a
  * volume or a `leads` table the store cannot use and an `SMTP_URL` that does
- * not parse: startup fails, not the first customer's submission.
+ * not parse: startup fails, not the first customer's submission. The lead
+ * webhook is built here for the same reason, and started so that what a
+ * previous process queued is delivered without waiting for the next lead.
  */
 export async function register(): Promise<void> {
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
-  const { serverEnv } = await import("@/shared/config/env");
+  const { serverEnv, webhook } = await import("@/shared/config/env");
   const { notifier } = await import("@/entities/lead/server");
   const { checkLeadStore } = await import("@evinvest/kitstart/server");
   notifier();
   await checkLeadStore(serverEnv());
+  webhook()?.start();
 }

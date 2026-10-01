@@ -3,7 +3,7 @@ import { copyFor } from "@/entities/content";
 import { notifier } from "@/entities/lead/server";
 import { experimentLeads } from "@/features/experiments/server";
 import { contactOf } from "@/entities/place";
-import { serverEnv } from "@/shared/config/env";
+import { serverEnv, webhook } from "@/shared/config/env";
 import { CARD, site } from "@/shared/config/site";
 
 /**
@@ -24,6 +24,7 @@ const post = quoteRoute(site, {
   env: serverEnv,
   defer: leads.defer,
   notifier,
+  webhook,
   // The self-contained 500 when the store refused the lead: the point's phone,
   // in the page's language.
   unavailable: (locale, place) => {
