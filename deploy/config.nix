@@ -2,7 +2,9 @@
 # (`flake.nix: prodEnv`). Secret-free — SMTP_URL and SMS_TOKEN (and
 # LEAD_NOTIFY_TO/FROM, LOCATIONS_API_URL when used) arrive from the container
 # environment the k8s Secret injects via `envFrom`, which can still override
-# anything set here.
+# anything set here. So do LEAD_WEBHOOK_URL, LEAD_WEBHOOK_KEY_ID and
+# LEAD_WEBHOOK_SECRET, together: the URL alone fails boot, and it is not set
+# here because without it the lead webhook is simply off.
 #
 # Explicit because the defaults are dev's: without HOSTNAME the standalone
 # server binds one interface the readiness probe may not reach, and without

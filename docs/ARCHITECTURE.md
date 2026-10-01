@@ -187,7 +187,14 @@ source configured, any failure throws, because a truncated sitemap tells a
 crawler the points are gone.
 
 **Secrets are not in the image.** `SMTP_URL` and `SMS_TOKEN` come from the
-container environment at runtime. PostHog's project token is not a secret —
+container environment at runtime, and so does the lead webhook:
+`LEAD_WEBHOOK_URL` turns it on, and with it `LEAD_WEBHOOK_KEY_ID` and
+`LEAD_WEBHOOK_SECRET` are required at boot. Each lead then goes to the
+Service-Arb panel as one `lead.created` event (`sa.funnel.v1`, built in
+`src/shared/lib/funnel-event.ts`), queued in the leads file before the visitor
+is thanked and retried from there. The URL stays out of `deploy/config.nix`
+on purpose: without it the webhook is off, so an image deployed before its
+Secret has the key boots as it did. PostHog's project token is not a secret —
 every page hands it to the browser — so `POSTHOG_KEY` and `POSTHOG_HOST` are in
 `deploy/config.nix`. In production
 `LEADS_DB_PATH` and `TRUSTED_PROXY` (whose address the rate limit counts:
