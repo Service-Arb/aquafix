@@ -103,6 +103,13 @@ describe("lead.created for the panel", () => {
     expect(JSON.stringify(event)).not.toContain("\\u0000");
   });
 
+  it("sends a callback as `form` until the panel takes the channel", () => {
+    const [event] = leadCreatedBody({ ...lead, channel: "callback", consent: { text: "J’accepte…", at: "2026-10-01T09:30:00Z" } }, ctx, "aquafix-site").events;
+    expect(event.properties).toEqual({ channel: "form" });
+    // The consent is the lead's record, not the panel's.
+    expect(JSON.stringify(event)).not.toContain("J’accepte");
+  });
+
   it("leaves the location out for a lead from no point", () => {
     const [event] = leadCreatedBody({ ...lead, placeSlug: null }, ctx, "aquafix-site").events;
     expect(event.subject).toEqual({ brandId: "aquafix", leadId: LEAD_ID });

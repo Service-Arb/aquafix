@@ -29,10 +29,13 @@ export function validateLead(lead: Pick<LeadCandidate, "locality" | "mobile">): 
 /**
  * What a plumbing quote asks: the job, the commune or postcode, the mobile.
  * Posted as `job` / `zip` / `mobile`, the Rust form's names, which pages
- * cached before the port still send.
+ * cached before the port still send. The mobile is kept as E.164
+ * (`+33612345678`) when it reads as a number — one spelling per customer for
+ * the mail, the panel and a lookup — and as typed when it does not.
  */
 export const LEAD: LeadSchema<JobId> = {
   subjects: JOB_IDS,
   wire: { subject: "job", locality: "zip", mobile: "mobile" },
   validate: validateLead,
+  mobileFormat: "e164",
 };

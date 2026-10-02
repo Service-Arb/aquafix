@@ -1,6 +1,6 @@
 import { DatabaseSync } from "node:sqlite";
 import { LIBRARY_PROPS } from "@evinvest/analytics";
-import { MIN_FILL_MS } from "@evinvest/kitstart";
+import { MIN_FILL_MS, normalizePhone } from "@evinvest/kitstart";
 import { expect, test } from "@playwright/test";
 import { JOB_IDS } from "../../src/shared/config/lead";
 import { LEADS_DB, POSTHOG_HOST } from "./env";
@@ -36,7 +36,8 @@ test.describe("without JavaScript", () => {
     // proves nothing: the row is the proof, and it must not be flagged.
     const db = new DatabaseSync(LEADS_DB, { readOnly: true });
     try {
-      const row = db.prepare("SELECT zip, location_id, spam_verdict FROM leads WHERE mobile = ?").get(mobile);
+      // Stored as E.164 (`LEAD.mobileFormat`), not as typed.
+      const row = db.prepare("SELECT zip, location_id, spam_verdict FROM leads WHERE mobile = ?").get(normalizePhone(mobile));
       expect(row).toEqual({ zip, location_id: "royat", spam_verdict: null });
     } finally {
       db.close();
@@ -74,7 +75,7 @@ test("with JavaScript the job is the kit's listbox and the pick is stored", asyn
 
   const db = new DatabaseSync(LEADS_DB, { readOnly: true });
   try {
-    const row = db.prepare("SELECT job, zip, spam_verdict FROM leads WHERE mobile = ?").get(mobile);
+    const row = db.prepare("SELECT job, zip, spam_verdict FROM leads WHERE mobile = ?").get(normalizePhone(mobile));
     expect(row).toEqual({ job: JOB_IDS[1], zip, spam_verdict: null });
   } finally {
     db.close();
