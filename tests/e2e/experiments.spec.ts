@@ -6,7 +6,8 @@ import { POSTHOG_HOST } from "./env";
 // visitor, and reach a variant through the QA force parameter or a cookie.
 test.use({ storageState: { cookies: [], origins: [] } });
 
-const BOTH_B = "/fr?ab_hero_call_first=b&ab_quote_price_anchor=b";
+// `lead_layout` held at `a`: the price anchor is asserted on the select.
+const BOTH_B = "/fr?ab_hero_call_first=b&ab_quote_price_anchor=b&ab_lead_layout=a";
 
 type Captured = { event: string; properties: Record<string, unknown> };
 
@@ -35,7 +36,7 @@ const of = (events: Captured[], event: string) =>
 test("a new visitor is assigned a sticky variant of every experiment", async ({ page, context }) => {
   await page.goto("/fr");
   const first = (await context.cookies()).filter(c => c.name.startsWith("ab_"));
-  expect(first.map(c => c.name).sort()).toEqual(["ab_hero_call_first", "ab_quote_price_anchor"]);
+  expect(first.map(c => c.name).sort()).toEqual(["ab_hero_call_first", "ab_lead_layout", "ab_quote_price_anchor"]);
   await page.goto("/fr/prices");
   expect((await context.cookies()).filter(c => c.name.startsWith("ab_"))).toEqual(first);
 });
@@ -67,6 +68,7 @@ test("the control renders as before", async ({ page, context }) => {
   await context.addCookies([
     { name: "ab_hero_call_first", value: "a", url: "http://royat.localhost" },
     { name: "ab_quote_price_anchor", value: "a", url: "http://royat.localhost" },
+    { name: "ab_lead_layout", value: "a", url: "http://royat.localhost" },
   ]);
   await page.goto("/fr");
   await expect(page.getByRole("link", { name: /Appeler un plombier/ })).toHaveCount(0);
@@ -78,6 +80,7 @@ test("exposure and contact events carry the experiment and the variant", async (
   await page.goto(BOTH_B);
   await expect.poll(() => of(events, "experiment_exposed")).toEqual([
     { experiment: "hero_call_first", variant: "b", forced: true, channel: undefined },
+    { experiment: "lead_layout", variant: "a", forced: true, channel: undefined },
     { experiment: "quote_price_anchor", variant: "b", forced: true, channel: undefined },
   ]);
   const exposed = events.find(e => e.event === "experiment_exposed")?.properties;
@@ -86,6 +89,7 @@ test("exposure and contact events carry the experiment and the variant", async (
   await page.locator('main a[href^="tel:"]:visible').first().click({ noWaitAfter: true });
   await expect.poll(() => of(events, "experiment_contact")).toEqual([
     { experiment: "hero_call_first", variant: "b", forced: true, channel: "phone" },
+    { experiment: "lead_layout", variant: "a", forced: true, channel: "phone" },
     { experiment: "quote_price_anchor", variant: "b", forced: true, channel: "phone" },
   ]);
 });
@@ -94,11 +98,13 @@ test("an assigned (not forced) visit says forced: false", async ({ page, context
   await context.addCookies([
     { name: "ab_hero_call_first", value: "b", url: "http://royat.localhost" },
     { name: "ab_quote_price_anchor", value: "a", url: "http://royat.localhost" },
+    { name: "ab_lead_layout", value: "b", url: "http://royat.localhost" },
   ]);
   const events = await capture(page);
   await page.goto("/fr");
   await expect.poll(() => of(events, "experiment_exposed")).toEqual([
     { experiment: "hero_call_first", variant: "b", forced: false, channel: undefined },
+    { experiment: "lead_layout", variant: "b", forced: false, channel: undefined },
     { experiment: "quote_price_anchor", variant: "a", forced: false, channel: undefined },
   ]);
 });
@@ -112,4 +118,26 @@ test("a crawler gets the control and no cookie, even when it asks for b", async 
     expect(html, ua).not.toContain("Appeler un plombier");
     expect(html, ua).not.toContain("Recevoir mon tarif fixe");
   }
+});
+
+// lead_layout b: kitstart's `qualify-first` — a tile per job, then the contact
+// step — and the form's own events carry the arm, so the brands pool.
+test("lead_layout b asks the job first, and its events carry the arm", async ({ page }) => {
+  const events = await capture(page);
+  await page.goto("/fr?ab_lead_layout=b&ab_quote_price_anchor=b");
+  const form = page.locator("form#quote");
+  const phone = form.locator("input[name=mobile]");
+  await expect(phone).toBeHidden();
+  // The price anchor rides on the tiles' labels.
+  const tile = form.getByRole("radio", { name: /^Canalisation bouchée · dès 149\s€$/ });
+  // Centred first: on a phone the sticky call bar covers the bottom of the
+  // viewport, where a scroll-if-needed would leave the tile.
+  await tile.evaluate(el => el.scrollIntoView({ block: "center" }));
+  await tile.click();
+  await expect(phone).toBeVisible();
+  await expect(form.getByRole("button", { name: /Recevoir mon tarif fixe/ })).toBeVisible();
+  await expect
+    .poll(() => events.find(e => e.event === "lead_form_view")?.properties)
+    .toMatchObject({ experiment: "lead_layout", variant: "b", layout: "qualify-first", form_id: "quote", brand_id: "aquafix" });
+  await expect.poll(() => events.find(e => e.event === "lead_form_step")?.properties).toMatchObject({ step: "contact", experiment: "lead_layout", variant: "b" });
 });

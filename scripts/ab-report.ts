@@ -2,6 +2,7 @@
 // whether `b` has beaten `a` — the rules are in docs/EXPERIMENTS.md.
 //
 //   POSTHOG_PERSONAL_API_KEY=phx_… npm run ab:report [-- --brand aquafix --days 90]
+//   npm run ab:report -- --brand aquafix,vifnet    # a shared test, pooled by its key
 //
 // A personal API key with `query:read` on the project (PostHog → Settings →
 // Personal API keys). `POSTHOG_PROJECT_ID` defaults to 614067, the EV Invest
@@ -64,8 +65,22 @@ export function summarise(rows: readonly Row[], now: Date): Experiment[] {
     }));
 }
 
-/** The primary metric's successes: every contact that reaches the business. */
+/** The contact rate's successes: every contact that reaches the business. */
 export const contacts = (arm: Arm): number => arm.leads + arm.calls + arm.whatsapp;
+
+export type Metric = "contact" | "lead";
+
+/**
+ * The metric a test is decided on; the other one is its guardrail. Contact
+ * rate by default; a test of the lead form itself (`lead_layout`) is decided on
+ * the lead rate, with the contact rate guarding against a form that wins
+ * leads by losing calls.
+ */
+export const PRIMARY: Readonly<Record<string, Metric>> = { lead_layout: "lead" };
+
+export const primaryOf = (experiment: string): Metric => PRIMARY[experiment] ?? "contact";
+
+const successes = (metric: Metric, arm: Arm): number => (metric === "lead" ? arm.leads : contacts(arm));
 
 /** Mulberry32: a seeded `[0, 1)` source, so a report (and a test) is reproducible. */
 export function seeded(seed: number): () => number {
@@ -163,14 +178,21 @@ export function verdict(input: { days: number; exposures: readonly number[]; pri
   return "keep running";
 }
 
+/**
+ * One brand, or several separated by commas — a test that runs under one key on
+ * several sites (`lead_layout` on aquafix and vifnet) is read pooled: each site
+ * splits its own visitors 50/50, so the arms stay comparable when summed.
+ */
 export function hogql(brand: string, days: number): string {
-  if (!/^[a-z0-9_-]+$/.test(brand)) throw new Error(`not a brand id: ${brand}`);
+  const brands = brand.split(",");
+  for (const b of brands) if (!/^[a-z0-9_-]+$/.test(b)) throw new Error(`not a brand id: ${b}`);
   if (!Number.isInteger(days) || days <= 0) throw new Error(`not a number of days: ${days}`);
+  const where = brands.length === 1 ? `= '${brand}'` : `IN (${brands.map(b => `'${b}'`).join(", ")})`;
   return `
     SELECT properties.experiment, properties.variant, event, properties.channel, count(), min(timestamp)
     FROM events
     WHERE event IN ('${EVENTS.exposed}', '${EVENTS.contact}', '${EVENTS.lead}')
-      AND properties.brand_id = '${brand}'
+      AND properties.brand_id ${where}
       AND ifNull(toString(properties.forced), '') NOT IN ('true', '1')
       AND timestamp > now() - INTERVAL ${days} DAY
     GROUP BY properties.experiment, properties.variant, event, properties.channel`;
@@ -194,10 +216,13 @@ export function render(experiments: readonly Experiment[], rng: () => number): s
       out.push("  verdict: keep running (an arm has no data yet)");
       continue;
     }
-    const primary = compare({ successes: contacts(a), trials: a.exposures }, { successes: contacts(b), trials: b.exposures }, rng);
-    const guardrail = compare({ successes: a.leads, trials: a.exposures }, { successes: b.leads, trials: b.exposures }, rng);
-    out.push(`  P(b > a) contact rate ${primary.pBetter.toFixed(3)} · expected loss ship b ${(100 * primary.lossShipB).toFixed(3)} pp, keep a ${(100 * primary.lossKeepA).toFixed(3)} pp`);
-    out.push(`  P(b > a) lead rate    ${guardrail.pBetter.toFixed(3)} (guardrail)`);
+    const metric = primaryOf(exp.name);
+    const guard: Metric = metric === "lead" ? "contact" : "lead";
+    const primary = compare({ successes: successes(metric, a), trials: a.exposures }, { successes: successes(metric, b), trials: b.exposures }, rng);
+    const guardrail = compare({ successes: successes(guard, a), trials: a.exposures }, { successes: successes(guard, b), trials: b.exposures }, rng);
+    const name = (m: Metric) => `${m} rate`.padEnd(12);
+    out.push(`  P(b > a) ${name(metric)} ${primary.pBetter.toFixed(3)} · expected loss ship b ${(100 * primary.lossShipB).toFixed(3)} pp, keep a ${(100 * primary.lossKeepA).toFixed(3)} pp`);
+    out.push(`  P(b > a) ${name(guard)} ${guardrail.pBetter.toFixed(3)} (guardrail)`);
     out.push(`  verdict: ${verdict({ days: exp.days, exposures: [a.exposures, b.exposures], primary: primary.pBetter, guardrail: guardrail.pBetter })}`);
   }
   return out.length ? out.join("\n") : "No experiment events yet.";
