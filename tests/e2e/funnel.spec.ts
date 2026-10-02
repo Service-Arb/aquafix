@@ -1,7 +1,7 @@
 import { DatabaseSync } from "node:sqlite";
 import { LIBRARY_PROPS } from "@evinvest/analytics";
 import { MIN_FILL_MS, normalizePhone } from "@evinvest/kitstart";
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { JOB_IDS } from "../../src/shared/config/lead";
 import { LEADS_DB, POSTHOG_HOST } from "./env";
 
@@ -119,4 +119,70 @@ test("contact_intent_click reaches PostHog when the visitor leaves for tel:", as
   const props = Object.keys(events.find(e => e.event === "contact_intent_click")?.properties ?? {});
   const allowed = ["brand_id", "location_id", "channel", "source", "device", "form_id", ...LIBRARY_PROPS];
   expect(props.filter(p => !allowed.includes(p))).toEqual([]);
+});
+
+/**
+ * An address of the test's own (the server trusts one `X-Forwarded-For` hop):
+ * the funnel allows five leads per address in ten minutes, and every other
+ * test posts from loopback.
+ */
+async function ownClient(page: Page, testInfo: TestInfo, slot: number): Promise<void> {
+  await page.setExtraHTTPHeaders({ "x-forwarded-for": `198.51.100.${slot * 10 + testInfo.parallelIndex}` });
+}
+
+// The job tapped on the page is not asked again: a work tile (or a price row)
+// names it with `data-need`, and the form keeps it as chosen.
+test("a tapped work tile is the job the form sends", async ({ page }, testInfo) => {
+  const mobile = `06${String((Date.now() + 7) % 1e8).padStart(8, "0")}`;
+  await ownClient(page, testInfo, 1);
+  await page.goto("/fr");
+  const form = page.locator("form#quote");
+  // Hydrated: the tap is read by the form's script.
+  await expect(form.locator("button[role=combobox]")).toBeVisible();
+  await page.locator('#work button[data-need="hot_water"]').click();
+  await page.keyboard.press("Escape");
+  await expect(form.locator("input[type=hidden][name=job]")).toHaveValue("hot_water");
+  await expect(form.locator("button[role=combobox]")).toHaveCount(0);
+
+  await form.locator("input[name=zip]").fill(`63130-need-${testInfo.project.name}`);
+  await form.locator("input[name=mobile]").fill(mobile);
+  await page.waitForTimeout(MIN_FILL_MS + 250);
+  const posted = page.waitForResponse(r => r.request().method() === "POST" && new URL(r.url()).pathname === "/quote");
+  await form.locator("button[type=submit]").click();
+  expect((await posted).status()).toBe(303);
+
+  const db = new DatabaseSync(LEADS_DB, { readOnly: true });
+  try {
+    expect(db.prepare("SELECT job FROM leads WHERE mobile = ?").get(normalizePhone(mobile))).toEqual({ job: "hot_water" });
+  } finally {
+    db.close();
+  }
+});
+
+// "Call me back": the phone and a consent, posted as its own lead. The consent
+// is the sentence shown, kept word for word with the row.
+test("the callback posts a lead with its consent", async ({ page }, testInfo) => {
+  const mobile = `07${String((Date.now() + 13) % 1e8).padStart(8, "0")}`;
+  await ownClient(page, testInfo, 2);
+  await page.goto("/fr");
+  const callback = page.locator("details#quote-callback");
+  await callback.locator("summary").click();
+  const form = callback.locator("form");
+  await form.locator("input[name=mobile]").fill(mobile);
+  const consent = form.locator("input[name=consent]");
+  const sentence = await consent.getAttribute("value");
+  expect(sentence).toMatch(/rappel/);
+  await consent.check();
+  await page.waitForTimeout(MIN_FILL_MS + 250);
+  const posted = page.waitForResponse(r => r.request().method() === "POST" && new URL(r.url()).pathname === "/quote");
+  await form.locator("button[type=submit]").click();
+  expect((await posted).status()).toBe(303);
+
+  const db = new DatabaseSync(LEADS_DB, { readOnly: true });
+  try {
+    const row = db.prepare("SELECT channel, consent_text, spam_verdict FROM leads WHERE mobile = ?").get(normalizePhone(mobile));
+    expect(row).toEqual({ channel: "callback", consent_text: sentence, spam_verdict: null });
+  } finally {
+    db.close();
+  }
 });

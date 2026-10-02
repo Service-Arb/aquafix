@@ -1,5 +1,6 @@
-import { FormSelect, PHONE_INPUT_PROPS, QuoteFormShell } from "@evinvest/kitstart/react";
-import { Button, Check, Field, FieldLabel, Input } from "@evinvest/uikit";
+import { LEAD_CAPTURE_TEXT, type LeadCaptureText } from "@evinvest/kitstart";
+import { LeadCapture, type LeadCapturePart, type LeadCaptureLayout, type PartClassNames } from "@evinvest/kitstart/react";
+import { Check } from "@evinvest/uikit";
 import { JOB_PRICE, type CopyOf, type JobId, type Text } from "@/entities/content";
 import type { PlaceView } from "@/entities/place";
 import { LEAD } from "@/shared/config/lead";
@@ -11,37 +12,88 @@ import { CTA_FACE } from "@/shared/ui/brand";
  * Figma height on the card plane, 24px line + 2×13px + 2×1px border.
  */
 const CONTROL = "h-auto w-full rounded-[var(--corner-control)] border border-input bg-card py-[13px] text-ink shadow-none";
-const FIELD = "flex w-full flex-col gap-2";
+/**
+ * The same face for the job's select, in both of its states. `LeadCapture`
+ * gives the need's `FormSelect` no part of its own, so it is reached from the
+ * form by its slot — the one descendant selector here, until the kit passes
+ * `control` to it.
+ */
+const SELECT_CONTROL =
+  "[&_:is([data-slot=select-trigger],[data-slot=native-select])]:h-auto [&_:is([data-slot=select-trigger],[data-slot=native-select])]:w-full [&_:is([data-slot=select-trigger],[data-slot=native-select])]:rounded-[var(--corner-control)] [&_:is([data-slot=select-trigger],[data-slot=native-select])]:border-input [&_:is([data-slot=select-trigger],[data-slot=native-select])]:bg-card [&_:is([data-slot=select-trigger],[data-slot=native-select])]:py-[13px] [&_:is([data-slot=select-trigger],[data-slot=native-select])]:text-ink [&_:is([data-slot=select-trigger],[data-slot=native-select])]:shadow-none";
 /** Set solid, as the frame's `normal` leading: the page's 1.5 added ~40px to the card. */
 const LABEL = "text-[12.5px] font-medium leading-[normal] tracking-[0.06em] text-ink-mid";
+/** The kit's `xl` button over `LeadCapture`'s `touch`: the brand's CTA, as every other one on the page. */
+const CTA = `min-h-0 px-[var(--control-px)] py-[var(--control-py)] text-[length:var(--control-text)] ${CTA_FACE}`;
 
 /**
- * kitstart's `QuoteFormShell` — a plain `<form method="post" action="/quote">`
- * answered with a 303, carrying the hidden fields and the honeypot the funnel
- * reads — around the three fields a plumbing quote asks for. It has to work
- * before any JavaScript arrives, because that is when the visitor standing in
- * water submits it. The job is kitstart's `FormSelect`: a real `<select name>`
- * until the page hydrates, then the kit's `Select`, whose list is drawn in the
- * palette rather than the platform's menu. `Field` mints the label's `for`
- * with `useId`, which names either control, so both hold with scripting off.
+ * The card is the kit's root; the form inside it keeps the kit's own gap, so
+ * the head, the fields and the reassurance under the submit sit where the
+ * hand-built card had them.
  */
+const PARTS: PartClassNames<LeadCapturePart> = {
+  // A light island inside a dark band.
+  root: "light gap-5 rounded-[var(--corner-float)] bg-background px-6 py-7 text-ink shadow-overlay md:px-[34px] md:pb-[30px] md:pt-8",
+  form: SELECT_CONTROL,
+  field: "w-full",
+  label: LABEL,
+  control: CONTROL,
+  need: "rounded-[var(--corner-control)] bg-card text-[15px]",
+  trust: "gap-5",
+  submit: CTA,
+  // The privacy line is the trust slot's last row, with its tick.
+  privacy: "hidden",
+  channel: CTA,
+};
+
 export type QuoteFormWidgetCopy = CopyOf<Pick<Text, "quoteForm" | "jobs">>;
 
+/** Every word of the form: the kit's, with this brand's own where it has one. */
+function leadText(copy: QuoteFormWidgetCopy, priceAnchor: boolean): LeadCaptureText {
+  const q = copy.t.quoteForm;
+  return {
+    ...LEAD_CAPTURE_TEXT[copy.locale],
+    title: q.title,
+    lede: q.lede,
+    needLabel: q.jobLabel,
+    localityLabel: q.zipLabel,
+    phoneLabel: q.mobileLabel,
+    submit: priceAnchor ? q.anchored.submit : q.submit,
+    privacy: q.privacy,
+    honeypotLabel: q.honeypotLabel,
+  };
+}
+
 /**
+ * kitstart's `LeadCapture` in this brand's card: the job (not asked again when
+ * the visitor tapped one on the page — `data-need` on the work tiles and the
+ * price rows), the postcode, the mobile, and "call me back". Over the kit's
+ * `QuoteFormShell`, so it still posts before any JavaScript arrives, which is
+ * when the visitor standing in water submits it.
+ *
+ * The call and WhatsApp are not repeated in the card: the hero offers both
+ * beside it (`HeroActions`), so the kit is given no number and keeps to the
+ * form and the callback.
+ *
  * `priceAnchor` is the `quote_price_anchor` treatment (docs/EXPERIMENTS.md):
- * each job's published "from" price in its option, read from the same
+ * each job's published "from" price in its label, read from the same
  * `PRICE_LIST` integer the price table prints, and a submit that names it.
+ * `layout` is `lead_layout`'s arm, passed to the kit with the assignment so
+ * its `lead_form_*` events carry it.
  */
 export function QuoteForm({
   copy,
   point,
   renderedAt,
   priceAnchor = false,
+  layout = "single",
+  experiment,
 }: {
   copy: QuoteFormWidgetCopy;
   point: PlaceView;
   renderedAt: number;
   priceAnchor?: boolean;
+  layout?: LeadCaptureLayout;
+  experiment?: { name: string; variant: string };
 }) {
   const q = copy.t.quoteForm;
   const label = (id: JobId): string => {
@@ -49,47 +101,34 @@ export function QuoteForm({
     return price ? q.anchored.option(copy.t.jobs[id], copy.f.price(price)) : copy.t.jobs[id];
   };
   return (
-    <QuoteFormShell
-      placeSlug={point.place.slug}
+    <LeadCapture
+      place={point.place}
+      contact={{ phone: null, whatsapp: null }}
       locale={copy.locale}
       renderedAt={renderedAt}
-      honeypotLabel={q.honeypotLabel}
-      // A light island inside a dark band.
-      className="light rounded-[var(--corner-float)] bg-background px-6 py-7 text-ink shadow-overlay md:px-[34px] md:pb-[30px] md:pt-8"
-    >
-      <div className="flex flex-col gap-[7px]">
-        <p className="font-display text-[24px] font-bold leading-[1.1] text-ink md:text-[30px]">{q.title}</p>
-        <p className="text-[15px] leading-[normal] text-ink-soft">{q.lede}</p>
-      </div>
-      <Field className={FIELD}>
-        <FieldLabel className={LABEL}>{q.jobLabel}</FieldLabel>
-        <FormSelect
-          size="lg"
-          name={LEAD.wire.subject}
-          required
-          options={LEAD.subjects.map(id => ({ value: id, label: label(id) }))}
-          defaultValue={LEAD.subjects[0]}
-          classNames={{ trigger: CONTROL }}
-        />
-      </Field>
-      <Field className={FIELD}>
-        <FieldLabel className={LABEL}>{q.zipLabel}</FieldLabel>
-        <Input size="lg" className={CONTROL} type="text" name={LEAD.wire.locality} autoComplete="postal-code" placeholder={q.zipPlaceholder} required />
-      </Field>
-      <Field className={FIELD}>
-        <FieldLabel className={LABEL}>{q.mobileLabel}</FieldLabel>
-        <Input size="lg" className={CONTROL} {...PHONE_INPUT_PROPS} name={LEAD.wire.mobile} placeholder={q.mobilePlaceholder} required />
-      </Field>
-      <Button type="submit" size="xl" className={`w-full ${CTA_FACE}`}>
-        {priceAnchor ? q.anchored.submit : q.submit}
-      </Button>
-      {priceAnchor && <p className="-mt-2 text-center text-[13px] font-medium leading-[normal] text-ink-mid">{q.anchored.note}</p>}
-      <p className="text-[13px] leading-[1.52] text-ink-soft">{q.reassurance(copy.f)}</p>
-      <div className="h-px w-full bg-border" />
-      <div className="flex items-center gap-2.5">
-        <Check />
-        <span className="text-[13px] font-medium text-ink-mid">{q.privacy}</span>
-      </div>
-    </QuoteFormShell>
+      wire={LEAD.wire}
+      needs={LEAD.subjects.map(id => ({ value: id, label: label(id) }))}
+      layout={layout}
+      experiment={experiment}
+      text={leadText(copy, priceAnchor)}
+      head={
+        <div className="flex flex-col gap-[7px]">
+          <p className="font-display text-[24px] font-bold leading-[1.1] text-ink md:text-[30px]">{q.title}</p>
+          <p className="text-[15px] leading-[normal] text-ink-soft">{q.lede}</p>
+        </div>
+      }
+      trust={
+        <>
+          {priceAnchor && <p className="-mt-2 text-center text-[13px] font-medium leading-[normal] text-ink-mid">{q.anchored.note}</p>}
+          <p className="text-[13px] leading-[1.52] text-ink-soft">{q.reassurance(copy.f)}</p>
+          <div className="h-px w-full bg-border" />
+          <div className="flex items-center gap-2.5">
+            <Check />
+            <span className="text-[13px] font-medium text-ink-mid">{q.privacy}</span>
+          </div>
+        </>
+      }
+      classNames={PARTS}
+    />
   );
 }

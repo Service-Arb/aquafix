@@ -48,8 +48,9 @@ screen before any script arrives, a form that submits without hydration,
 native HTML wherever it does the job. A feature that is faster to build but
 only works after the bundle loads is not cheaper — it is a lost customer. In
 Next terms: `"use client"` only on leaves that cannot be anything else (the
-analytics boundary, the click-to-load map), and the quote form is a plain
-`<form method="post" action="/quote">` answered with a 303. It sits in the
+analytics boundary, the click-to-load map, kitstart's `LeadCapture`), and
+under that island the quote form is a plain `<form method="post"
+action="/quote">` answered with a 303. It sits in the
 hero, on the first screen, beside the headline — not after the prices: the
 owner's v2 design puts the one action where the emergency visitor lands, and
 every band below argues for it (`#quote` is the form itself).
@@ -104,7 +105,7 @@ owner chose to keep on the page, not in the schema.
 | `src/entities/content` | Every string, once per language, and the language-free catalogue. `Text` extends kitstart's `CoreText`; a structural widget declares the slice it prints (`CopyOf<Pick<Text, …>>`) instead of taking the whole `Copy`. |
 | `src/entities/place` | The six points bound to the site: baked data from `shared/config/places.ts`, the live overlay, the publication gate, URLs — kitstart's place model (`Place` with a storefront or service-area `presence`, `PlaceView`, the gate as a policy) with the site filled in; on `server.ts` the live source and the page loader. |
 | `src/entities/lead` | The lead's type (kitstart's), and the notifier that mails it to the business in French. What a lead asks is `LEAD` in `shared/config/lead.ts`. |
-| `src/features` | The quote form's fields (in kitstart's shell), SEO (which of Aquafix's words kitstart's `placeGraph` and `placeMetadata` quote), the A/B tests' proxy, events and lead capture (`experiments`). |
+| `src/features` | The quote form (kitstart's `LeadCapture` in this brand's card and words), SEO (which of Aquafix's words kitstart's `placeGraph` and `placeMetadata` quote), the A/B tests' proxy, events and lead capture (`experiments`). |
 | `src/widgets` | One band per slice, ≤120 lines a file, over a `Copy` and a `PlaceView`. The structural ones are kitstart's widgets in the brand's band, with the Figma frame's geometry passed through their `classNames` parts. |
 | `src/views` | The compositions: a point's home, its sub-pages, its status screens; the brand page. |
 
