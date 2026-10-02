@@ -33,7 +33,10 @@ const CTA = `min-h-0 px-[var(--control-px)] py-[var(--control-py)] text-[length:
 const PARTS: PartClassNames<LeadCapturePart> = {
   // A light island inside a dark band.
   root: "light gap-5 rounded-[var(--corner-float)] bg-background px-6 py-7 text-ink shadow-overlay md:px-[34px] md:pb-[30px] md:pt-8",
-  form: SELECT_CONTROL,
+  // `#quote` is the form, under the card's head: the margin is the card's
+  // padding, head and gap above it at each width, so a CTA lands on the card's
+  // top edge, title and all, as it did when the form was the card.
+  form: `${SELECT_CONTROL} scroll-mt-[119px] md:scroll-mt-[111px] lg:scroll-mt-[130px]`,
   field: "w-full",
   label: LABEL,
   control: CONTROL,
