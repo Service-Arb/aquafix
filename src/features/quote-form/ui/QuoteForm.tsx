@@ -43,6 +43,10 @@ const PARTS: PartClassNames<LeadCapturePart> = {
   // The privacy line is the trust slot's last row, with its tick.
   privacy: "hidden",
   channel: CTA,
+  // The closed callback on a whole pixel: the `xl` face is 52.5px tall on a
+  // phone, and half a pixel more in the hero shifts every band below it off
+  // the pixel grid.
+  callback: "min-h-[53px]",
 };
 
 export type QuoteFormWidgetCopy = CopyOf<Pick<Text, "quoteForm" | "jobs">>;
