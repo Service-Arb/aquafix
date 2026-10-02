@@ -16,6 +16,7 @@ describe("the lead schema", () => {
       mobile: "0612345678",
       extras: {},
       placeSlug: "royat",
+      channel: "form",
     });
   });
 
