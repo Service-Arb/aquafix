@@ -1,6 +1,6 @@
 import "server-only";
 import { createHash } from "node:crypto";
-import { channelOf, type Lead } from "@evinvest/kitstart";
+import { channelOf, type Lead, type LeadSuspect } from "@evinvest/kitstart";
 import { panelChannel, type LeadWebhookContext, type WebhookSigning } from "@evinvest/kitstart/server";
 
 /**
@@ -24,7 +24,11 @@ export interface LeadCreatedEvent {
   occurredAt: string;
   source: { kind: "site"; id: string };
   subject: { brandId: string; locationId?: string; leadId: string };
-  properties: { channel: ReturnType<typeof panelChannel> };
+  properties: {
+    channel: ReturnType<typeof panelChannel>;
+    /** Only under kitstart's `panelSuspect`, which stays off until the panel's contract has it. */
+    suspect?: LeadSuspect;
+  };
   pii?: Record<string, string>;
 }
 
@@ -117,7 +121,8 @@ export function panelLeadId(ctx: Pick<LeadWebhookContext, "leadId" | "idempotenc
  * `callback` — one constant in the kit to flip.
  * The callback's consent is not in the body: the panel has no field for it.
  * `locationId` is the point the form was posted from (its slug, which is its
- * subdomain); a lead from no point carries none.
+ * subdomain); a lead from no point carries none. `properties.suspect` is
+ * there only when kitstart set `ctx.suspect`, i.e. under `panelSuspect`.
  */
 export function leadCreatedBody(lead: Lead, ctx: LeadWebhookContext, { sourceId, needLabel }: BodyOptions): IngestBody {
   const subject: LeadCreatedEvent["subject"] = { brandId: ctx.brandId, leadId: panelLeadId(ctx) };
@@ -132,6 +137,7 @@ export function leadCreatedBody(lead: Lead, ctx: LeadWebhookContext, { sourceId,
     subject,
     properties: { channel: panelChannel(channelOf(lead)) },
   };
+  if (ctx.suspect) event.properties.suspect = ctx.suspect;
   const pii = piiOf(lead, needLabel);
   if (Object.keys(pii).length > 0) event.pii = pii;
   return { events: [event] };
