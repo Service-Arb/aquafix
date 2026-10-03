@@ -20,6 +20,9 @@ export async function register(): Promise<void> {
   const { EXPERIMENTS, EXPERIMENT_SUMMARIES } = await import("@/shared/config/experiments");
   notifier();
   await checkLeadStore(serverEnv());
-  webhook()?.start();
+  // Queued before the outbox starts: `start` ticks at once, and a tick asked
+  // for while one runs shares it — a declaration queued after would wait for
+  // the next interval.
   declareExperiments(webhook, EXPERIMENTS, { summaries: EXPERIMENT_SUMMARIES });
+  webhook()?.start();
 }
