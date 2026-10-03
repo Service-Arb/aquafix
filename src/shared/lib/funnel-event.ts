@@ -103,13 +103,20 @@ function piiOf(lead: Lead, needLabel: BodyOptions["needLabel"]): Record<string, 
 }
 
 /**
- * The lead's id for the panel: the row id, for a person matching it to the
- * mail, plus 8 hex of the kit's per-lead key — row ids start over if the
- * leads file is ever recreated, and the panel counts only the first
- * `lead.created` of a lead id. The letter prefix keeps it from looking like a
- * phone number to the panel.
+ * The lead's id for the panel: kitstart's `leadRef` (`lead-<row>-<8 hex>`),
+ * the reference the page was answered with. A booking comes back to the
+ * panel carrying it, so `lead.created` must name the lead by the same one or
+ * the two never join. The row id is for a person matching it to the mail; the
+ * tag keeps it unique when row ids start over in a recreated leads file (the
+ * panel counts only the first `lead.created` of a lead id); the letter prefix
+ * keeps it from looking like a phone number to the panel.
+ *
+ * The kit leaves `leadRef` out only of a context built by hand; such a lead
+ * can be booked by nothing, so the same shape tagged from its per-lead key
+ * does.
  */
-export function panelLeadId(ctx: Pick<LeadWebhookContext, "leadId" | "idempotencyKey">): string {
+export function panelLeadId(ctx: Pick<LeadWebhookContext, "leadId" | "leadRef" | "idempotencyKey">): string {
+  if (ctx.leadRef !== undefined) return ctx.leadRef;
   const tag = createHash("sha256").update(ctx.idempotencyKey).digest("hex").slice(0, 8);
   return `lead-${ctx.leadId}-${tag}`;
 }
