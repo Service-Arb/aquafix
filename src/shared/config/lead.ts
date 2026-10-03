@@ -1,4 +1,4 @@
-import type { LeadCandidate, LeadSchema } from "@evinvest/kitstart";
+import { validateLead, type LeadCandidate, type LeadRejection, type LeadSchema } from "@evinvest/kitstart";
 
 /** Values the quote form's `<select>` posts and the lead store keeps. */
 export const JOB_IDS = [
@@ -16,13 +16,15 @@ export type JobId = (typeof JOB_IDS)[number];
 
 /**
  * The one rule worth enforcing: a lead with no way to reach the customer is
- * not a lead. The reason is a diagnostic for the log, never rendered, so it
- * stays out of the copy and out of the language seam.
+ * not a lead. The phone is kitstart's rule — the one the form blocks on, so the
+ * server never refuses a number the form let through (the landing contract
+ * holds this to it); the commune is ours. A refusal names its field, which the
+ * card shows the error at; `why` is for the log only, never rendered.
  */
-export function validateLead(lead: Pick<LeadCandidate, "locality" | "mobile">): string | null {
-  // Ten digits is a French national number (06 12 34 56 78); +33 6… is eleven.
-  if (lead.mobile.replace(/\D/g, "").length < 10) return "a mobile number we can text the price to";
-  if (lead.locality.trim() === "") return "the town or postcode we would drive to";
+export function quoteRule(lead: Pick<LeadCandidate, "locality" | "mobile">): LeadRejection | null {
+  const phone = validateLead(lead);
+  if (phone) return phone;
+  if (lead.locality.trim() === "") return { field: "locality", why: "the town or postcode we would drive to" };
   return null;
 }
 
@@ -36,6 +38,6 @@ export function validateLead(lead: Pick<LeadCandidate, "locality" | "mobile">): 
 export const LEAD: LeadSchema<JobId> = {
   subjects: JOB_IDS,
   wire: { subject: "job", locality: "zip", mobile: "mobile" },
-  validate: validateLead,
+  validate: quoteRule,
   mobileFormat: "e164",
 };
