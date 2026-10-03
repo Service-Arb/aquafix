@@ -1,7 +1,7 @@
 import "server-only";
 import { createHash } from "node:crypto";
-import type { Lead } from "@evinvest/kitstart";
-import type { LeadWebhookContext, WebhookSigning } from "@evinvest/kitstart/server";
+import { channelOf, type Lead } from "@evinvest/kitstart";
+import { panelChannel, type LeadWebhookContext, type WebhookSigning } from "@evinvest/kitstart/server";
 
 /**
  * The panel's ingest scheme (Service-Arb/panel README, "Sending events"): the
@@ -24,7 +24,7 @@ export interface LeadCreatedEvent {
   occurredAt: string;
   source: { kind: "site"; id: string };
   subject: { brandId: string; locationId?: string; leadId: string };
-  properties: { channel: "form" };
+  properties: { channel: ReturnType<typeof panelChannel> };
   pii?: Record<string, string>;
 }
 
@@ -101,6 +101,10 @@ export function panelLeadId(ctx: Pick<LeadWebhookContext, "leadId" | "idempotenc
 /**
  * The webhook body for one lead. `sourceId` is the key id the batch is signed
  * with — the panel rejects an event whose `source.id` is anything else.
+ * `properties.channel` goes through kitstart's `panelChannel`: the panel's set
+ * is closed and refuses the whole event outside it, so a callback is sent as
+ * `form` until the panel takes `callback` — one constant in the kit to flip.
+ * The callback's consent is not in the body: the panel has no field for it.
  * `locationId` is the point the form was posted from (its slug, which is its
  * subdomain); a lead from no point carries none.
  */
@@ -115,7 +119,7 @@ export function leadCreatedBody(lead: Lead, ctx: LeadWebhookContext, sourceId: s
     occurredAt: ctx.at.toISOString(),
     source: { kind: "site", id: sourceId },
     subject,
-    properties: { channel: "form" },
+    properties: { channel: panelChannel(channelOf(lead)) },
   };
   const pii = piiOf(lead);
   if (Object.keys(pii).length > 0) event.pii = pii;

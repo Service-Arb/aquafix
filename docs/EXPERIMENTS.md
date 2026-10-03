@@ -7,7 +7,7 @@ winner goes into the page, the loser is deleted.
 
 ## Running now
 
-Both split 50/50, independently: a visitor is in one arm of each.
+All three split 50/50, independently: a visitor is in one arm of each.
 
 ### `hero_call_first`
 
@@ -40,6 +40,34 @@ Both split 50/50, independently: a visitor is in one arm of each.
   low and bill high" — and lifts form submissions.
 - **Evidence.** `docs/refs/sites/README.md`, "Where we went further than any
   reference": the published price list is the single largest differentiator.
+- **On kitstart's form.** The prices ride on `LeadCapture`'s need labels — the
+  select's options in `lead_layout` `a`, the tiles in `b` — and the note sits in
+  its trust slot under the submit.
+
+### `lead_layout`
+
+- **Change (`b`).** The quote form is kitstart's `LeadCapture` in both arms;
+  `a` is its `single` layout (the job as a select, the postcode and the mobile
+  on one screen — the form as it was), `b` its `qualify-first`: a tile per job
+  first, and the postcode and mobile only once one is tapped (the mobile takes
+  the focus inside that tap). A job the visitor already tapped on the page — a
+  work tile or a price row (`data-need`) — is not asked again in either arm.
+- **Hypothesis.** A first question that is one tap and about the problem, not
+  about the visitor, starts more forms than three fields at once, and a form
+  started is mostly finished: `b` lifts leads per visit. It is the switch the
+  form-research literature does not settle (qualification-first wins sometimes,
+  not always), so it is tested rather than chosen.
+- **Metric.** Lead rate (`experiment_lead` ÷ `experiment_exposed`) is primary;
+  the contact rate is the guardrail — a layout that wins leads by losing calls
+  is not shipped. `scripts/ab-report.ts` decides it that way (`PRIMARY`).
+- **Pooled with vifnet.** vifnet runs the same key with the same arms (`a`
+  single, `b` qualify-first, 50/50), so one test reads across both brands, the
+  site as its stratum: `npm run ab:report -- --brand aquafix,vifnet` sums the
+  arms (each site splits its own visitors evenly, so the sums stay
+  comparable). kitstart's own form events — `lead_form_view`,
+  `lead_form_start`, `lead_form_field_error`, `lead_form_step`, and the
+  server's `lead_form_submit` — carry `experiment: "lead_layout"` and the
+  `variant` on every brand, for the funnel inside the form.
 
 ## Metrics
 
@@ -47,6 +75,8 @@ Both split 50/50, independently: a visitor is in one arm of each.
 |---|---|---|
 | Primary | contact rate | (`experiment_lead` + `experiment_contact` with `channel` phone or whatsapp) ÷ `experiment_exposed` |
 | Guardrail | lead rate | `experiment_lead` ÷ `experiment_exposed` |
+
+`lead_layout` swaps the two: lead rate primary, contact rate the guardrail.
 | Reported | form opens | `experiment_contact` with `channel = form_open` — an intent, not a contact |
 
 The analytics are cookieless: every page load has a new `distinct_id`, so an
@@ -98,9 +128,9 @@ days since the first exposure, and the verdict of the stop rule above.
   for 30 days. The apex brand page, `/quote` and the other non-page routes are
   not assigned.
 - **Caching.** Pages stay ISR. The proxy rewrites a point's home to
-  `/<locale>/<point>/ab/<letters>` — `ab/ba` is `hero_call_first=b`,
-  `quote_price_anchor=a` — so each combination is its own cache entry and no
-  page reads a cookie. All-control keeps the plain path. The canonical URL
+  `/<locale>/<point>/ab/<letters>` — `ab/baa` is `hero_call_first=b`,
+  `quote_price_anchor=a`, `lead_layout=a` — so each combination is its own
+  cache entry and no page reads a cookie. All-control keeps the plain path. The canonical URL
   never carries the bucket.
 - **Bots.** Crawlers, unfurlers and ad reviewers (user agent matching
   bot/crawl/spider/preview/AdsBot/…, or none) always get the control and no
@@ -115,7 +145,13 @@ days since the first exposure, and the verdict of the stop rule above.
   from the server, after the response, for exactly the leads kitstart counts
   as `lead_form_submit` (stored, not held as spam). kitstart's own events are
   unchanged; its allow-list would drop `variant`, so these go through a sink
-  of their own with the same key and host.
+  of their own with the same key and host. The exception is kitstart's lead
+  form: `LeadCapture` is given `lead_layout`'s assignment and puts it on its
+  `lead_form_*` events itself (the kit's allow-list has `experiment` and
+  `variant`). The page cannot tell a control visitor from a crawler — both get
+  the plain path — so those events say `variant: "a"` for both; a crawler
+  rarely runs the script that sends them, and `experiment_*` stays the
+  arbiter.
 
 ## Forcing a variant (QA)
 
@@ -124,6 +160,7 @@ Add `?ab_<experiment>=<variant>` to a point's URL:
 ```text
 https://royat.aquafix.top/fr?ab_hero_call_first=b
 https://royat.aquafix.top/fr?ab_hero_call_first=b&ab_quote_price_anchor=b
+https://royat.aquafix.top/fr?ab_lead_layout=b
 ```
 
 The forced variant is stored in the cookie, and a session cookie `ab_forced=1`

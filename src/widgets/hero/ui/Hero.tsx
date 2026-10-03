@@ -24,8 +24,8 @@ const BELOW_MD = "(max-width: 47.99rem)";
  * the owner's v2 design puts the one action on the first screen, so a visitor
  * standing in water does not have to scroll to reach it. The two other
  * channels sit under the headline — WhatsApp first, the phone after, as the
- * owner ranks them. `#quote` is the form card (kitstart's shell sets the id),
- * which every CTA points at. Side by side only from `lg`: at 768 the form's
+ * owner ranks them. `#quote` is the form inside the card (kitstart's
+ * `LeadCapture` sets the id), which every CTA points at. Side by side only from `lg`: at 768 the form's
  * 460px left the headline a ~100px column, and the phone fell off the first
  * screen; between `md` and `lg` the form sits under the words instead.
  *
@@ -88,7 +88,14 @@ export function Hero({
           </ul>
         </div>
         <div className="w-full md:max-w-[560px] lg:w-[460px] lg:shrink-0">
-          <QuoteForm copy={copy} point={point} renderedAt={renderedAt} priceAnchor={variants.quote_price_anchor === "b"} />
+          <QuoteForm
+            copy={copy}
+            point={point}
+            renderedAt={renderedAt}
+            priceAnchor={variants.quote_price_anchor === "b"}
+            layout={variants.lead_layout === "b" ? "qualify-first" : "single"}
+            experiment={{ name: "lead_layout", variant: variants.lead_layout }}
+          />
         </div>
       </div>
     </section>

@@ -50,7 +50,7 @@ export function LocationHome({
         </main>
         <QuietFooter copy={copy} point={point} />
       </div>
-      <CallBar copy={copy} point={point} />
+      <CallBar copy={copy} point={point} renderedAt={now.getTime()} />
     </>
   );
 }

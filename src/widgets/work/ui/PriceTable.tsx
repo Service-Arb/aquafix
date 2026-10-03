@@ -1,5 +1,5 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@evinvest/uikit";
-import { PRICE_LIST, type Copy } from "@/entities/content";
+import { PRICE_JOB, PRICE_LIST, type Copy } from "@/entities/content";
 import { formatEur } from "@/shared/lib/money";
 
 /**
@@ -32,7 +32,8 @@ export function PriceTable({ copy }: { copy: Copy }) {
           </TableHeader>
           <TableBody>
             {PRICE_LIST.map(row => (
-              <TableRow key={row.id}>
+              // `data-need`: a tap on the row is the job the lead form then takes as chosen.
+              <TableRow key={row.id} data-need={PRICE_JOB[row.id]}>
                 <TableCell className="whitespace-normal px-4 py-3.5 text-[14.5px] font-semibold text-ink md:pl-7 md:pr-0 md:text-[16px]">
                   {t.prices[row.id].job}
                 </TableCell>

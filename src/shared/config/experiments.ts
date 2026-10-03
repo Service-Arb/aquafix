@@ -16,6 +16,12 @@ export const EXPERIMENTS = {
   hero_call_first: { variants: ["a", "b"], weights: [1, 1], enabled: true },
   /** Quote form: each job's published price in the select, a fixed-price submit. */
   quote_price_anchor: { variants: ["a", "b"], weights: [1, 1], enabled: true },
+  /**
+   * Lead form: one screen (`a`, kitstart's `single`) or the job first, then
+   * the contact (`b`, `qualify-first`). Same key and arms as vifnet's, so the
+   * two brands' results pool.
+   */
+  lead_layout: { variants: ["a", "b"], weights: [1, 1], enabled: true },
 } as const satisfies ExperimentConfig;
 
 export type ExperimentId = keyof typeof EXPERIMENTS;
@@ -29,6 +35,7 @@ export const EXPERIMENT_IDS = Object.keys(EXPERIMENTS) as readonly ExperimentId[
 export const CONTROL: Assignment = {
   hero_call_first: "a",
   quote_price_anchor: "a",
+  lead_layout: "a",
 };
 
 /** `?ab_<experiment>=<variant>` forces a variant, for QA. */

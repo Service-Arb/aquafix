@@ -47,6 +47,7 @@ export function assignmentOf(read: (name: string) => string | undefined): Assign
   return {
     hero_call_first: resolveVariant(EXPERIMENTS, "hero_call_first", read(cookieName("hero_call_first"))),
     quote_price_anchor: resolveVariant(EXPERIMENTS, "quote_price_anchor", read(cookieName("quote_price_anchor"))),
+    lead_layout: resolveVariant(EXPERIMENTS, "lead_layout", read(cookieName("lead_layout"))),
   };
 }
 

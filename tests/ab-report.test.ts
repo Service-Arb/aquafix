@@ -72,6 +72,27 @@ describe("the report", () => {
     expect(text).toMatch(/verdict: ship b/);
   });
 
+  it("decides lead_layout on the lead rate, with the contact rate as its guardrail", () => {
+    const layout: Row[] = [
+      { experiment: "lead_layout", variant: "a", event: "experiment_exposed", channel: null, count: 400, first: "2026-09-01T00:00:00Z" },
+      { experiment: "lead_layout", variant: "b", event: "experiment_exposed", channel: null, count: 400, first: "2026-09-01T00:00:00Z" },
+      // b loses on calls and wins on leads: contact rate alone would call it a draw.
+      { experiment: "lead_layout", variant: "a", event: "experiment_contact", channel: "phone", count: 30, first: "2026-09-03T00:00:00Z" },
+      { experiment: "lead_layout", variant: "b", event: "experiment_contact", channel: "phone", count: 10, first: "2026-09-03T00:00:00Z" },
+      { experiment: "lead_layout", variant: "a", event: "experiment_lead", channel: null, count: 5, first: "2026-09-03T00:00:00Z" },
+      { experiment: "lead_layout", variant: "b", event: "experiment_lead", channel: null, count: 25, first: "2026-09-03T00:00:00Z" },
+    ];
+    const text = render(summarise(layout, new Date("2026-09-21T00:00:00Z")), seeded(6));
+    expect(text).toMatch(/P\(b > a\) lead rate +1\.000/);
+    expect(text).toMatch(/P\(b > a\) contact rate +0\.\d+ \(guardrail\)/);
+    expect(text).toMatch(/verdict: ship b/);
+  });
+
+  it("pools brands that run one test under one key", () => {
+    expect(hogql("aquafix,vifnet", 90)).toContain("properties.brand_id IN ('aquafix', 'vifnet')");
+    expect(() => hogql("aquafix,vif'net", 90)).toThrow();
+  });
+
   it("quotes no untrusted value into the query", () => {
     expect(() => hogql("aquafix' OR 1=1 --", 90)).toThrow();
     expect(() => hogql("aquafix", 1.5)).toThrow();

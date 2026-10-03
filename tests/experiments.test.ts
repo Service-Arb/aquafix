@@ -25,15 +25,17 @@ describe("the variant bucket in the path", () => {
     expect(encodeBucket(CONTROL)).toBeNull();
     for (const hero of ["a", "b"] as const) {
       for (const quote of ["a", "b"] as const) {
-        const assignment = { hero_call_first: hero, quote_price_anchor: quote };
-        const bucket = encodeBucket(assignment);
-        if (bucket) expect(decodeBucket(bucket)).toEqual(assignment);
+        for (const layout of ["a", "b"] as const) {
+          const assignment = { hero_call_first: hero, quote_price_anchor: quote, lead_layout: layout };
+          const bucket = encodeBucket(assignment);
+          if (bucket) expect(decodeBucket(bucket)).toEqual(assignment);
+        }
       }
     }
   });
 
   it("refuses a bucket the proxy never writes", () => {
-    for (const junk of ["aa", "zz", "b", "bbb", "~ab", "", "Bb"]) expect(decodeBucket(junk), junk).toBeNull();
+    for (const junk of ["aaa", "zzz", "b", "bb", "bbbb", "~ab", "", "Bbb"]) expect(decodeBucket(junk), junk).toBeNull();
   });
 
   it("declares one-letter variants with `a` first, which the path encoding needs", () => {
@@ -64,38 +66,39 @@ describe("bots", () => {
 describe("the proxy's assignment", () => {
   it("gives a new visitor a sticky cookie per experiment", () => {
     const { cookies } = visit(`https://${ROYAT}/fr`);
-    expect(cookies.map(c => c.split("=")[0] ?? "").sort()).toEqual(["ab_hero_call_first", "ab_quote_price_anchor"]);
+    expect(cookies.map(c => c.split("=")[0] ?? "").sort()).toEqual(["ab_hero_call_first", "ab_lead_layout", "ab_quote_price_anchor"]);
   });
 
   it("rewrites a point's home to its visitor's bucket, and leaves the control on the plain path", () => {
-    expect(visit(`https://${ROYAT}/fr`, { cookie: "ab_hero_call_first=b; ab_quote_price_anchor=a" })).toEqual({ rewrite: "/fr/_royat/ab/ba", cookies: [] });
-    expect(visit(`https://${ROYAT}/en`, { cookie: "ab_hero_call_first=a; ab_quote_price_anchor=a" })).toEqual({ rewrite: "/en/_royat", cookies: [] });
-    expect(visit("https://aquafix.top/fr/royat", { cookie: "ab_hero_call_first=b; ab_quote_price_anchor=b" }).rewrite).toBe("/fr/royat/ab/bb");
+    expect(visit(`https://${ROYAT}/fr`, { cookie: "ab_hero_call_first=b; ab_quote_price_anchor=a; ab_lead_layout=a" })).toEqual({ rewrite: "/fr/_royat/ab/baa", cookies: [] });
+    expect(visit(`https://${ROYAT}/fr`, { cookie: "ab_hero_call_first=a; ab_quote_price_anchor=a; ab_lead_layout=b" })).toEqual({ rewrite: "/fr/_royat/ab/aab", cookies: [] });
+    expect(visit(`https://${ROYAT}/en`, { cookie: "ab_hero_call_first=a; ab_quote_price_anchor=a; ab_lead_layout=a" })).toEqual({ rewrite: "/en/_royat", cookies: [] });
+    expect(visit("https://aquafix.top/fr/royat", { cookie: "ab_hero_call_first=b; ab_quote_price_anchor=b; ab_lead_layout=b" }).rewrite).toBe("/fr/royat/ab/bbb");
   });
 
   it("assigns on a point's other pages without rewriting them: nothing there differs", () => {
     const res = visit(`https://${ROYAT}/fr/prices`);
     expect(res.rewrite).toBe("/fr/_royat/prices");
-    expect(res.cookies).toHaveLength(2);
+    expect(res.cookies).toHaveLength(3);
   });
 
   it("forces a variant from the query, and marks the browser as QA's", () => {
-    const res = visit(`https://${ROYAT}/fr?ab_quote_price_anchor=b`, { cookie: "ab_hero_call_first=a; ab_quote_price_anchor=a" });
-    expect(res.rewrite).toBe("/fr/_royat/ab/ab");
+    const res = visit(`https://${ROYAT}/fr?ab_quote_price_anchor=b`, { cookie: "ab_hero_call_first=a; ab_quote_price_anchor=a; ab_lead_layout=a" });
+    expect(res.rewrite).toBe("/fr/_royat/ab/aba");
     expect(res.cookies.sort()).toEqual(["ab_forced=1", "ab_quote_price_anchor=b"]);
     // A variant the test does not declare forces nothing.
-    expect(visit(`https://${ROYAT}/fr?ab_quote_price_anchor=z`, { cookie: "ab_hero_call_first=a; ab_quote_price_anchor=a" }).cookies).toEqual([]);
+    expect(visit(`https://${ROYAT}/fr?ab_quote_price_anchor=z`, { cookie: "ab_hero_call_first=a; ab_quote_price_anchor=a; ab_lead_layout=a" }).cookies).toEqual([]);
   });
 
   it("does not assign again on Next's second pass over the rewritten path", () => {
-    expect(visit("http://localhost:3000/fr/_royat/ab/bb", { cookie: "" })).toEqual({ rewrite: null, cookies: [] });
+    expect(visit("http://localhost:3000/fr/_royat/ab/bbb", { cookie: "" })).toEqual({ rewrite: null, cookies: [] });
     expect(visit("http://localhost:3000/fr/_royat", { cookie: "" })).toEqual({ rewrite: null, cookies: [] });
   });
 
   it("leaves the brand's pages, /quote and dead paths to kitstart", () => {
     expect(visit("https://aquafix.top/fr").cookies).toEqual([]);
     expect(visit(`https://${ROYAT}/quote`).cookies).toEqual([]);
-    expect(visit(`https://${ROYAT}/fr/_royat/ab/zz`).rewrite).toBe("/fr/404/404");
+    expect(visit(`https://${ROYAT}/fr/_royat/ab/zzz`).rewrite).toBe("/fr/404/404");
   });
 });
 

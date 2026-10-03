@@ -1,5 +1,5 @@
 import type { StaticImageData } from "next/image";
-import { WORK_IDS, type HomeCopy, type WorkId } from "@/entities/content";
+import { WORK_IDS, WORK_JOB, type HomeCopy, type WorkId } from "@/entities/content";
 import { PHOTO_SETS, type PhotoStem } from "@/shared/assets/photos";
 import hotWater from "../../../../assets/photos/job-hot-water.jpg";
 import pipeRepair from "../../../../assets/photos/job-pipe-repair.jpg";
@@ -44,7 +44,8 @@ export function WorkTiles({ h }: { h: Pick<HomeCopy, "work" | "workMore" | "work
         const popId = `work-${id}`;
         return (
           <li key={id} className="group flex flex-col gap-3">
-            <button type="button" popoverTarget={popId} className="flex cursor-pointer flex-col gap-3 text-left">
+            {/* `data-need`: the lead form takes this job as chosen (kitstart's `LeadCapture`). */}
+            <button type="button" popoverTarget={popId} data-need={WORK_JOB[id]} className="flex cursor-pointer flex-col gap-3 text-left">
               <span className="overflow-hidden rounded-[var(--corner-card)] bg-muted">
                 {/* Square: four 4:3 frames inside the measure read as thumbnails. */}
                 <Photo

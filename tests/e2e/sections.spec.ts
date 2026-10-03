@@ -99,7 +99,8 @@ for (const { name, url, selector } of SECTIONS) {
 
 // The quote form's job list, open. It is portalled out of the hero, so no
 // section crop holds it: the shot is the form card and the list together,
-// the first item under the keyboard's highlight.
+// the first item under the keyboard's highlight. The card is the form's
+// parent — kitstart's `LeadCapture` root, around its head and the form.
 test("section: hero job list", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "tablet");
   await page.goto("/fr#quote");
@@ -112,8 +113,8 @@ test("section: hero job list", async ({ page }, testInfo) => {
   const list = page.getByRole("listbox");
   await expect(list).toBeVisible();
   await settle(page, "form#quote");
-  const [a, b] = await Promise.all([form.boundingBox(), list.boundingBox()]);
-  if (!a || !b) throw new Error("the form or its list has no box");
+  const [a, b] = await Promise.all([form.locator("xpath=..").boundingBox(), list.boundingBox()]);
+  if (!a || !b) throw new Error("the form card or its list has no box");
   const x = Math.min(a.x, b.x);
   const y = Math.min(a.y, b.y);
   const clip = {

@@ -68,6 +68,22 @@ export const JOB_PRICE: Record<JobId, PriceId | null> = {
   other: null,
 };
 
+/**
+ * The job a price row is a price for: tapping the row tells the lead form
+ * (`data-need`), so the visitor is not asked again what they already chose.
+ */
+export const PRICE_JOB: Record<PriceId, JobId> = {
+  drain: "blocked_drain",
+  tap: "tap_toilet",
+  toilet: "tap_toilet",
+  water_heater_repair: "hot_water",
+  water_heater_replace: "hot_water",
+  pipe: "burst_pipe",
+  camera: "leak_detection",
+  sewer: "sewer_line",
+  repipe: "repipe",
+};
+
 export type ServiceId = "drains" | "pipes" | "heaters" | "taps" | "sewers" | "leaks" | "repipes" | "fit_out";
 
 /** A service quotes a row of the price list, or is quoted on site (`null`). */
@@ -84,6 +100,14 @@ export const SERVICE_LIST: readonly { id: ServiceId; from: PriceId | null }[] = 
 
 export const WORK_IDS = ["drains", "taps", "heaters", "pipes"] as const;
 export type WorkId = (typeof WORK_IDS)[number];
+
+/** The job each work tile shows, for the lead form as `PRICE_JOB` is. */
+export const WORK_JOB: Record<WorkId, JobId> = {
+  drains: "blocked_drain",
+  taps: "tap_toilet",
+  heaters: "hot_water",
+  pipes: "burst_pipe",
+};
 
 export const NAV_IDS = ["prices", "guarantee", "reviews", "about"] as const;
 export type NavId = (typeof NAV_IDS)[number];
