@@ -249,6 +249,8 @@ test("rejected_submission_lands_on_the_card_with_an_error", async ({ browser, pa
   expect(url.pathname).toBe("/fr");
   expect(url.hash).toBe("#quote");
   expect(url.searchParams.get("need")).toBe("hot_water");
+  // kitstart 0.11 names the card the refusal is for: the fragment never reaches the server.
+  expect(url.searchParams.get("lead_card")).toBe("quote");
 
   await page.goto(landed);
   const form = page.locator("form#quote-form");
@@ -257,7 +259,7 @@ test("rejected_submission_lands_on_the_card_with_an_error", async ({ browser, pa
   await expect(phone).toHaveAttribute("aria-invalid", "true");
   // The job the visitor chose survives the trip; the query does not stay in the address.
   await expect(form.locator("input[type=hidden][name=job]")).toHaveValue("hot_water");
-  await expect.poll(() => new URL(page.url()).searchParams.has("lead_error")).toBe(false);
+  await expect.poll(() => [...new URL(page.url()).searchParams.keys()].filter(k => k.startsWith("lead_"))).toEqual([]);
 });
 
 // With the script the refusal never leaves the page: the server's 422 is shown
