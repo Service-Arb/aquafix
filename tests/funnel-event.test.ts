@@ -43,13 +43,18 @@ const OPTS: BodyOptions = { sourceId: "aquafix-site", needLabel };
 // kitstart's reference for the lead, the one the page and a booking name it by.
 const LEAD_ID = "lead-42-9f86d081";
 
-/** The proto3 JSON names of each message's fields, read from the panel's contract. */
+/**
+ * The names each message's fields may go by on the wire, read from the panel's
+ * contract: the proto3 JSON (lowerCamelCase) name and the proto's own, which
+ * protojson accepts too and kitstart's `panelFlowProperties` writes.
+ */
 function protoFields(): Map<string, Set<string>> {
   const proto = readFileSync(new URL("./support/sa-events.proto", import.meta.url), "utf8");
   const messages = new Map<string, Set<string>>();
   for (const [, name, body] of proto.matchAll(/^message (\w+) \{([^}]*)\}/gm)) {
     const fields = new Set<string>();
-    for (const [, field] of (body ?? "").matchAll(/^\s*(?:optional |repeated )?[\w.]+ (\w+) = \d+;/gm)) {
+    for (const [, field] of (body ?? "").matchAll(/^\s*(?:optional |repeated )?(?:map<[\w., ]+>|[\w.]+) (\w+) = \d+;/gm)) {
+      fields.add(field ?? "");
       fields.add((field ?? "").replace(/_([a-z])/g, (_, c: string) => c.toUpperCase()));
     }
     messages.set(name ?? "", fields);
