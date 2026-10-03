@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { locationMetadata } from "@/features/seo";
+import { EXPERIMENTS } from "@/shared/config/experiments";
 import { decodeBucket } from "@/shared/lib/experiments";
 import { LocationHome } from "@/views/location";
 import { loadPoint, type LocationParams } from "@/views/location/server";
@@ -11,6 +12,11 @@ import { loadPoint, type LocationParams } from "@/views/location/server";
  * and the page stays cached like its control, one entry per combination. The
  * canonical, the links and the schema are the control's: the point's URL has
  * no bucket.
+ *
+ * Decoded against the code's config, not the panel's: the letters already are
+ * the proxy's decision under the applied one (a test switched off there is
+ * spelled with its control letter, and a typed `b` for it is a 404 before it
+ * gets here), and asking the panel from a render would make the page dynamic.
  */
 type Props = { params: Promise<LocationParams & { bucket: string }> };
 
@@ -24,7 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function LocationVariantPage({ params }: Props) {
-  const variants = decodeBucket((await params).bucket);
+  const variants = decodeBucket(EXPERIMENTS, (await params).bucket);
   // The proxy writes only real buckets; anything else was typed by hand.
   if (!variants) notFound();
   const { point, copy } = await loadPoint(params);

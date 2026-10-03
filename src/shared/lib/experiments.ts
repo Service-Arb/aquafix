@@ -1,5 +1,5 @@
-import { cookieName, resolveVariant, type ExperimentSpec } from "@evinvest/experiments";
-import { CONTROL, EXPERIMENT_IDS, EXPERIMENTS, FORCED_COOKIE, type Assignment, type ExperimentId } from "@/shared/config/experiments";
+import { cookieName, resolveVariant } from "@evinvest/experiments";
+import { CONTROL, EXPERIMENT_IDS, FORCED_COOKIE, type Assignment, type ExperimentId, type LiveExperiments } from "@/shared/config/experiments";
 
 /**
  * Crawlers, link unfurlers and ad reviewers. They always get the control and
@@ -28,27 +28,35 @@ export function cookieReader(header: string | null): (name: string) => string | 
   return name => jar.get(name);
 }
 
-/** The enabled experiments this browser carries a cookie for, with their variants. */
-export function assignedVariants(read: (name: string) => string | undefined): Partial<Record<ExperimentId, string>> {
+/**
+ * The enabled experiments this browser carries a cookie for, with their
+ * variants. `config` is the applied one on the server (`LiveExperiments`);
+ * the browser has only the code's, and relies on the proxy having dropped the
+ * cookie of a test the panel switched off.
+ */
+export function assignedVariants(config: LiveExperiments, read: (name: string) => string | undefined): Partial<Record<ExperimentId, string>> {
   const out: Partial<Record<ExperimentId, string>> = {};
   for (const id of EXPERIMENT_IDS) {
-    // Widened: the config's `as const` makes today's `true` a literal.
-    const spec: ExperimentSpec = EXPERIMENTS[id];
-    if (spec.enabled === false) continue;
+    if (config[id].enabled === false) continue;
     const raw = read(cookieName(id));
     if (raw === undefined) continue;
-    out[id] = resolveVariant(EXPERIMENTS, id, raw);
+    out[id] = resolveVariant(config, id, raw);
   }
   return out;
 }
 
-/** The page a request should see: its cookies' variants, control where it has none. */
-export function assignmentOf(read: (name: string) => string | undefined): Assignment {
+/** The page a request should see: its cookies' variants, control where it has none or the test is off. */
+export function assignmentOf(config: LiveExperiments, read: (name: string) => string | undefined): Assignment {
   return {
-    hero_call_first: resolveVariant(EXPERIMENTS, "hero_call_first", read(cookieName("hero_call_first"))),
-    quote_price_anchor: resolveVariant(EXPERIMENTS, "quote_price_anchor", read(cookieName("quote_price_anchor"))),
-    lead_layout: resolveVariant(EXPERIMENTS, "lead_layout", read(cookieName("lead_layout"))),
+    hero_call_first: resolveVariant(config, "hero_call_first", read(cookieName("hero_call_first"))),
+    quote_price_anchor: resolveVariant(config, "quote_price_anchor", read(cookieName("quote_price_anchor"))),
+    lead_layout: resolveVariant(config, "lead_layout", read(cookieName("lead_layout"))),
   };
+}
+
+/** The `ab_*` cookies this browser carries for experiments `config` has switched off. */
+export function disabledCookies(config: LiveExperiments, read: (name: string) => string | undefined): string[] {
+  return EXPERIMENT_IDS.filter(id => config[id].enabled === false && read(cookieName(id)) !== undefined).map(id => cookieName(id));
 }
 
 export function isForced(read: (name: string) => string | undefined): boolean {
@@ -73,10 +81,13 @@ export function encodeBucket(assignment: Assignment): string | null {
   return letters === control ? null : letters;
 }
 
-/** Inverse of {@link encodeBucket}; anything that is not a real, non-control assignment is `null`. */
-export function decodeBucket(letters: string): Assignment | null {
+/**
+ * Inverse of {@link encodeBucket} under `config`; anything that is not a real,
+ * non-control assignment is `null` — a `b` for a test `config` has off included.
+ */
+export function decodeBucket(config: LiveExperiments, letters: string): Assignment | null {
   if (letters.length !== EXPERIMENT_IDS.length) return null;
-  const assignment = assignmentOf(name => {
+  const assignment = assignmentOf(config, name => {
     const index = EXPERIMENT_IDS.findIndex(id => cookieName(id) === name);
     return index < 0 ? undefined : letters[index];
   });

@@ -153,13 +153,13 @@ describe("the proxy on a path with an extension", () => {
     ["https://aquafix.top/fr/x.php", APEX, {}, { rewrite: "/fr/404/404", header: "fr" }],
     ["https://royat.aquafix.top/fr/x.php", ROYAT, {}, { rewrite: "/fr/404/404", header: "fr/_royat" }],
     ["https://aquafix.top/fr/royat/x.php", APEX, {}, { rewrite: "/fr/404/404", header: "fr/royat" }],
-  ] as const)("sends %s to the 404, in its language, for its point", (url, host, headers, want) => {
-    expect(gone(proxy(request(url, { host, ...headers })))).toEqual(want);
+  ] as const)("sends %s to the 404, in its language, for its point", async (url, host, headers, want) => {
+    expect(gone(await proxy(request(url, { host, ...headers })))).toEqual(want);
   });
 
-  it("lets the metadata routes through", () => {
+  it("lets the metadata routes through", async () => {
     for (const path of ["/sitemap.xml", "/robots.txt"]) {
-      const res = proxy(request(`https://royat.aquafix.top${path}`, { host: ROYAT }));
+      const res = await proxy(request(`https://royat.aquafix.top${path}`, { host: ROYAT }));
       expect(res.headers.get("x-middleware-rewrite"), path).toBeNull();
       expect(res.headers.get("x-middleware-next"), path).toBe("1");
     }
@@ -169,9 +169,9 @@ describe("the proxy on a path with an extension", () => {
 // The routes outside `[locale]` pass as they came, so a POST reaches the
 // route with its body unread.
 describe("the proxy on a path without an extension", () => {
-  it("passes /og and /quote untouched", () => {
+  it("passes /og and /quote untouched", async () => {
     for (const path of ["/og", "/quote"]) {
-      const res = proxy(new NextRequest(new URL(`https://royat.aquafix.top${path}`), { headers: { host: ROYAT } }));
+      const res = await proxy(new NextRequest(new URL(`https://royat.aquafix.top${path}`), { headers: { host: ROYAT } }));
       expect(res.headers.get("x-middleware-rewrite"), path).toBeNull();
       expect(res.headers.get("x-middleware-next"), path).toBe("1");
     }
@@ -184,7 +184,7 @@ describe("the proxy on a path without an extension", () => {
       headers: { host: ROYAT, "content-type": "application/x-www-form-urlencoded" },
       body,
     });
-    const res = proxy(request);
+    const res = await proxy(request);
     expect(res.headers.get("x-middleware-next")).toBe("1");
     expect(request.bodyUsed).toBe(false);
     expect(await request.text()).toBe(body);
