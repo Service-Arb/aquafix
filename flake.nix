@@ -177,11 +177,36 @@
           '';
         };
 
+        # mkLanding's dev app with the port overridable: the panel's local stack
+        # starts this site next to its own services and picks the port. `PORT`
+        # because `next dev` reads it too, so `npm run dev` and this agree.
+        # The checkout is the caller's working tree (`git rev-parse`), so a
+        # script elsewhere must `cd` into it first — refused loudly otherwise,
+        # rather than running some other repo's `npm run dev`.
+        runDev = pkgs.writeShellApplication {
+          name = "${pname}-dev";
+          runtimeInputs = with pkgs; [ nodejs_22 git coreutils ];
+          text = ''
+            cd "$(git rev-parse --show-toplevel)"
+            if ! grep -q '"name": "${pname}"' package.json 2>/dev/null; then
+              echo "${pname}-dev: run from inside the ${pname} checkout (cwd: $PWD)" >&2
+              exit 1
+            fi
+            stamp="node_modules/.${pname}-lock"
+            want="$(sha256sum package-lock.json | cut -d' ' -f1)"
+            if [ "$(cat "$stamp" 2>/dev/null)" != "$want" ]; then
+              npm ci
+              echo "$want" > "$stamp"
+            fi
+            exec npm run dev -- --port "''${PORT:-${sitePort}}"
+          '';
+        };
+
         runHelp = pkgs.writeShellApplication {
           name = "help";
           text = ''
             cat <<'EOF'
-              nix run .#dev              next dev on ${sitePort} (royat.localhost:${sitePort}/fr for a point)
+              nix run .#dev              next dev on ${sitePort}, or $PORT (royat.localhost:${sitePort}/fr for a point)
               nix run .#test             tsc, eslint, vitest, build, size, playwright   [pre-push hook]
               nix run .#accept-test      accept screenshot baselines (Linux only); `-- <name>` for a subset
               nix run .#size             build, then the first-load JS budget          [the one hard gate]
@@ -279,8 +304,9 @@
         });
       in
       {
-        apps = landing.apps // {
-          default = landing.apps.dev;
+        apps = landing.apps // rec {
+          dev = { type = "app"; program = "${runDev}/bin/${pname}-dev"; };
+          default = dev;
           help = { type = "app"; program = "${runHelp}/bin/help"; };
           figma-parity = { type = "app"; program = "${runFigmaParity}/bin/figma-parity"; };
           publish = { type = "app"; program = "${runPublish}/bin/publish"; };
