@@ -26,7 +26,7 @@ export interface LeadCreatedEvent {
   subject: { brandId: string; locationId?: string; leadId: string };
   properties: {
     channel: ReturnType<typeof panelChannel>;
-    /** Only under kitstart's `panelSuspect`, which stays off until the panel's contract has it. */
+    /** Only under kitstart's `panelSuspect`, and only for a lead it marks. */
     suspect?: LeadSuspect;
   };
   pii?: Record<string, string>;

@@ -9,12 +9,12 @@ export { notifier, NOTIFIER_OPTIONS } from "./api/notify";
 export { jobLabelFr };
 
 /**
- * kitstart's `panelSuspect`: off until the panel's `lead.created` has a
- * `suspect` property. The panel refuses an unknown one and the outbox would
- * park the lead; off, a rate-limited lead stays in the leads file and no body
- * carries the property.
+ * kitstart's `panelSuspect`, on since the panel's `lead.created` has a
+ * `suspect` property (panel v0.3.0): a rate-limited lead is queued too, marked
+ * `rate_limited`, and a fast one `too_fast`, for a person to judge in the
+ * panel. A honeypot lead still goes nowhere, and a suspect one is never mailed.
  */
-export const PANEL_SUSPECT = false;
+export const PANEL_SUSPECT = true;
 
 /** The job as the mail names it; a job the form no longer offers stays as posted. */
 export const needLabel = (subject: string): string => jobLabelFr(subject) ?? subject;

@@ -321,13 +321,13 @@ describe("the lead webhook, wired as the site wires it", () => {
     return { on: hook.panelSuspect, said };
   }
 
-  // The panel refuses an unknown property, and the outbox would park the lead.
-  it("keeps the panel's suspect marker off, so no body carries it", async () => {
-    expect(PANEL_SUSPECT).toBe(false);
-    expect(await suspects()).toEqual({ on: false, said: { 1: null, 2: null, 3: null, 4: null } });
+  // Panel v0.3.0 takes the property; before it, it refused the event and the outbox parked the lead.
+  it("sends why a lead is suspect, as the site wires it — rate_limited or too_fast, never honeypot", async () => {
+    expect(PANEL_SUSPECT).toBe(true);
+    expect(await suspects()).toEqual({ on: true, said: { 1: null, 2: "too_fast", 3: "rate_limited", 4: null } });
   });
 
-  it("sends why a lead is suspect once turned on — rate_limited or too_fast, never honeypot", async () => {
-    expect(await suspects(true)).toEqual({ on: true, said: { 1: null, 2: "too_fast", 3: "rate_limited", 4: null } });
+  it("carries no suspect marker when turned off", async () => {
+    expect(await suspects(false)).toEqual({ on: false, said: { 1: null, 2: null, 3: null, 4: null } });
   });
 });
