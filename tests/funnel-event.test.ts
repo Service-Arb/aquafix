@@ -6,7 +6,8 @@ import type { Lead } from "@evinvest/kitstart";
 import { leadWebhook, parseServerEnv, type LeadWebhookContext } from "@evinvest/kitstart/server";
 import { afterEach, describe, expect, it } from "vitest";
 import { site } from "@/shared/config/site";
-import { isOpaqueId, leadCreatedBody, panelLeadId, SA_INGEST_SIGNING, uuidV7 } from "@/shared/lib/funnel-event";
+import { needLabel, webhookOptions } from "@/features/quote-form/server";
+import { isOpaqueId, leadCreatedBody, panelLeadId, uuidV7, type BodyOptions } from "@/shared/lib/funnel-event";
 
 const lead: Lead = {
   subject: "blocked_drain",
@@ -25,6 +26,8 @@ const ctx: LeadWebhookContext = {
   at: new Date("2026-10-01T09:30:00.123Z"),
   idempotencyKey: "0b5c1f0e-7d1a-4e8b-9c2d-3f4a5b6c7d8e",
 };
+
+const OPTS: BodyOptions = { sourceId: "aquafix-site", needLabel };
 
 // The row id for a person, a tag from the key for uniqueness past a recreated leads file.
 const LEAD_ID = panelLeadId(ctx);
@@ -51,7 +54,7 @@ const keysWithin = (value: object, message: string): void => {
 
 describe("lead.created for the panel", () => {
   it("builds one sa.funnel.v1 event from a lead", () => {
-    const body = leadCreatedBody(lead, ctx, "aquafix-site");
+    const body = leadCreatedBody(lead, ctx, OPTS);
     expect(body).toEqual({
       events: [
         {
@@ -63,14 +66,14 @@ describe("lead.created for the panel", () => {
           source: { kind: "site", id: "aquafix-site" },
           subject: { brandId: "aquafix", locationId: "royat", leadId: LEAD_ID },
           properties: { channel: "form" },
-          pii: { phone: "06 12 34 56 78", need: "blocked_drain", locality: "63130" },
+          pii: { phone: "06 12 34 56 78", need: "Canalisation bouchée", locality: "63130" },
         },
       ],
     });
   });
 
   it("names only fields the proto declares, in their protojson spelling", () => {
-    const body = leadCreatedBody({ ...lead, extras: { note: "x" } }, ctx, "aquafix-site");
+    const body = leadCreatedBody({ ...lead, extras: { note: "x" } }, ctx, OPTS);
     keysWithin(body, "IngestRequest");
     const [event] = body.events;
     keysWithin(event, "Event");
@@ -81,7 +84,7 @@ describe("lead.created for the panel", () => {
   });
 
   it("meets the panel's checks on the envelope", () => {
-    const [event] = leadCreatedBody(lead, ctx, "aquafix-site").events;
+    const [event] = leadCreatedBody(lead, ctx, OPTS).events;
     expect(event.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
     expect(event.occurredAt).toMatch(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?Z$/);
     expect(event.subject.brandId).toMatch(/^[a-z0-9][a-z0-9_-]{0,63}$/);
@@ -97,21 +100,27 @@ describe("lead.created for the panel", () => {
   });
 
   it("keeps what the customer typed out of properties, and NUL out of everything", () => {
-    const [event] = leadCreatedBody({ ...lead, mobile: "06\u000012", subject: "other", locality: "" }, ctx, "aquafix-site").events;
+    const [event] = leadCreatedBody({ ...lead, mobile: "06\u000012", subject: "other", locality: "" }, ctx, OPTS).events;
     expect(event.properties).toEqual({ channel: "form" });
-    expect(event.pii).toEqual({ phone: "0612", need: "other" });
+    expect(event.pii).toEqual({ phone: "0612", need: "Autre chose" });
     expect(JSON.stringify(event)).not.toContain("\\u0000");
   });
 
   it("sends a callback as `form` until the panel takes the channel", () => {
-    const [event] = leadCreatedBody({ ...lead, channel: "callback", consent: { text: "J’accepte…", at: "2026-10-01T09:30:00Z" } }, ctx, "aquafix-site").events;
+    const [event] = leadCreatedBody({ ...lead, channel: "callback", consent: { text: "J’accepte…", at: "2026-10-01T09:30:00Z" } }, ctx, OPTS).events;
     expect(event.properties).toEqual({ channel: "form" });
     // The consent is the lead's record, not the panel's.
     expect(JSON.stringify(event)).not.toContain("J’accepte");
   });
 
+  it("names the job in French for the panel, and keeps a job no longer offered as posted", () => {
+    const need = (subject: string) => leadCreatedBody({ ...lead, subject }, { ...ctx, locale: "en" }, OPTS).events[0].pii?.need;
+    expect(need("hot_water")).toBe("Eau chaude");
+    expect(need("gas_leak")).toBe("gas_leak");
+  });
+
   it("leaves the location out for a lead from no point", () => {
-    const [event] = leadCreatedBody({ ...lead, placeSlug: null }, ctx, "aquafix-site").events;
+    const [event] = leadCreatedBody({ ...lead, placeSlug: null }, ctx, OPTS).events;
     expect(event.subject).toEqual({ brandId: "aquafix", leadId: LEAD_ID });
   });
 
@@ -161,8 +170,7 @@ describe("the lead webhook, wired as the site wires it", () => {
     if (!target) throw new Error("the webhook should be on");
     const sent: Request[] = [];
     const hook = leadWebhook(site, env, {
-      signing: SA_INGEST_SIGNING,
-      buildBody: (l, c) => leadCreatedBody(l, c, target.keyId),
+      ...webhookOptions(target.keyId),
       fetch: async (input, init) => {
         sent.push(new Request(input, init));
         return new Response(JSON.stringify({ results: [{ index: 0, status: "accepted" }] }), { status: 207 });

@@ -11,7 +11,8 @@
  */
 export async function register(): Promise<void> {
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
-  const { serverEnv, webhook } = await import("@/shared/config/env");
+  const { serverEnv } = await import("@/shared/config/env");
+  const { webhook } = await import("@/features/quote-form/server");
   const { notifier } = await import("@/entities/lead/server");
   const { checkLeadStore } = await import("@evinvest/kitstart/server");
   notifier();
