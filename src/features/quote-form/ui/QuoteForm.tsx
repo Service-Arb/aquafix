@@ -34,6 +34,10 @@ const PARTS: PartClassNames<LeadCapturePart> = {
   // The privacy line is the trust slot's last row, with its tick.
   privacy: "hidden",
   channel: CTA,
+  // The callback's form is the card's own, cut short: the head's lede and the
+  // card's submit, not the kit's defaults.
+  callbackLede: "text-[15px] leading-[normal]",
+  callbackSubmit: CTA,
 };
 
 export type QuoteFormWidgetCopy = CopyOf<Pick<Text, "quoteForm" | "jobs">>;
@@ -47,7 +51,9 @@ function leadText(copy: QuoteFormWidgetCopy, priceAnchor: boolean): LeadCaptureT
     lede: q.lede,
     needLabel: q.jobLabel,
     localityLabel: q.zipLabel,
+    localityPlaceholder: q.zipPlaceholder,
     phoneLabel: q.mobileLabel,
+    phonePlaceholder: q.mobilePlaceholder,
     submit: priceAnchor ? q.anchored.submit : q.submit,
     privacy: q.privacy,
     honeypotLabel: q.honeypotLabel,
