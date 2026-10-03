@@ -34,6 +34,37 @@ from the container's environment. Pushing a `v*` tag builds the image and publis
 `ghcr.io/service-arb/aquafix`, which deploys it: `nix run .#publish` makes the
 tag.
 
+### Local stack
+
+The Service-Arb panel's `nix run .#local-stack` starts this site beside the
+panel. `nix run .#dev` and `npm run dev` read the same environment the image
+does. From inside this checkout (the dev app refuses another working tree),
+with the panel on 59120:
+
+```sh
+PORT=59081 \
+LOCATIONS_API_URL=http://127.0.0.1:59120/api/internal/brands/aquafix \
+LEAD_WEBHOOK_URL=http://127.0.0.1:59120/api/ingest/v1/events \
+LEAD_WEBHOOK_KEY_ID=<the panel source's key id> LEAD_WEBHOOK_SECRET=<its secret> \
+LEADS_DB_PATH=/tmp/aquafix/leads.db \
+nix run .#dev
+```
+
+- `PORT` — unset, `nix run .#dev` and the dev shell use 59081; plain
+  `npm run dev` outside the shell would take Next's 3000.
+- `LOCATIONS_API_URL` — the base the place source fetches
+  `<base>/locations/<slug>?locale=<fr|en>` from; the live phone, WhatsApp,
+  hours, address and rating override the baked point in the hero, the call
+  bar, the footer, the JSON-LD and the quote card. Unset, the baked points
+  are served. A fetched point is cached for 600 s (`PLACE_REVALIDATE_SECONDS`).
+- `LEAD_WEBHOOK_*` — all three or none; `http:` only to `localhost`,
+  `127.0.0.1` or a `*.svc` host.
+- `LEADS_DB_PATH` — the leads file and the webhook outbox; unset, it is
+  `~/.local/share/aquafix/leads.db`.
+- `POSTHOG_KEY` — unset, analytics sends nothing.
+
+A point is then `http://royat.localhost:$PORT/fr`.
+
 ### Visual baselines
 
 Screenshot baselines are Linux's, because CI is: a mac rasterises glyphs
