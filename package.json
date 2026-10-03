@@ -17,14 +17,13 @@
     "lint": "eslint .",
     "test": "vitest run",
     "size": "kitstart-size",
-    "photos": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/photos.ts",
-    "ab:report": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/ab-report.ts"
+    "photos": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/photos.ts"
   },
   "dependencies": {
     "@evinvest/analytics": "^0.3.0",
-    "@evinvest/experiments": "^0.2.0",
+    "@evinvest/experiments": "^0.3.0",
     "@evinvest/i18n": "^0.9.0",
-    "@evinvest/kitstart": "^0.11.0",
+    "@evinvest/kitstart": "^0.12.0",
     "@evinvest/marketing": "^0.3.0",
     "@evinvest/uikit": "^0.24.0",
     "motion": "^13.4.1",

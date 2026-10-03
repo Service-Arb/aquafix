@@ -1,1 +1,1 @@
-export { experimentProxy } from "./model/proxy";
+export { createExperimentProxy, experimentProxy } from "./model/proxy";

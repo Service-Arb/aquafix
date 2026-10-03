@@ -7,7 +7,7 @@ import type { AnalyticsTarget } from "@evinvest/kitstart";
  * included, so the tests speak through a sink of their own — same key, same
  * host, same cookieless beacon. The beacon's `distinct_id` is new on every
  * page load, so an exposure and a lead are never joined per person: the
- * report compares per-variant totals (docs/EXPERIMENTS.md).
+ * funnel in PostHog compares per-variant totals (docs/EXPERIMENTS.md).
  */
 export const EXPERIMENT_EVENTS = {
   /** A location page seen under a variant; once per page view per test. */

@@ -12,7 +12,7 @@ import { CARD, site } from "@/shared/config/site";
  */
 export const dynamic = "force-dynamic";
 
-// `experiment_lead` for the A/B report, on the leads kitstart accepts.
+// `experiment_lead` for the A/B funnel in PostHog, on the leads kitstart accepts.
 const leads = experimentLeads({
   target: () => {
     const env = serverEnv();

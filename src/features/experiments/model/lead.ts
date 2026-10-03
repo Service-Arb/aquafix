@@ -3,6 +3,7 @@ import { after } from "next/server";
 import { LOCATION_FIELD, type AnalyticsTarget } from "@evinvest/kitstart";
 import { site } from "@/shared/config/site";
 import { assignedVariants, cookieReader, isForced } from "@/shared/lib/experiments";
+import { liveExperiments, type LiveConfig } from "../api/live";
 import { EXPERIMENT_EVENTS, experimentSink } from "./events";
 
 type Deferred = () => Promise<void> | void;
@@ -11,6 +12,8 @@ export interface ExperimentLeadDeps {
   target: () => AnalyticsTarget;
   /** Work after the response; `after` from `next/server` by default. */
   later?: (task: Deferred) => void;
+  /** The applied config, the proxy's; the panel's by default. */
+  live?: LiveConfig;
 }
 
 /**
@@ -21,10 +24,12 @@ export interface ExperimentLeadDeps {
  * not a shared variable: two posts can interleave) and passes the task on.
  * The variants come from the `ab_*` cookies the form's POST carries; the
  * point from the form, read from a copy of the body only once the lead was
- * accepted, when kitstart has already held it to its size limit.
+ * accepted, when kitstart has already held it to its size limit. A cookie of
+ * a test the panel switched off counts for nothing, as in the proxy.
  */
 export function experimentLeads(deps: ExperimentLeadDeps) {
   const later = deps.later ?? after;
+  const live = deps.live ?? liveExperiments;
   const accepted = new AsyncLocalStorage<{ accepted: boolean }>();
 
   const defer = (task: Deferred): void => {
@@ -37,7 +42,7 @@ export function experimentLeads(deps: ExperimentLeadDeps) {
     (post: (request: Request) => Promise<Response>) =>
     async (request: Request): Promise<Response> => {
       const read = cookieReader(request.headers.get("cookie"));
-      const variants = Object.entries(assignedVariants(read));
+      const variants = Object.entries(assignedVariants(await live(), read));
       const copy = variants.length > 0 ? request.clone() : null;
       const mark = { accepted: false };
       const response = await accepted.run(mark, () => post(request));

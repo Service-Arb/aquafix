@@ -16,7 +16,7 @@ import {
 import { leadWebhook, parseServerEnv, type LeadWebhookContext, type ServerEnv } from "@evinvest/kitstart/server";
 import { afterEach, describe, expect, it } from "vitest";
 import { site } from "@/shared/config/site";
-import { needLabel, PANEL_FLOW, PANEL_SUSPECT, webhookOptions } from "@/features/quote-form/server";
+import { needLabel, PANEL_ANALYTICS_ID, PANEL_FLOW, PANEL_SUSPECT, webhookOptions } from "@/features/quote-form/server";
 import { isOpaqueId, leadCreatedBody, panelLeadId, uuidV7, type BodyOptions } from "@/shared/lib/funnel-event";
 
 const lead: Lead = {
@@ -38,7 +38,7 @@ const ctx: LeadWebhookContext = {
   leadRef: "lead-42-9f86d081",
 };
 
-const OPTS: BodyOptions = { sourceId: "aquafix-site", needLabel };
+const OPTS: BodyOptions = { sourceId: "aquafix-site", needLabel, analyticsId: true };
 
 // kitstart's reference for the lead, the one the page and a booking name it by.
 const LEAD_ID = "lead-42-9f86d081";
@@ -88,8 +88,28 @@ describe("lead.created for the panel", () => {
     });
   });
 
+  // Panel v0.3.0 refuses an unknown property, and the outbox would park the lead: off until v0.4.0.
+  it("sends no analytics id as the site wires it today, so the body stays within v0.3.0's LeadCreatedV1", () => {
+    expect(PANEL_ANALYTICS_ID).toBe(false);
+    const withId = { ...ctx, analyticsId: "0192f1c4-7d1e-7b3a-9c2d-1a2b3c4d5e6f" };
+    const body = leadCreatedBody(lead, withId, { ...OPTS, analyticsId: false });
+    // The body the site's webhook builds is exactly the switched-off one.
+    expect(webhookOptions("aquafix-site").buildBody?.(lead, withId)).toEqual(body);
+    const v030 = new Set([...(protoFields().get("LeadCreatedV1") ?? [])].filter(f => f !== "analytics_id" && f !== "analyticsId"));
+    for (const key of Object.keys(body.events[0].properties)) expect(v030, key).toContain(key);
+    expect(body.events[0].properties).not.toHaveProperty("analytics_id");
+  });
+
+  it("carries the visit's analytics id when switched on and the form posted one, and none otherwise", () => {
+    expect(leadCreatedBody(lead, { ...ctx, analyticsId: "0192f1c4-7d1e-7b3a-9c2d-1a2b3c4d5e6f" }, OPTS).events[0].properties).toEqual({
+      channel: "form",
+      analytics_id: "0192f1c4-7d1e-7b3a-9c2d-1a2b3c4d5e6f",
+    });
+    expect(leadCreatedBody(lead, ctx, OPTS).events[0].properties).not.toHaveProperty("analytics_id");
+  });
+
   it("names only fields the proto declares, in their protojson spelling", () => {
-    const body = leadCreatedBody({ ...lead, extras: { note: "x" } }, ctx, OPTS);
+    const body = leadCreatedBody({ ...lead, extras: { note: "x" } }, { ...ctx, analyticsId: "a1" }, OPTS);
     keysWithin(body, "IngestRequest");
     const [event] = body.events;
     keysWithin(event, "Event");
@@ -329,7 +349,7 @@ describe("the lead webhook, wired as the site wires it", () => {
     });
     const said: Record<string, string | null> = {};
     const hook = leadWebhook(site, env, {
-      ...webhookOptions("aquafix-site", panelSuspect === undefined ? undefined : { panelSuspect, panelFlow: PANEL_FLOW }),
+      ...webhookOptions("aquafix-site", panelSuspect === undefined ? undefined : { panelSuspect, panelFlow: PANEL_FLOW, panelAnalyticsId: PANEL_ANALYTICS_ID }),
       fetch: async (_input, init) => {
         const raw = String(init?.body);
         const row = /"leadId":"lead-(\d+)-/.exec(raw)?.[1] ?? "?";

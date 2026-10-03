@@ -24,10 +24,20 @@ export const PANEL_SUSPECT = true;
  */
 export const PANEL_FLOW = true;
 
-/** kitstart's switches over what `lead.created` carries. */
+/**
+ * `lead.created`'s `analytics_id` (the visit's PostHog id). Off until the
+ * panel in production takes the property (v0.4.0): v0.3.0 refuses an unknown
+ * one, and the outbox would park the real lead it rode on. The declaration of
+ * the experiments needs no switch: the panel keeps an unknown event type as
+ * unregistered and reads it once it knows it.
+ */
+export const PANEL_ANALYTICS_ID = false;
+
+/** The switches over what `lead.created` carries: kitstart's two, and the site's own. */
 export interface PanelSwitches {
   panelSuspect: boolean;
   panelFlow: boolean;
+  panelAnalyticsId: boolean;
 }
 
 /** The job as the mail names it; a job the form no longer offers stays as posted. */
@@ -36,13 +46,13 @@ export const needLabel = (subject: string): string => jobLabelFr(subject) ?? sub
 /** How the site builds and signs its lead webhook; the switches are a parameter for the tests that flip them. */
 export function webhookOptions(
   keyId: string,
-  { panelSuspect, panelFlow }: PanelSwitches = { panelSuspect: PANEL_SUSPECT, panelFlow: PANEL_FLOW },
+  { panelSuspect, panelFlow, panelAnalyticsId }: PanelSwitches = { panelSuspect: PANEL_SUSPECT, panelFlow: PANEL_FLOW, panelAnalyticsId: PANEL_ANALYTICS_ID },
 ): LeadWebhookOptions {
   return {
     signing: SA_INGEST_SIGNING,
     panelSuspect,
     panelFlow,
-    buildBody: (lead, ctx) => leadCreatedBody(lead, ctx, { sourceId: keyId, needLabel }),
+    buildBody: (lead, ctx) => leadCreatedBody(lead, ctx, { sourceId: keyId, needLabel, analyticsId: panelAnalyticsId }),
   };
 }
 

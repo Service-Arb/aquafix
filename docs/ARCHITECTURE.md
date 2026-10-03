@@ -193,7 +193,13 @@ container environment at runtime, and so does the lead webhook:
 `LEAD_WEBHOOK_SECRET` are required at boot. Each lead then goes to the
 Service-Arb panel as one `lead.created` event (`sa.funnel.v1`, built in
 `src/shared/lib/funnel-event.ts`), queued in the leads file before the visitor
-is thanked and retried from there. The URL stays out of `deploy/config.nix`
+is thanked and retried from there. Under `PANEL_ANALYTICS_ID`
+(`features/quote-form/server.ts`, off until the panel in production is v0.4.0,
+which takes the property) it carries the visit's PostHog id (`analytics_id`)
+when the form posted one, so the lead's later life, which the panel sends to
+PostHog, joins the visit there. Through the same outbox,
+at every start, `instrumentation.ts` declares the build's experiments to the
+panel (`experiments.declared`). The URL stays out of `deploy/config.nix`
 on purpose: without it the webhook is off, so an image deployed before its
 Secret has the key boots as it did. PostHog's project token is not a secret —
 every page hands it to the browser — so `POSTHOG_KEY` and `POSTHOG_HOST` are in
@@ -230,7 +236,11 @@ point's home (`docs/EXPERIMENTS.md`) keep both rules: the variant rides in the
 path the proxy rewrites to (`/fr/_royat/ab/ba`), so pages stay cached and read
 no cookie, and their events (`experiment_*`) go through a sink with their own
 allow-list, which adds `experiment`, `variant` and `forced` to the brand and
-the point. Crawlers always get the control.
+the point. Crawlers always get the control. The variants and their rendering
+are code; the weights, the kill switch and the holdout come from the panel
+(`<LOCATIONS_API_URL>/experiments`) without a deploy, laid over the code's
+config once per request in the proxy, and every reader of a variant goes by
+that applied config. The results are read in PostHog, never computed here.
 
 The history of the Rust version, and the measurement that threw
 `ev_lib::analytics`' `reqwest` transport out of the wasm (236 KB of 1.03 MB),

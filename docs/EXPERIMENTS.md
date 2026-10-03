@@ -1,13 +1,16 @@
 # Experiments
 
-A/B tests on a point's home page, measured in PostHog. The goal is more
+A/B tests on a point's home page, measured in PostHog and steered from the
+Service-Arb panel (its "Experiments" screen). The goal is more
 customers reaching the business (a call, a WhatsApp message, a lead) per
 visit. Every test is one change against the page as it is, and it ends: the
 winner goes into the page, the loser is deleted.
 
 ## Running now
 
-All three split 50/50, independently: a visitor is in one arm of each.
+All three split 50/50 in code, independently: a visitor is in one arm of
+each. The panel may have changed a split or switched a test off since — its
+"Experiments" screen is what runs now.
 
 ### `hero_call_first`
 
@@ -59,12 +62,13 @@ All three split 50/50, independently: a visitor is in one arm of each.
   not always), so it is tested rather than chosen.
 - **Metric.** Lead rate (`experiment_lead` ÷ `experiment_exposed`) is primary;
   the contact rate is the guardrail — a layout that wins leads by losing calls
-  is not shipped. `scripts/ab-report.ts` decides it that way (`PRIMARY`).
+  is not shipped.
 - **Pooled with vifnet.** vifnet runs the same key with the same arms (`a`
-  single, `b` qualify-first, 50/50), so one test reads across both brands, the
-  site as its stratum: `npm run ab:report -- --brand aquafix,vifnet` sums the
-  arms (each site splits its own visitors evenly, so the sums stay
-  comparable). kitstart's own form events — `lead_form_view`,
+  single, `b` qualify-first, 50/50), so one test reads across both brands: the
+  PostHog funnel filtered on `experiment` alone, without `brand_id`, sums the
+  arms (each site splits its own visitors by the same weights, so the sums
+  stay comparable — keep the two brands' weights equal in the panel). The key
+  is shared on purpose; never rename it. kitstart's own form events — `lead_form_view`,
   `lead_form_start`, `lead_form_field_error`, `lead_form_step`, and the
   server's `lead_form_submit` — carry `experiment: "lead_layout"` and the
   `variant` on every brand, for the funnel inside the form.
@@ -104,26 +108,32 @@ on a lucky streak declares winners that are not.
 
 ## Reading the numbers
 
-```sh
-POSTHOG_PERSONAL_API_KEY=phx_… npm run ab:report
-npm run ab:report -- --brand aquafix --days 90
-```
-
-A personal API key with `query:read` on the EV Invest project (PostHog →
-Settings → Personal API keys). `POSTHOG_PROJECT_ID` defaults to `614067`,
-`POSTHOG_API_HOST` to `https://us.posthog.com`. The script runs one HogQL
-query, filtered to the brand and excluding forced visits, and prints per
-experiment × variant: exposures, leads, calls, WhatsApp, form opens, contact
-rate, lead rate; then P(b > a) by Beta-Binomial Monte Carlo (uniform prior),
-the expected loss of shipping `b` and of keeping `a` (percentage points), the
-days since the first exposure, and the verdict of the stop rule above.
+In PostHog, nowhere else: the panel does not count experiments. Its
+"Experiments" screen links each test to a PostHog Insight — a funnel
+`experiment_exposed` → `experiment_lead`, both filtered to the test's
+`experiment` and the brand's `brand_id`, `forced` not `true`, broken down by
+`variant`, from the day its weights last changed (or its first declaration).
+For the contact rate add `experiment_contact` (with `channel` phone or
+whatsapp) to the funnel or read it as a trend beside it. The stop rule above
+is applied by a person to what PostHog shows.
 
 ## How it works
 
 - **Config.** `src/shared/config/experiments.ts` — variants (one letter, `a`
-  first: the control), weights, `enabled`.
+  first: the control), and the default weights and `enabled`, with each
+  test's hypothesis in one line (`EXPERIMENT_SUMMARIES`).
+- **The panel.** At every start `instrumentation.ts` declares the experiments
+  to the panel (`experiments.declared`, through the lead webhook's outbox:
+  key, variants, weights, `enabled`, summary); a test the build no longer has
+  shows there as retired. The panel's operator overrides `weights`, `enabled`
+  and `holdout` per test; the site reads them from
+  `<LOCATIONS_API_URL>/experiments` (`features/experiments/api/live.ts`,
+  cached 30 s in memory, the last good answer kept while the panel is down,
+  the code's config when there was none) and lays them over the code's config
+  with `applyOverrides` — never a variant the code does not render. The
+  proxy, the bucket and `experiment_lead` all go by that applied config.
 - **Assignment.** `proxy.ts` → `features/experiments`: kitstart's routing, then
-  `@evinvest/experiments`' `abProxy` draws a variant per experiment on a
+  `@evinvest/experiments`' `abProxy`, over the applied config, draws a variant per experiment on a
   visitor's first page of a point and keeps it in a cookie `ab_<experiment>`
   for 30 days. The apex brand page, `/quote` and the other non-page routes are
   not assigned.
@@ -164,14 +174,21 @@ https://royat.aquafix.top/fr?ab_lead_layout=b
 ```
 
 The forced variant is stored in the cookie, and a session cookie `ab_forced=1`
-marks every later event from that browser `forced: true`; the report leaves
-them out. Close the browser (or delete the cookies) to become an ordinary
+marks every later event from that browser `forced: true`; the PostHog funnel
+leaves them out. Close the browser (or delete the cookies) to become an ordinary
 visitor again. A disabled experiment cannot be forced.
 
 ## Ending an experiment
 
-- **Stop now, keep the control:** set `enabled: false` in the config and
-  deploy. Everyone gets `a`, stored cookies are ignored.
+- **Stop now, keep the control:** switch the test off in the panel — no
+  deploy. Within the source's 30 s everyone gets `a`: the proxy writes the
+  control letter in the bucket whatever the cookie says, drops the test's
+  `ab_*` cookie (so the browser's beacon stops counting it), and
+  `experiment_lead` leaves it out. Switched back on, a visitor is drawn anew.
+  `enabled: false` in the config does the same for good, with a deploy.
+- **Re-weight:** in the panel. New visitors are drawn by the new weights;
+  a visitor who already carries a cookie keeps their arm. Read the funnel from
+  the change on (the panel's link does).
 - **Ship the winner:** make the `b` rendering the page's only one (delete the
   `a` branch and the prop), delete the experiment from the config and its copy
   entries that are no longer read, and deploy. Old `ab_<experiment>` cookies
