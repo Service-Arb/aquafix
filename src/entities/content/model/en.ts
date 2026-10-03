@@ -56,6 +56,7 @@ export const EN = {
   promise: "FIXED PRICE. FIXED TODAY.",
   emergencyHours: "Emergencies — 24 hours, 7 days",
   bookingHours: "Bookings — 7am to 9pm daily",
+  bookingHoursOf: hours => `Bookings — ${hours}`,
   headerPhoneLabel: "24/7 · ANSWERED BY A HUMAN",
   heroPhotoAlt: "The Aquafix crew in front of the branded vans at the depot.",
   cta: "Get my flat price  →",

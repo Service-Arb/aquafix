@@ -19,7 +19,7 @@ test.describe("without JavaScript", () => {
     // `#quote` is the link every CTA points at, so the form is on screen on
     // arrival and the click needs no scroll of its own.
     await page.goto("/fr#quote");
-    const form = page.locator("form#quote");
+    const form = page.locator("form#quote-form");
     await form.locator("select[name=job]").selectOption({ index: 1 });
     await form.locator("input[name=zip]").fill(zip);
     await form.locator("input[name=mobile]").fill(mobile);
@@ -53,7 +53,7 @@ test("with JavaScript the job is the kit's listbox and the pick is stored", asyn
   const zip = `63130-js-${testInfo.project.name}`;
 
   await page.goto("/fr#quote");
-  const form = page.locator("form#quote");
+  const form = page.locator("form#quote-form");
   const trigger = form.locator("button[role=combobox]");
   await expect(trigger).toBeVisible();
   await expect(form.locator("select")).toHaveCount(0);
@@ -136,7 +136,7 @@ test("a tapped work tile is the job the form sends", async ({ page }, testInfo) 
   const mobile = `06${String((Date.now() + 7) % 1e8).padStart(8, "0")}`;
   await ownClient(page, testInfo, 1);
   await page.goto("/fr");
-  const form = page.locator("form#quote");
+  const form = page.locator("form#quote-form");
   // Hydrated: the tap is read by the form's script.
   await expect(form.locator("button[role=combobox]")).toBeVisible();
   await page.locator('#work button[data-need="hot_water"]').click();
