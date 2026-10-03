@@ -100,8 +100,12 @@ nix run .#dev
   hours, address and rating override the baked point in the hero, the call
   bar, the footer, the JSON-LD and the quote card. Unset, the baked points
   are served. A fetched point is cached for 600 s (`PLACE_REVALIDATE_SECONDS`).
+  The same base answers `<base>/experiments`: the panel's weights and kill
+  switch for the A/B tests (docs/EXPERIMENTS.md), cached in memory for 30 s.
+  Unset, the config in code runs.
 - `LEAD_WEBHOOK_*` — all three or none; `http:` only to `localhost`,
-  `127.0.0.1` or a `*.svc` host.
+  `127.0.0.1` or a `*.svc` host. Through it, at every start, the panel is
+  also told which experiments the build runs (`experiments.declared`).
 - `LEADS_DB_PATH` — the leads file and the webhook outbox; unset, it is
   `~/.local/share/aquafix/leads.db`.
 - `POSTHOG_KEY` — unset, analytics sends nothing.
