@@ -393,6 +393,15 @@ export const FR = {
     primary: "call",
     secondary: "home",
   },
+  thanksCallback: {
+    code: "✓",
+    title: "Rappel demandé",
+    eyebrow: "RAPPEL DEMANDÉ",
+    headline: ["C’est noté. ", "Nous vous rappelons."],
+    body: () => "Nous vous rappelons au numéro que vous nous avez laissé. Si c’est une urgence maintenant, appelez-nous.",
+    primary: "call",
+    secondary: "home",
+  },
   backHome: "← Retour à l’accueil",
   tryAgain: "Réessayer",
   /** The language switch's accessible name. */

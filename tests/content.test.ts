@@ -65,6 +65,14 @@ describe("the copy", () => {
     expect(all.filter(s => roundTheClock.test(s))).toEqual([]);
   });
 
+  // A callback is promised a call — not the quote's SMS, and no delay: nobody
+  // has committed to one, and a point may be closed when the request lands.
+  it.each(LOCALES)("thanks a callback with a call and no time (%s)", locale => {
+    const said = leaves(text(locale).thanksCallback, facts(locale)).map(([, s]) => s).join("\n");
+    expect(said).toMatch(locale === "fr" ? /Nous vous rappelons/ : /call you back/);
+    expect(said).not.toMatch(/SMS|text|\d+\s*(min|h\b|heures?|hours?)/i);
+  });
+
   it("keeps US units out of the French geography", () => {
     for (const locale of LOCALES) {
       const all = leaves(text(locale), facts(locale)).map(([, s]) => s).join("\n");

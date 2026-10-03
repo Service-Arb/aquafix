@@ -2,11 +2,12 @@ import { createHmac } from "node:crypto";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { Lead } from "@evinvest/kitstart";
-import { leadWebhook, parseServerEnv, type LeadWebhookContext } from "@evinvest/kitstart/server";
+import type { Lead, SpamVerdict } from "@evinvest/kitstart";
+import { leadWebhook, parseServerEnv, type LeadWebhookContext, type ServerEnv } from "@evinvest/kitstart/server";
 import { afterEach, describe, expect, it } from "vitest";
 import { site } from "@/shared/config/site";
-import { isOpaqueId, leadCreatedBody, panelLeadId, SA_INGEST_SIGNING, uuidV7 } from "@/shared/lib/funnel-event";
+import { needLabel, PANEL_SUSPECT, webhookOptions } from "@/features/quote-form/server";
+import { isOpaqueId, leadCreatedBody, panelLeadId, uuidV7, type BodyOptions } from "@/shared/lib/funnel-event";
 
 const lead: Lead = {
   subject: "blocked_drain",
@@ -25,6 +26,8 @@ const ctx: LeadWebhookContext = {
   at: new Date("2026-10-01T09:30:00.123Z"),
   idempotencyKey: "0b5c1f0e-7d1a-4e8b-9c2d-3f4a5b6c7d8e",
 };
+
+const OPTS: BodyOptions = { sourceId: "aquafix-site", needLabel };
 
 // The row id for a person, a tag from the key for uniqueness past a recreated leads file.
 const LEAD_ID = panelLeadId(ctx);
@@ -51,7 +54,7 @@ const keysWithin = (value: object, message: string): void => {
 
 describe("lead.created for the panel", () => {
   it("builds one sa.funnel.v1 event from a lead", () => {
-    const body = leadCreatedBody(lead, ctx, "aquafix-site");
+    const body = leadCreatedBody(lead, ctx, OPTS);
     expect(body).toEqual({
       events: [
         {
@@ -63,14 +66,14 @@ describe("lead.created for the panel", () => {
           source: { kind: "site", id: "aquafix-site" },
           subject: { brandId: "aquafix", locationId: "royat", leadId: LEAD_ID },
           properties: { channel: "form" },
-          pii: { phone: "06 12 34 56 78", need: "blocked_drain", locality: "63130" },
+          pii: { phone: "06 12 34 56 78", need: "Canalisation bouchée", locality: "63130" },
         },
       ],
     });
   });
 
   it("names only fields the proto declares, in their protojson spelling", () => {
-    const body = leadCreatedBody({ ...lead, extras: { note: "x" } }, ctx, "aquafix-site");
+    const body = leadCreatedBody({ ...lead, extras: { note: "x" } }, ctx, OPTS);
     keysWithin(body, "IngestRequest");
     const [event] = body.events;
     keysWithin(event, "Event");
@@ -81,7 +84,7 @@ describe("lead.created for the panel", () => {
   });
 
   it("meets the panel's checks on the envelope", () => {
-    const [event] = leadCreatedBody(lead, ctx, "aquafix-site").events;
+    const [event] = leadCreatedBody(lead, ctx, OPTS).events;
     expect(event.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
     expect(event.occurredAt).toMatch(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?Z$/);
     expect(event.subject.brandId).toMatch(/^[a-z0-9][a-z0-9_-]{0,63}$/);
@@ -97,21 +100,34 @@ describe("lead.created for the panel", () => {
   });
 
   it("keeps what the customer typed out of properties, and NUL out of everything", () => {
-    const [event] = leadCreatedBody({ ...lead, mobile: "06\u000012", subject: "other", locality: "" }, ctx, "aquafix-site").events;
+    const [event] = leadCreatedBody({ ...lead, mobile: "06\u000012", subject: "other", locality: "" }, ctx, OPTS).events;
     expect(event.properties).toEqual({ channel: "form" });
-    expect(event.pii).toEqual({ phone: "0612", need: "other" });
+    expect(event.pii).toEqual({ phone: "0612", need: "Autre chose" });
     expect(JSON.stringify(event)).not.toContain("\\u0000");
   });
 
   it("sends a callback as `form` until the panel takes the channel", () => {
-    const [event] = leadCreatedBody({ ...lead, channel: "callback", consent: { text: "J’accepte…", at: "2026-10-01T09:30:00Z" } }, ctx, "aquafix-site").events;
+    const [event] = leadCreatedBody({ ...lead, channel: "callback", consent: { text: "J’accepte…", at: "2026-10-01T09:30:00Z" } }, ctx, OPTS).events;
     expect(event.properties).toEqual({ channel: "form" });
     // The consent is the lead's record, not the panel's.
     expect(JSON.stringify(event)).not.toContain("J’accepte");
   });
 
+  it("names the job in French for the panel, and keeps a job no longer offered as posted", () => {
+    const need = (subject: string) => leadCreatedBody({ ...lead, subject }, { ...ctx, locale: "en" }, OPTS).events[0].pii?.need;
+    expect(need("hot_water")).toBe("Eau chaude");
+    expect(need("gas_leak")).toBe("gas_leak");
+  });
+
+  it("carries `suspect` only when the kit says why, and nothing else of the verdict", () => {
+    const [plain] = leadCreatedBody({ ...lead, spamVerdict: "too-fast" }, ctx, OPTS).events;
+    expect(plain.properties).toEqual({ channel: "form" });
+    const [marked] = leadCreatedBody({ ...lead, spamVerdict: "too-fast" }, { ...ctx, suspect: "too_fast" }, OPTS).events;
+    expect(marked.properties).toEqual({ channel: "form", suspect: "too_fast" });
+  });
+
   it("leaves the location out for a lead from no point", () => {
-    const [event] = leadCreatedBody({ ...lead, placeSlug: null }, ctx, "aquafix-site").events;
+    const [event] = leadCreatedBody({ ...lead, placeSlug: null }, ctx, OPTS).events;
     expect(event.subject).toEqual({ brandId: "aquafix", leadId: LEAD_ID });
   });
 
@@ -161,8 +177,7 @@ describe("the lead webhook, wired as the site wires it", () => {
     if (!target) throw new Error("the webhook should be on");
     const sent: Request[] = [];
     const hook = leadWebhook(site, env, {
-      signing: SA_INGEST_SIGNING,
-      buildBody: (l, c) => leadCreatedBody(l, c, target.keyId),
+      ...webhookOptions(target.keyId),
       fetch: async (input, init) => {
         sent.push(new Request(input, init));
         return new Response(JSON.stringify({ results: [{ index: 0, status: "accepted" }] }), { status: 207 });
@@ -195,5 +210,49 @@ describe("the lead webhook, wired as the site wires it", () => {
         },
       ],
     });
+  });
+
+  /**
+   * A lead of each verdict through the webhook as the site builds it, and the
+   * `suspect` each body carried to the receiver, by row id.
+   */
+  async function suspects(panelSuspect?: boolean): Promise<{ on: boolean; said: Record<string, string | null> }> {
+    dir = mkdtempSync(join(tmpdir(), "aquafix-hook-"));
+    const env: ServerEnv = parseServerEnv(site, {
+      LEADS_DB_PATH: join(dir, "leads.db"),
+      LEAD_WEBHOOK_URL: "http://127.0.0.1:59120/api/ingest/v1/events",
+      LEAD_WEBHOOK_KEY_ID: "aquafix-site",
+      LEAD_WEBHOOK_SECRET: "test-secret",
+    });
+    const said: Record<string, string | null> = {};
+    const hook = leadWebhook(site, env, {
+      ...webhookOptions("aquafix-site", panelSuspect),
+      fetch: async (_input, init) => {
+        const raw = String(init?.body);
+        const row = /"leadId":"lead-(\d+)-/.exec(raw)?.[1] ?? "?";
+        said[row] = /"suspect":"([a-z_]+)"/.exec(raw)?.[1] ?? null;
+        return new Response(JSON.stringify({ results: [{ index: 0, status: "accepted" }] }), { status: 207 });
+      },
+      log: { info: () => {}, warn: () => {}, error: () => {} },
+    });
+    if (!hook) throw new Error("the webhook should be on");
+    const verdicts: (SpamVerdict | null)[] = [null, "too-fast", "rate-limited", "honeypot"];
+    try {
+      verdicts.forEach((spamVerdict, i) => hook.enqueue({ ...lead, spamVerdict }, i + 1, { locale: "fr", formId: "quote" }));
+      expect(await hook.tick()).toMatchObject({ delivered: verdicts.length });
+    } finally {
+      hook.close();
+    }
+    return { on: hook.panelSuspect, said };
+  }
+
+  // The panel refuses an unknown property, and the outbox would park the lead.
+  it("keeps the panel's suspect marker off, so no body carries it", async () => {
+    expect(PANEL_SUSPECT).toBe(false);
+    expect(await suspects()).toEqual({ on: false, said: { 1: null, 2: null, 3: null, 4: null } });
+  });
+
+  it("sends why a lead is suspect once turned on — rate_limited or too_fast, never honeypot", async () => {
+    expect(await suspects(true)).toEqual({ on: true, said: { 1: null, 2: "too_fast", 3: "rate_limited", 4: null } });
   });
 });

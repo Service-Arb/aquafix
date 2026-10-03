@@ -1,3 +1,4 @@
+import { JOB_IDS } from "../../src/shared/config/lead";
 import { expect, test, type Page } from "@playwright/test";
 import { POSTHOG_HOST } from "./env";
 
@@ -141,3 +142,28 @@ test("lead_layout b asks the job first, and its events carry the arm", async ({ 
     .toMatchObject({ experiment: "lead_layout", variant: "b", layout: "qualify-first", form_id: "quote", brand_id: "aquafix" });
   await expect.poll(() => events.find(e => e.event === "lead_form_step")?.properties).toMatchObject({ step: "contact", experiment: "lead_layout", variant: "b" });
 });
+
+// Review finding 7: the first arrow key picked the next job and carried the
+// focus off to the contact step. The tiles are a radio group: the arrows move
+// the choice and stay; Enter or Space answers and moves on.
+test("lead_layout b: arrows move the choice, Space moves on", async ({ page }) => {
+  await page.goto("/fr?ab_lead_layout=b");
+  const form = page.locator("form#quote-form");
+  const tiles = form.getByRole("radio");
+  await expect(tiles.first()).toBeVisible();
+  await tiles.first().evaluate(el => el.scrollIntoView({ block: "center" }));
+  await tiles.first().focus();
+  await page.keyboard.press("ArrowDown");
+  await expect(tiles.nth(1)).toBeFocused();
+  await expect(tiles.nth(1)).toBeChecked();
+  // Still in the group: a second arrow moves on to the next job, not the page.
+  await page.keyboard.press("ArrowDown");
+  await expect(tiles.nth(2)).toBeFocused();
+  await expect(tiles.nth(2)).toBeChecked();
+  await page.keyboard.press("Space");
+  // Answered: the job is summed up and the focus is on the first empty contact field.
+  await expect(tiles).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => document.activeElement?.getAttribute("name"))).toMatch(/^(zip|mobile)$/);
+  await expect(form.locator("input[type=hidden][name=job]")).toHaveValue(JOB_IDS[2]);
+});
+

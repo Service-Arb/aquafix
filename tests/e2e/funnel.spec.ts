@@ -1,9 +1,9 @@
 import { DatabaseSync } from "node:sqlite";
 import { LIBRARY_PROPS } from "@evinvest/analytics";
-import { MIN_FILL_MS, normalizePhone } from "@evinvest/kitstart";
+import { LEAD_CAPTURE_TEXT, MIN_FILL_MS, normalizePhone } from "@evinvest/kitstart";
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { JOB_IDS } from "../../src/shared/config/lead";
-import { LEADS_DB, POSTHOG_HOST } from "./env";
+import { CONTROL_COOKIES, LEADS_DB, POINT_ORIGIN, POSTHOG_HOST } from "./env";
 
 // The funnel's floor: the form must submit before any JavaScript has loaded.
 // A regression here is invisible to every other test in the suite and costs
@@ -70,7 +70,9 @@ test("with JavaScript the job is the kit's listbox and the pick is stored", asyn
   await page.waitForTimeout(MIN_FILL_MS + 250);
   const posted = page.waitForResponse(r => r.request().method() === "POST" && new URL(r.url()).pathname === "/quote");
   await form.locator("button[type=submit]").click();
-  expect((await posted).status()).toBe(303);
+  // With the script the card posts the form itself and asks for JSON, so a
+  // refusal can keep what was typed; the route names the thanks page.
+  expect((await posted).status()).toBe(200);
   await page.waitForURL("**/fr/thanks");
 
   const db = new DatabaseSync(LEADS_DB, { readOnly: true });
@@ -149,7 +151,7 @@ test("a tapped work tile is the job the form sends", async ({ page }, testInfo) 
   await page.waitForTimeout(MIN_FILL_MS + 250);
   const posted = page.waitForResponse(r => r.request().method() === "POST" && new URL(r.url()).pathname === "/quote");
   await form.locator("button[type=submit]").click();
-  expect((await posted).status()).toBe(303);
+  expect((await posted).status()).toBe(200);
 
   const db = new DatabaseSync(LEADS_DB, { readOnly: true });
   try {
@@ -176,7 +178,7 @@ test("the callback posts a lead with its consent", async ({ page }, testInfo) =>
   await page.waitForTimeout(MIN_FILL_MS + 250);
   const posted = page.waitForResponse(r => r.request().method() === "POST" && new URL(r.url()).pathname === "/quote");
   await form.locator("button[type=submit]").click();
-  expect((await posted).status()).toBe(303);
+  expect((await posted).status()).toBe(200);
 
   const db = new DatabaseSync(LEADS_DB, { readOnly: true });
   try {
@@ -186,3 +188,163 @@ test("the callback posts a lead with its consent", async ({ page }, testInfo) =>
     db.close();
   }
 });
+
+const FR = LEAD_CAPTURE_TEXT.fr;
+const isQuotePost = (r: { request(): { method(): string }; url(): string }) =>
+  r.request().method() === "POST" && new URL(r.url()).pathname === "/quote";
+
+/** Rows stored for one number — the proof a lead arrived once, or not at all. */
+function rowsFor(mobile: string): number {
+  const db = new DatabaseSync(LEADS_DB, { readOnly: true });
+  try {
+    const row = db.prepare("SELECT count(*) AS n FROM leads WHERE mobile = ?").get(normalizePhone(mobile));
+    return Number(row?.n ?? 0);
+  } finally {
+    db.close();
+  }
+}
+
+/** The card's form filled as a person would, past the time trap. */
+async function fillQuote(page: Page, zip: string, mobile: string) {
+  const form = page.locator("form#quote-form");
+  // Hydrated: the job is the kit's listbox, and the submit is the script's.
+  await expect(form.locator("button[role=combobox]")).toBeVisible();
+  await form.locator("input[name=zip]").fill(zip);
+  await form.locator("input[name=mobile]").fill(mobile);
+  await page.waitForTimeout(MIN_FILL_MS + 250);
+  return form;
+}
+
+// Review finding 1: a lead the server refused was a silent 303 to an emptied
+// form. Without a script it now comes back to the card naming the field, and
+// the card says so once its script runs.
+test("rejected_submission_lands_on_the_card_with_an_error", async ({ browser, page }, testInfo) => {
+  // A context of its own: the project's options (base URL, the A/B control) are not inherited.
+  const noJs = await browser.newContext({
+    javaScriptEnabled: false,
+    baseURL: POINT_ORIGIN,
+    locale: "fr-FR",
+    storageState: { cookies: CONTROL_COOKIES, origins: [] },
+  });
+  let landed: string;
+  try {
+    const plain = await noJs.newPage();
+    await plain.setExtraHTTPHeaders({ "x-forwarded-for": `198.51.100.${30 + testInfo.parallelIndex}` });
+    await plain.goto("/fr#quote");
+    const form = plain.locator("form#quote-form");
+    await form.locator("select[name=job]").selectOption("hot_water");
+    await form.locator("input[name=zip]").fill("63130");
+    // Nine digits: the browser has no rule for it, the server does.
+    await form.locator("input[name=mobile]").fill("06 12 34 56 7");
+    await plain.waitForTimeout(MIN_FILL_MS + 250);
+    const posted = plain.waitForResponse(isQuotePost);
+    await form.locator("button[type=submit]").click();
+    expect((await posted).status()).toBe(303);
+    await plain.waitForURL(/lead_error=phone/);
+    landed = plain.url();
+  } finally {
+    await noJs.close();
+  }
+  const url = new URL(landed);
+  expect(url.pathname).toBe("/fr");
+  expect(url.hash).toBe("#quote");
+  expect(url.searchParams.get("need")).toBe("hot_water");
+
+  await page.goto(landed);
+  const form = page.locator("form#quote-form");
+  const phone = form.locator("input[name=mobile]");
+  await expect(form.getByRole("alert")).toHaveText(FR.phoneInvalid);
+  await expect(phone).toHaveAttribute("aria-invalid", "true");
+  // The job the visitor chose survives the trip; the query does not stay in the address.
+  await expect(form.locator("input[type=hidden][name=job]")).toHaveValue("hot_water");
+  await expect.poll(() => new URL(page.url()).searchParams.has("lead_error")).toBe(false);
+});
+
+// With the script the refusal never leaves the page: the server's 422 is shown
+// at the field and what was typed is still there. A number the form blocks
+// never reaches the server, so the post is altered on the way, as a stale
+// page with an older rule would send it.
+test("a refusal with the script keeps what was typed", async ({ page }, testInfo) => {
+  await ownClient(page, testInfo, 4);
+  await page.route("**/quote", async route => {
+    const body = new URLSearchParams(route.request().postData() ?? "");
+    body.set("mobile", "06 12 34 56 7");
+    await route.continue({ postData: body.toString() });
+  });
+  await page.goto("/fr");
+  const form = await fillQuote(page, "63130-refused", "06 12 34 56 78");
+  const posted = page.waitForResponse(isQuotePost);
+  await form.locator("button[type=submit]").click();
+  expect((await posted).status()).toBe(422);
+  await expect(form.getByRole("alert")).toHaveText(FR.phoneInvalid);
+  await expect(form.locator("input[name=mobile]")).toHaveAttribute("aria-invalid", "true");
+  await expect(form.locator("input[name=mobile]")).toBeFocused();
+  await expect(form.locator("input[name=zip]")).toHaveValue("63130-refused");
+  expect(new URL(page.url()).pathname).toBe("/fr");
+});
+
+// Review finding 12: a callback was thanked with the quote's SMS promise.
+test("callback_thanks_promises_a_call", async ({ page }, testInfo) => {
+  const mobile = `07${String((Date.now() + 29) % 1e8).padStart(8, "0")}`;
+  await ownClient(page, testInfo, 3);
+  await page.goto("/fr");
+  const callback = page.locator("details#quote-callback");
+  await callback.locator("summary").click();
+  const form = callback.locator("form");
+  await form.locator("input[name=mobile]").fill(mobile);
+  await form.locator("input[name=consent]").check();
+  await page.waitForTimeout(MIN_FILL_MS + 250);
+  await form.locator("button[type=submit]").click();
+  await page.waitForURL("**/fr/thanks?channel=callback");
+  const main = page.locator("main");
+  await expect(main).toContainText("Nous vous rappelons");
+  await expect(main).not.toContainText("SMS");
+  // The language switch keeps the channel: the English page thanks for a call too.
+  await expect(page.locator('a[href*="/en/thanks?channel=callback"]').first()).toBeAttached();
+  expect(rowsFor(mobile)).toBe(1);
+});
+
+// Review finding 4: offline, the fetch failed and the fallback opened the
+// browser's error page, losing the form. Now the card says so and resends the
+// same lead — once.
+test("offline, the card says so, keeps the form, and a retry sends one lead", async ({ page, context }, testInfo) => {
+  const mobile = `06${String((Date.now() + 31) % 1e8).padStart(8, "0")}`;
+  await ownClient(page, testInfo, 5);
+  await page.goto("/fr");
+  const form = await fillQuote(page, "63130-offline", mobile);
+  await context.setOffline(true);
+  await form.locator("button[type=submit]").click();
+  await expect(form.getByText(FR.networkError)).toBeVisible();
+  await expect(form.locator("input[name=mobile]")).toHaveValue(mobile);
+  await expect(form.locator("input[name=zip]")).toHaveValue("63130-offline");
+  expect(new URL(page.url()).pathname).toBe("/fr");
+
+  await context.setOffline(false);
+  await form.getByRole("button", { name: FR.retry }).click();
+  await page.waitForURL("**/fr/thanks");
+  expect(rowsFor(mobile)).toBe(1);
+});
+
+// Review finding 5: a server that never answers left the card spinning
+// silently. The submit is busy while it waits, and gives up after 15 s.
+test("a server that never answers: busy, then a timeout with a retry", async ({ page }, testInfo) => {
+  await ownClient(page, testInfo, 6);
+  await page.clock.install();
+  await page.route("**/quote", () => {
+    // Held: no answer, ever.
+  });
+  await page.goto("/fr");
+  const form = await fillQuote(page, "63130-timeout", "06 12 34 56 78");
+  const submit = form.locator("button[type=submit]");
+  await submit.click();
+  await expect(submit).toHaveAttribute("aria-busy", "true");
+  await expect(submit).toBeDisabled();
+  await expect(submit).toHaveText(FR.sending);
+  await page.clock.runFor(15_000);
+  await expect(form.getByText(FR.timeoutError)).toBeVisible();
+  await expect(form.getByRole("button", { name: FR.retry })).toBeVisible();
+  await expect(submit).toBeEnabled();
+  await expect(form.locator("input[name=zip]")).toHaveValue("63130-timeout");
+  expect(new URL(page.url()).pathname).toBe("/fr");
+});
+

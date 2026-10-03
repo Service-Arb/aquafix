@@ -391,6 +391,15 @@ export const EN = {
     primary: "call",
     secondary: "home",
   },
+  thanksCallback: {
+    code: "✓",
+    title: "Call-back requested",
+    eyebrow: "CALL-BACK REQUESTED",
+    headline: ["Noted. ", "We will call you back."],
+    body: () => "We call you back on the number you left us. If this is an emergency right now, call us.",
+    primary: "call",
+    secondary: "home",
+  },
   backHome: "← Back to home",
   tryAgain: "Try again",
   /** The language switch's accessible name. */

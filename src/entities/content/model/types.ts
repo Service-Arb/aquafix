@@ -223,6 +223,8 @@ export interface Text extends CoreText<PageKey, Facts> {
   notFound: StatusCopy;
   serverError: StatusCopy;
   thanks: StatusCopy;
+  /** After "call me back": a call, not the quote's SMS — and no time we cannot keep. */
+  thanksCallback: StatusCopy;
   backHome: string;
   tryAgain: string;
   langLabel: string;

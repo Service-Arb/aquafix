@@ -1,6 +1,6 @@
 import "server-only";
 import { createHash } from "node:crypto";
-import { channelOf, type Lead } from "@evinvest/kitstart";
+import { channelOf, type Lead, type LeadSuspect } from "@evinvest/kitstart";
 import { panelChannel, type LeadWebhookContext, type WebhookSigning } from "@evinvest/kitstart/server";
 
 /**
@@ -24,7 +24,11 @@ export interface LeadCreatedEvent {
   occurredAt: string;
   source: { kind: "site"; id: string };
   subject: { brandId: string; locationId?: string; leadId: string };
-  properties: { channel: ReturnType<typeof panelChannel> };
+  properties: {
+    channel: ReturnType<typeof panelChannel>;
+    /** Only under kitstart's `panelSuspect`, which stays off until the panel's contract has it. */
+    suspect?: LeadSuspect;
+  };
   pii?: Record<string, string>;
 }
 
@@ -67,13 +71,25 @@ export function uuidV7(at: Date, seed: string): string {
 // Postgres cannot hold U+0000, and the panel rejects the event that carries one.
 const clean = (s: string): string => s.replaceAll("\u0000", "");
 
+/** What the body needs besides the lead and the kit's context. */
+export interface BodyOptions {
+  /** The key id the batch is signed with — the panel rejects an event whose `source.id` is anything else. */
+  sourceId: string;
+  /**
+   * The job in the words a person reads it in. The panel shows `pii.need` as
+   * the customer's request, and `hot_water` is not one; the id itself has no
+   * field in `lead.created` and stays in the leads file.
+   */
+  needLabel: (subject: string) => string;
+}
+
 /**
  * What the customer typed, kept apart from `properties`: the panel seals
  * `pii` and reads `name`, `phone` and `need` from it. The fields are capped by
  * the lead schema (200 characters, an extra its own `max`), far below the
  * panel's 16 KiB.
  */
-function piiOf(lead: Lead): Record<string, string> {
+function piiOf(lead: Lead, needLabel: BodyOptions["needLabel"]): Record<string, string> {
   const pii: Record<string, string> = {};
   const put = (key: string, value: string): void => {
     const v = clean(value).trim();
@@ -81,7 +97,7 @@ function piiOf(lead: Lead): Record<string, string> {
   };
   for (const [name, value] of Object.entries(lead.extras)) put(name, value);
   put("phone", lead.mobile);
-  put("need", lead.subject);
+  put("need", needLabel(lead.subject));
   put("locality", lead.locality);
   return pii;
 }
@@ -99,16 +115,16 @@ export function panelLeadId(ctx: Pick<LeadWebhookContext, "leadId" | "idempotenc
 }
 
 /**
- * The webhook body for one lead. `sourceId` is the key id the batch is signed
- * with — the panel rejects an event whose `source.id` is anything else.
- * `properties.channel` goes through kitstart's `panelChannel`: the panel's set
- * is closed and refuses the whole event outside it, so a callback is sent as
- * `form` until the panel takes `callback` — one constant in the kit to flip.
+ * The webhook body for one lead. `properties.channel` goes through
+ * kitstart's `panelChannel`: the panel's set is closed and refuses the whole
+ * event outside it, so a callback is sent as `form` until the panel takes
+ * `callback` — one constant in the kit to flip.
  * The callback's consent is not in the body: the panel has no field for it.
  * `locationId` is the point the form was posted from (its slug, which is its
- * subdomain); a lead from no point carries none.
+ * subdomain); a lead from no point carries none. `properties.suspect` is
+ * there only when kitstart set `ctx.suspect`, i.e. under `panelSuspect`.
  */
-export function leadCreatedBody(lead: Lead, ctx: LeadWebhookContext, sourceId: string): IngestBody {
+export function leadCreatedBody(lead: Lead, ctx: LeadWebhookContext, { sourceId, needLabel }: BodyOptions): IngestBody {
   const subject: LeadCreatedEvent["subject"] = { brandId: ctx.brandId, leadId: panelLeadId(ctx) };
   if (lead.placeSlug !== null && isOpaqueId(lead.placeSlug)) subject.locationId = lead.placeSlug;
   const event: LeadCreatedEvent = {
@@ -121,7 +137,8 @@ export function leadCreatedBody(lead: Lead, ctx: LeadWebhookContext, sourceId: s
     subject,
     properties: { channel: panelChannel(channelOf(lead)) },
   };
-  const pii = piiOf(lead);
+  if (ctx.suspect) event.properties.suspect = ctx.suspect;
+  const pii = piiOf(lead, needLabel);
   if (Object.keys(pii).length > 0) event.pii = pii;
   return { events: [event] };
 }

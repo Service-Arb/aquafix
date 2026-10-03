@@ -29,7 +29,14 @@ export function OverlayHeader({ copy, point }: { copy: Copy; point: PlaceView })
   const { phone } = contactOf(point.place);
   const hrefs = perLocale(l => point.href("", l));
   return (
+    // SURFACE_SCRIPT flips `dark`/`light` and `data-scrolled` on this element
+    // before hydration — on purpose, so a page loaded scrolled (`#quote` on a
+    // phone) never paints the dark overlay over a light band. React would
+    // report that as a mismatch; it does not patch attributes back, and
+    // HeaderSurface owns them from then on. Suppression covers this element's
+    // own attributes only, not its children.
     <header
+      suppressHydrationWarning
       data-site-header="home"
       className="group/hdr dark sticky top-0 z-40 -mb-(--header-h) h-(--header-h) border-b border-transparent bg-gradient-to-b from-background/75 to-transparent [&.light]:border-border [&.light]:bg-background [&.light]:bg-none"
     >

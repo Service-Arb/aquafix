@@ -1,1 +1,1 @@
-export { validateLead, type Lead, type SpamVerdict } from "./model/lead";
+export { quoteRule, type Lead, type SpamVerdict } from "./model/lead";

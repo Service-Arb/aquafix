@@ -3,7 +3,8 @@ import { copyFor } from "@/entities/content";
 import { notifier } from "@/entities/lead/server";
 import { experimentLeads } from "@/features/experiments/server";
 import { contactOf } from "@/entities/place";
-import { serverEnv, webhook } from "@/shared/config/env";
+import { webhook } from "@/features/quote-form/server";
+import { serverEnv } from "@/shared/config/env";
 import { CARD, site } from "@/shared/config/site";
 
 /**

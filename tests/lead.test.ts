@@ -31,8 +31,20 @@ describe("the lead schema", () => {
     expect(readCandidate(LEAD, form({ job: "gas_leak" }), null).subject).toBe("gas_leak");
   });
 
-  it("refuses, for the log only, a lead with no number to text", () => {
+  it("refuses a number the form would block, naming the phone", () => {
     const lead = readCandidate(LEAD, form({ job: "other", zip: "63130", mobile: "0612" }), null);
-    expect(validateCandidate(LEAD, lead)).toMatch(/mobile/);
+    expect(validateCandidate(LEAD, lead)).toMatchObject({ field: "phone" });
+  });
+
+  it("refuses a lead with no commune, naming the locality the card shows the error at", () => {
+    const lead = readCandidate(LEAD, form({ job: "other", zip: "   ", mobile: "06 12 34 56 78" }), null);
+    expect(validateCandidate(LEAD, lead)).toEqual({ field: "locality", why: expect.any(String) });
+  });
+
+  it("takes any number kitstart's form takes — the old ten-digit floor refused +1 and short E.164", () => {
+    for (const mobile of ["+12345678", "+1 415 555 0123", "+44 20 7946 0958", "06 12 34 56 78"]) {
+      const lead = readCandidate(LEAD, form({ job: "other", zip: "63130", mobile }), null);
+      expect(validateCandidate(LEAD, lead), mobile).toBeNull();
+    }
   });
 });
