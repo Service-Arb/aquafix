@@ -52,7 +52,6 @@ export const FR = {
   },
   nav: { prices: "Prix", guarantee: "Garantie", reviews: "Avis", about: "À propos" },
   promise: "PRIX FIXE. RÉPARÉ AUJOURD’HUI.",
-  emergencyHours: "Urgences — 24 heures sur 24, 7 jours sur 7",
   bookingHours: "Réservations — de 7h à 21h, tous les jours",
   bookingHoursOf: hours => `Réservations — ${hours}`,
   headerPhoneLabel: "24/7 · UN HUMAIN RÉPOND",

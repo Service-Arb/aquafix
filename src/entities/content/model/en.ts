@@ -54,7 +54,6 @@ export const EN = {
   },
   nav: { prices: "Prices", guarantee: "Guarantee", reviews: "Reviews", about: "About" },
   promise: "FIXED PRICE. FIXED TODAY.",
-  emergencyHours: "Emergencies — 24 hours, 7 days",
   bookingHours: "Bookings — 7am to 9pm daily",
   bookingHoursOf: hours => `Bookings — ${hours}`,
   headerPhoneLabel: "24/7 · ANSWERED BY A HUMAN",

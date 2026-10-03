@@ -2,7 +2,7 @@ import { telHref } from "@evinvest/marketing";
 import { AreaChips, MapFacade } from "@evinvest/kitstart/react";
 import { Section } from "@evinvest/uikit";
 import type { Copy } from "@/entities/content";
-import { contactOf, mapOf, servedLocalities, storefrontOf, type PlaceView } from "@/entities/place";
+import { contactOf, hoursText, mapOf, servedLocalities, storefrontOf, type PlaceView } from "@/entities/place";
 import { BandHead } from "@/shared/ui/BandHead";
 import { MAP_FACE, MAP_FACE_PARTS } from "@/shared/ui/map";
 
@@ -30,6 +30,8 @@ export function Coverage({ copy, point }: { copy: Copy; point: PlaceView }) {
   const { phone } = contactOf(place);
   const front = storefrontOf(place);
   const map = mapOf(place);
+  const hours = hoursText(place.hours, locale);
+  const line = [map?.address, hours].filter(Boolean).join(" · ");
   return (
     <Section tight id="areas">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:gap-16">
@@ -39,9 +41,9 @@ export function Coverage({ copy, point }: { copy: Copy; point: PlaceView }) {
           {front?.landmark && <p className="text-[14.5px] text-ink-soft">{front.landmark[locale]}</p>}
           <div className="flex flex-col gap-1.5 text-[15px]">
             {/* One line on a phone, three from `md`: the frame's two layouts. */}
-            <p className="text-ink md:hidden">{[map?.address, t.emergencyHours].filter(Boolean).join(" · ")}</p>
+            {line && <p className="text-ink md:hidden">{line}</p>}
             {map && <address className="hidden font-medium not-italic text-ink md:block">{map.address}</address>}
-            <p className="hidden text-ink-soft md:block">{t.emergencyHours}</p>
+            {hours && <p className="hidden text-ink-soft md:block">{hours}</p>}
             <a href={telHref(phone)} className="hidden font-display text-[22px] font-bold text-primary-ink md:block">
               {phone}
             </a>

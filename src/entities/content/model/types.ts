@@ -171,7 +171,6 @@ export interface Text extends CoreText<PageKey, Facts> {
   brandPage: BrandPageCopy;
   nav: Record<NavId, string>;
   promise: string;
-  emergencyHours: string;
   bookingHours: string;
   /** The bookings line over a point's real hours, in place of `bookingHours`. */
   bookingHoursOf: (hours: string) => string;
