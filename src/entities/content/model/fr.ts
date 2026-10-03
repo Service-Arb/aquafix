@@ -52,10 +52,9 @@ export const FR = {
   },
   nav: { prices: "Prix", guarantee: "Garantie", reviews: "Avis", about: "À propos" },
   promise: "PRIX FIXE. RÉPARÉ AUJOURD’HUI.",
-  emergencyHours: "Urgences — 24 heures sur 24, 7 jours sur 7",
   bookingHours: "Réservations — de 7h à 21h, tous les jours",
   bookingHoursOf: hours => `Réservations — ${hours}`,
-  headerPhoneLabel: "24/7 · UN HUMAIN RÉPOND",
+  headerPhoneLabel: "UN HUMAIN RÉPOND",
   heroPhotoAlt: "L’équipe Aquafix devant les camionnettes aux couleurs de l’entreprise, au dépôt.",
   cta: "Obtenir mon prix fixe  →",
   ctaShort: "Obtenir mon prix fixe",
@@ -72,7 +71,7 @@ export const FR = {
     submit: "Envoyez-moi mon prix  →",
     privacy: "Votre numéro sert à envoyer le devis. Rien d’autre, jamais.",
     reassurance: f =>
-      `Nous vous envoyons votre fourchette de prix par SMS sous 10 minutes, de 7h à 21h. Urgence immédiate ? Appelez le ${f.phone} — nous décrochons 24h/24.`,
+      `Nous vous envoyons votre fourchette de prix par SMS sous 10 minutes, de 7h à 21h. Urgence immédiate ? Appelez le ${f.phone}.`,
     jobLabel: "QUEL EST LE PROBLÈME ?",
     zipLabel: "OÙ ÊTES-VOUS ?",
     mobileLabel: "MOBILE",
@@ -153,7 +152,7 @@ export const FR = {
     reviewsEyebrow: "AVIS",
     reviewsTitle: "Ce que disent les voisins.",
     reviewsRating: f => `${f.rating.value} sur 5 · ${f.rating.count} avis${f.rating.google ? " Google" : ""}`,
-    reviewsCallAside: ["ou appelez le ", " — nous décrochons 24h/24"],
+    reviewsCallAside: "ou appelez le ",
     coverageEyebrow: f => `ZONE D’INTERVENTION · ${f.radiusKm} KM AUTOUR DE ${f.place.toUpperCase()}`,
     coverageTitle: "Où nous allons.",
     coverageLede: f => `${f.place} et les communes alentour. Si vous êtes en dehors, nous vous le dirons au téléphone.`,
@@ -181,7 +180,7 @@ export const FR = {
         "12 mois sur les pièces et la main-d’œuvre. Si la même panne revient, nous revenons la réparer sans frais.",
     },
   ],
-  guaranteeCtaAside: f => `ou appelez le ${f.phone} — un humain décroche, 24 heures sur 24`,
+  guaranteeCtaAside: f => `ou appelez le ${f.phone}`,
   reviews: [
     {
       stars: 5,
@@ -251,7 +250,7 @@ export const FR = {
   faqHead: {
     eyebrow: "AVANT D’APPELER",
     title: "Les questions que tout le monde pose.",
-    callAside: ["Encore une question ? Un humain répond 24h/24 au ", "."],
+    callAside: ["Encore une question ? Appelez le ", "."],
   },
   faqs: [
     {
@@ -263,11 +262,6 @@ export const FR = {
       q: () => "Et si vous trouvez pire une fois que c’est ouvert ?",
       a: () =>
         "Nous arrêtons, nous vous montrons, et nous refaisons un devis avant de toucher à quoi que ce soit. Vous pouvez refuser et ne devez que le montant déjà approuvé. Nous ne faisons jamais de travaux supplémentaires pour les facturer après coup.",
-    },
-    {
-      q: () => "Répondez-vous vraiment à 2h du matin ?",
-      a: f =>
-        `Oui, et c’est une personne à ${f.place} plutôt qu’un service de permanence. Les déplacements d’urgence entre 21h et 7h comportent un supplément de ${f.surcharge}, annoncé avant que nous envoyions quelqu’un.`,
     },
     {
       q: () => "Êtes-vous immatriculés et assurés ?",
@@ -385,7 +379,7 @@ export const FR = {
     eyebrow: "ERREUR SERVEUR",
     headline: ["Notre faute, pas la vôtre, ", "et nous pouvons toujours réparer vos tuyaux."],
     body: f =>
-      `Quelque chose a cassé de notre côté. Le téléphone fonctionne quand même, et un humain à ${f.place} y répond 24 heures sur 24.`,
+      `Quelque chose a cassé de notre côté. Le téléphone fonctionne quand même, et c’est un humain à ${f.place} qui répond.`,
     primary: "call",
     secondary: "retry",
   },
@@ -395,7 +389,7 @@ export const FR = {
     eyebrow: "DEMANDE REÇUE",
     headline: ["Nous l’avons. ", "Votre prix arrive."],
     body: () =>
-      "Nous envoyons votre fourchette de prix fixe par SMS sous 10 minutes, entre 7h et 21h. Si c’est une urgence maintenant, appelez-nous — nous décrochons 24h/24.",
+      "Nous envoyons votre fourchette de prix fixe par SMS sous 10 minutes, entre 7h et 21h. Si c’est une urgence maintenant, appelez-nous.",
     primary: "call",
     secondary: "home",
   },

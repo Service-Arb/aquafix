@@ -57,8 +57,7 @@ export function Footer({ copy, point }: { copy: Copy; point: PlaceView }) {
             <a href={telHref(phone)} className="whitespace-nowrap font-display text-[17px] font-bold text-primary-ink md:text-[22px]">
               {phone}
             </a>
-            <p>{t.emergencyHours}</p>
-            {/* The point's own hours once the live source has them; the emergency line is the brand's, round the clock. */}
+            {/* The point's own hours once the live source has them. */}
             <p>{hours ? t.bookingHoursOf(hours) : t.bookingHours}</p>
             <a href={`mailto:${CARD.email}`}>{CARD.email}</a>
             {front && (

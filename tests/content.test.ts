@@ -56,6 +56,15 @@ describe("the copy", () => {
     }
   });
 
+  // Contact follows each point's real hours, so no line may promise the phone
+  // is answered at any hour.
+  it.each(LOCALES)("promises no round-the-clock answering (%s)", locale => {
+    const all = leaves(text(locale), facts(locale)).map(([, s]) => s);
+    const roundTheClock =
+      /24\s*\/\s*7|24\s*h\s*\/\s*24|24 heures sur 24|7 jours sur 7|24 hours a day|24 hours, 7 days|jour et nuit|à toute heure|day and night|around the clock|2\s*am|2\s*h du matin/i;
+    expect(all.filter(s => roundTheClock.test(s))).toEqual([]);
+  });
+
   it("keeps US units out of the French geography", () => {
     for (const locale of LOCALES) {
       const all = leaves(text(locale), facts(locale)).map(([, s]) => s).join("\n");

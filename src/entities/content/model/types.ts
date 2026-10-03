@@ -131,8 +131,8 @@ export interface HomeCopy {
   reviewsEyebrow: string;
   reviewsTitle: string;
   reviewsRating: Said;
-  /** Around the phone, which the band prints as a `tel:` link. */
-  reviewsCallAside: readonly [string, string];
+  /** Before the phone, which the band prints as a `tel:` link. */
+  reviewsCallAside: string;
   coverageEyebrow: Said;
   coverageTitle: string;
   coverageLede: Said;
@@ -171,7 +171,6 @@ export interface Text extends CoreText<PageKey, Facts> {
   brandPage: BrandPageCopy;
   nav: Record<NavId, string>;
   promise: string;
-  emergencyHours: string;
   bookingHours: string;
   /** The bookings line over a point's real hours, in place of `bookingHours`. */
   bookingHoursOf: (hours: string) => string;
@@ -205,7 +204,7 @@ export interface Text extends CoreText<PageKey, Facts> {
     /** Around the phone, which the head prints as a `tel:` link. */
     callAside: readonly [string, string];
   };
-  faqs: readonly [Faq, Faq, Faq, Faq, Faq, Faq];
+  faqs: readonly [Faq, Faq, Faq, Faq, Faq];
   objectionsHead: Head3;
   objections: readonly [Objection, Objection, Objection, Objection];
   stepsHead: { eyebrow: string; title: string };

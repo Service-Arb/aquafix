@@ -1,6 +1,6 @@
 import { telHref } from "@evinvest/marketing";
 import { NAV_IDS, NAV_SUFFIX, type Copy } from "@/entities/content";
-import { contactOf, storefrontOf, type PlaceView } from "@/entities/place";
+import { contactOf, hoursText, storefrontOf, type PlaceView } from "@/entities/place";
 import { perLocale } from "@/shared/config/i18n";
 import { Lockup } from "@/shared/ui/brand";
 import { BrandLangSwitch } from "@/shared/ui/BrandLangSwitch";
@@ -13,6 +13,7 @@ export function QuietFooter({ copy, point }: { copy: Copy; point: PlaceView }) {
   const { t, f } = copy;
   const { phone } = contactOf(point.place);
   const front = storefrontOf(point.place);
+  const hours = hoursText(point.place.hours, copy.locale);
   return (
     <footer id="footer" className="border-t border-border bg-background px-[var(--page-px)] py-10 md:py-14">
       <div className="flex flex-col gap-8">
@@ -22,7 +23,8 @@ export function QuietFooter({ copy, point }: { copy: Copy; point: PlaceView }) {
             <a href={telHref(phone)} className="font-display text-[22px] font-bold text-primary-ink">
               {phone}
             </a>
-            <p className="text-[14px] text-ink-soft">{t.emergencyHours}</p>
+            {/* Only the point's real hours: no line is better than a promise the phone may not keep. */}
+            {hours && <p className="text-[14px] text-ink-soft">{t.bookingHoursOf(hours)}</p>}
             {front && (
               <address className="text-[14px] not-italic text-ink-soft">
                 {front.address.street}, {front.address.postalCode} {front.address.locality}
