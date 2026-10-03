@@ -1,6 +1,6 @@
 # The prod environment of the server, baked into the image as plain env
 # (`flake.nix: prodEnv`). Secret-free — SMTP_URL and SMS_TOKEN (and
-# LEAD_NOTIFY_TO/FROM, LOCATIONS_API_URL when used) arrive from the container
+# LEAD_NOTIFY_TO/FROM when used) arrive from the container
 # environment the k8s Secret injects via `envFrom`, which can still override
 # anything set here. So do LEAD_WEBHOOK_URL, LEAD_WEBHOOK_KEY_ID and
 # LEAD_WEBHOOK_SECRET, together: the URL alone fails boot, and it is not set
@@ -33,4 +33,11 @@
   # funnel and the A/B tests (docs/EXPERIMENTS.md) record nothing.
   POSTHOG_KEY = "phc_sBwWEgdgockVmfyucBRkTTo6iZ4Y2eApSGorD22WLzj3";
   POSTHOG_HOST = "https://us.i.posthog.com";
+  # The live places: the Service-Arb panel's internal read, inside the cluster
+  # (the NetworkPolicy admits aquafix → panel :59120). The kit asks
+  # `<this>/locations/<slug>`; the panel answers `{}` for a place nobody has
+  # edited, so the baked phones and hours stay until someone changes them
+  # there, and 404 only for a place it withdrew. Unreachable or failing, a page
+  # serves the baked place; only the sitemap, the one strict reader, fails.
+  LOCATIONS_API_URL = "http://panel.service-arb.svc.cluster.local:59120/api/internal/brands/aquafix";
 }

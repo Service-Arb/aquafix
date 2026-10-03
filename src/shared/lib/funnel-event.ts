@@ -1,7 +1,13 @@
 import "server-only";
 import { createHash } from "node:crypto";
 import { channelOf, type Lead, type LeadSuspect } from "@evinvest/kitstart";
-import { panelChannel, type LeadWebhookContext, type WebhookSigning } from "@evinvest/kitstart/server";
+import {
+  panelChannel,
+  panelFlowProperties,
+  type LeadWebhookContext,
+  type PanelFlowProperties,
+  type WebhookSigning,
+} from "@evinvest/kitstart/server";
 
 /**
  * The panel's ingest scheme (Service-Arb/panel README, "Sending events"): the
@@ -24,9 +30,10 @@ export interface LeadCreatedEvent {
   occurredAt: string;
   source: { kind: "site"; id: string };
   subject: { brandId: string; locationId?: string; leadId: string };
-  properties: {
+  /** The flow fields only under kitstart's `panelFlow`, and only for a lead with a flow. */
+  properties: Partial<PanelFlowProperties> & {
     channel: ReturnType<typeof panelChannel>;
-    /** Only under kitstart's `panelSuspect`, which stays off until the panel's contract has it. */
+    /** Only under kitstart's `panelSuspect`, and only for a lead it marks. */
     suspect?: LeadSuspect;
   };
   pii?: Record<string, string>;
@@ -103,13 +110,20 @@ function piiOf(lead: Lead, needLabel: BodyOptions["needLabel"]): Record<string, 
 }
 
 /**
- * The lead's id for the panel: the row id, for a person matching it to the
- * mail, plus 8 hex of the kit's per-lead key — row ids start over if the
- * leads file is ever recreated, and the panel counts only the first
- * `lead.created` of a lead id. The letter prefix keeps it from looking like a
- * phone number to the panel.
+ * The lead's id for the panel: kitstart's `leadRef` (`lead-<row>-<8 hex>`),
+ * the reference the page was answered with. A booking comes back to the
+ * panel carrying it, so `lead.created` must name the lead by the same one or
+ * the two never join. The row id is for a person matching it to the mail; the
+ * tag keeps it unique when row ids start over in a recreated leads file (the
+ * panel counts only the first `lead.created` of a lead id); the letter prefix
+ * keeps it from looking like a phone number to the panel.
+ *
+ * The kit leaves `leadRef` out only of a context built by hand; such a lead
+ * can be booked by nothing, so the same shape tagged from its per-lead key
+ * does.
  */
-export function panelLeadId(ctx: Pick<LeadWebhookContext, "leadId" | "idempotencyKey">): string {
+export function panelLeadId(ctx: Pick<LeadWebhookContext, "leadId" | "leadRef" | "idempotencyKey">): string {
+  if (ctx.leadRef !== undefined) return ctx.leadRef;
   const tag = createHash("sha256").update(ctx.idempotencyKey).digest("hex").slice(0, 8);
   return `lead-${ctx.leadId}-${tag}`;
 }
@@ -122,7 +136,9 @@ export function panelLeadId(ctx: Pick<LeadWebhookContext, "leadId" | "idempotenc
  * The callback's consent is not in the body: the panel has no field for it.
  * `locationId` is the point the form was posted from (its slug, which is its
  * subdomain); a lead from no point carries none. `properties.suspect` is
- * there only when kitstart set `ctx.suspect`, i.e. under `panelSuspect`.
+ * there only when kitstart set `ctx.suspect`, i.e. under `panelSuspect`; the
+ * flow (`flow`, and a priced one's `quoted_cents`, `pricing_valid_from`,
+ * `estimate_inputs`) only when it set `ctx.flow`, under `panelFlow`.
  */
 export function leadCreatedBody(lead: Lead, ctx: LeadWebhookContext, { sourceId, needLabel }: BodyOptions): IngestBody {
   const subject: LeadCreatedEvent["subject"] = { brandId: ctx.brandId, leadId: panelLeadId(ctx) };
@@ -135,7 +151,7 @@ export function leadCreatedBody(lead: Lead, ctx: LeadWebhookContext, { sourceId,
     occurredAt: ctx.at.toISOString(),
     source: { kind: "site", id: sourceId },
     subject,
-    properties: { channel: panelChannel(channelOf(lead)) },
+    properties: { channel: panelChannel(channelOf(lead)), ...panelFlowProperties(ctx.flow) },
   };
   if (ctx.suspect) event.properties.suspect = ctx.suspect;
   const pii = piiOf(lead, needLabel);

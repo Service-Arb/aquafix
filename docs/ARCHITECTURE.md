@@ -26,7 +26,7 @@ flowchart LR
       K --> D["features/seo → schema.org · head · sitemap"]
       L --> D
       R["proxy.ts<br/>subdomain · cookie · Accept-Language"] --> W
-      Q["/quote → entities/lead<br/>the commit point"]
+      Q["/quote → features/quote-form<br/>the commit point"]
     end
     B --> T
     C --> T
@@ -104,8 +104,8 @@ owner chose to keep on the page, not in the schema.
 | `@evinvest/kitstart` | The brand-free machinery, from EV-invest/lib: the site composition root (`defineSite`), the place model and its publication gate, routing helpers, the lead schema and its funnel, the copy contract, schema.org and `<head>` builders; on `./server` the env, the live place source, the lead store (SQLite, chosen by the scheme of `LEADS_DB_URL`; `LEADS_DB_PATH` still names the file) and the SMTP notifier; on `./next` the route factories (quote, sitemap, robots, OG, health), the place loader and `withLanding` for `next.config.ts`; on `./react` the structural widgets (language switch, call bar, status screen, place directory, coverage with the map facade, the quote form's shell, the FAQ, the analytics island). |
 | `src/entities/content` | Every string, once per language, and the language-free catalogue. `Text` extends kitstart's `CoreText`; a structural widget declares the slice it prints (`CopyOf<Pick<Text, …>>`) instead of taking the whole `Copy`. |
 | `src/entities/place` | The six points bound to the site: baked data from `shared/config/places.ts`, the live overlay, the publication gate, URLs — kitstart's place model (`Place` with a storefront or service-area `presence`, `PlaceView`, the gate as a policy) with the site filled in; on `server.ts` the live source and the page loader. |
-| `src/entities/lead` | The lead's type (kitstart's), and the notifier that mails it to the business in French. What a lead asks is `LEAD` in `shared/config/lead.ts`. |
-| `src/features` | The quote form (kitstart's `LeadCapture` in this brand's card and words), SEO (which of Aquafix's words kitstart's `placeGraph` and `placeMetadata` quote), the A/B tests' proxy, events and lead capture (`experiments`). |
+| `src/entities/lead` | The lead's type (kitstart's). What a lead asks is `LEAD` in `shared/config/lead.ts`. |
+| `src/features` | The quote form (kitstart's `LeadCapture` in this brand's card and words; on `server.ts` the notifier that mails a lead to the business in French and the lead webhook to the panel, both naming the job in the copy's words), SEO (which of Aquafix's words kitstart's `placeGraph` and `placeMetadata` quote), the A/B tests' proxy, events and lead capture (`experiments`). |
 | `src/widgets` | One band per slice, ≤120 lines a file, over a `Copy` and a `PlaceView`. The structural ones are kitstart's widgets in the brand's band, with the Figma frame's geometry passed through their `classNames` parts. |
 | `src/views` | The compositions: a point's home, its sub-pages, its status screens; the brand page. |
 

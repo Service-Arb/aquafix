@@ -1,9 +1,8 @@
 import { quoteRoute } from "@evinvest/kitstart/next";
 import { copyFor } from "@/entities/content";
-import { notifier } from "@/entities/lead/server";
 import { experimentLeads } from "@/features/experiments/server";
 import { contactOf } from "@/entities/place";
-import { webhook } from "@/features/quote-form/server";
+import { notifier, webhook } from "@/features/quote-form/server";
 import { serverEnv } from "@/shared/config/env";
 import { CARD, site } from "@/shared/config/site";
 

@@ -2,11 +2,21 @@ import { createHmac } from "node:crypto";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { Lead, SpamVerdict } from "@evinvest/kitstart";
+import {
+  createAcceptLead,
+  FORM_ID_FIELD,
+  LOCALE_FIELD,
+  LOCATION_FIELD,
+  RateLimiter,
+  RENDERED_AT_FIELD,
+  SUBMISSION_FIELD,
+  type Lead,
+  type SpamVerdict,
+} from "@evinvest/kitstart";
 import { leadWebhook, parseServerEnv, type LeadWebhookContext, type ServerEnv } from "@evinvest/kitstart/server";
 import { afterEach, describe, expect, it } from "vitest";
 import { site } from "@/shared/config/site";
-import { needLabel, PANEL_SUSPECT, webhookOptions } from "@/features/quote-form/server";
+import { needLabel, PANEL_FLOW, PANEL_SUSPECT, webhookOptions } from "@/features/quote-form/server";
 import { isOpaqueId, leadCreatedBody, panelLeadId, uuidV7, type BodyOptions } from "@/shared/lib/funnel-event";
 
 const lead: Lead = {
@@ -25,20 +35,26 @@ const ctx: LeadWebhookContext = {
   formId: "quote",
   at: new Date("2026-10-01T09:30:00.123Z"),
   idempotencyKey: "0b5c1f0e-7d1a-4e8b-9c2d-3f4a5b6c7d8e",
+  leadRef: "lead-42-9f86d081",
 };
 
 const OPTS: BodyOptions = { sourceId: "aquafix-site", needLabel };
 
-// The row id for a person, a tag from the key for uniqueness past a recreated leads file.
-const LEAD_ID = panelLeadId(ctx);
+// kitstart's reference for the lead, the one the page and a booking name it by.
+const LEAD_ID = "lead-42-9f86d081";
 
-/** The proto3 JSON names of each message's fields, read from the panel's contract. */
+/**
+ * The names each message's fields may go by on the wire, read from the panel's
+ * contract: the proto3 JSON (lowerCamelCase) name and the proto's own, which
+ * protojson accepts too and kitstart's `panelFlowProperties` writes.
+ */
 function protoFields(): Map<string, Set<string>> {
   const proto = readFileSync(new URL("./support/sa-events.proto", import.meta.url), "utf8");
   const messages = new Map<string, Set<string>>();
   for (const [, name, body] of proto.matchAll(/^message (\w+) \{([^}]*)\}/gm)) {
     const fields = new Set<string>();
-    for (const [, field] of (body ?? "").matchAll(/^\s*(?:optional |repeated )?[\w.]+ (\w+) = \d+;/gm)) {
+    for (const [, field] of (body ?? "").matchAll(/^\s*(?:optional |repeated )?(?:map<[\w., ]+>|[\w.]+) (\w+) = \d+;/gm)) {
+      fields.add(field ?? "");
       fields.add((field ?? "").replace(/_([a-z])/g, (_, c: string) => c.toUpperCase()));
     }
     messages.set(name ?? "", fields);
@@ -126,17 +142,44 @@ describe("lead.created for the panel", () => {
     expect(marked.properties).toEqual({ channel: "form", suspect: "too_fast" });
   });
 
+  it("carries the sale only when the kit says how it went — a quote alone, a price with its date and answers", () => {
+    const props = (flow: LeadWebhookContext["flow"]) => leadCreatedBody(lead, flow ? { ...ctx, flow } : ctx, OPTS).events[0].properties;
+    expect(props(undefined)).toEqual({ channel: "form" });
+    expect(props({ flow: "quote" })).toEqual({ channel: "form", flow: "quote" });
+    expect(props({ flow: "fixed", quotedCents: 9_000, pricingValidFrom: "2026-10-01" })).toEqual({
+      channel: "form",
+      flow: "fixed",
+      quoted_cents: 9_000,
+      pricing_valid_from: "2026-10-01",
+    });
+    const estimate = props({ flow: "estimate", quotedCents: 12_500, pricingValidFrom: "2026-10-01", estimateInputs: { zone: "royat" } });
+    expect(estimate).toEqual({
+      channel: "form",
+      flow: "estimate",
+      quoted_cents: 12_500,
+      pricing_valid_from: "2026-10-01",
+      estimate_inputs: { zone: "royat" },
+    });
+    // The panel checks registered properties strictly: an unknown field rejects the event.
+    keysWithin(estimate, "LeadCreatedV1");
+  });
+
   it("leaves the location out for a lead from no point", () => {
     const [event] = leadCreatedBody({ ...lead, placeSlug: null }, ctx, OPTS).events;
     expect(event.subject).toEqual({ brandId: "aquafix", leadId: LEAD_ID });
   });
 
-  it("makes a lead id unique past a recreated leads file, and stable for one lead", () => {
-    expect(LEAD_ID).toMatch(/^lead-42-[0-9a-f]{8}$/);
-    expect(isOpaqueId(LEAD_ID)).toBe(true);
+  it("sends kitstart's leadRef as the panel's lead id, whatever the per-lead key", () => {
     expect(panelLeadId(ctx)).toBe(LEAD_ID);
-    // The same row id from a fresh file carries a fresh key, so another id.
-    expect(panelLeadId({ ...ctx, idempotencyKey: "5e7a2c10-1b3d-4f6e-8a9b-0c1d2e3f4a5b" })).not.toBe(LEAD_ID);
+    expect(panelLeadId({ ...ctx, idempotencyKey: "5e7a2c10-1b3d-4f6e-8a9b-0c1d2e3f4a5b" })).toBe(LEAD_ID);
+    expect(isOpaqueId(LEAD_ID)).toBe(true);
+  });
+
+  it("falls back to the same shape, unique past a recreated leads file, for a context without a ref", () => {
+    const bare = { leadId: 42, idempotencyKey: ctx.idempotencyKey };
+    expect(panelLeadId(bare)).toMatch(/^lead-42-[0-9a-f]{8}$/);
+    expect(panelLeadId(bare)).toBe(panelLeadId(bare));
+    expect(panelLeadId({ ...bare, idempotencyKey: "5e7a2c10-1b3d-4f6e-8a9b-0c1d2e3f4a5b" })).not.toBe(panelLeadId(bare));
     expect(isOpaqueId(panelLeadId({ leadId: 12345678, idempotencyKey: ctx.idempotencyKey }))).toBe(true);
   });
 
@@ -212,6 +255,66 @@ describe("the lead webhook, wired as the site wires it", () => {
     });
   });
 
+  // A booking joins its lead by the reference the page was answered with; the
+  // panel must have been told the lead under that same id.
+  it("names the lead in lead.created by the reference the page was answered with", async () => {
+    dir = mkdtempSync(join(tmpdir(), "aquafix-hook-"));
+    const env = parseServerEnv(site, {
+      LEADS_DB_PATH: join(dir, "leads.db"),
+      LEAD_WEBHOOK_URL: "http://127.0.0.1:59120/api/ingest/v1/events",
+      LEAD_WEBHOOK_KEY_ID: "aquafix-site",
+      LEAD_WEBHOOK_SECRET: "test-secret",
+    });
+    const bodies: string[] = [];
+    const hook = leadWebhook(site, env, {
+      ...webhookOptions("aquafix-site"),
+      fetch: async (_input, init) => {
+        bodies.push(String(init?.body));
+        return new Response(JSON.stringify({ results: [{ index: 0, status: "accepted" }] }), { status: 207 });
+      },
+      log: { info: () => {}, warn: () => {}, error: () => {} },
+    });
+    if (!hook) throw new Error("the webhook should be on");
+    const now = Date.parse("2026-10-04T08:00:00Z");
+    const form = new FormData();
+    for (const [name, value] of Object.entries({
+      job: "blocked_drain",
+      zip: "63130",
+      mobile: "06 12 34 56 78",
+      [LOCATION_FIELD]: "royat",
+      [LOCALE_FIELD]: "fr",
+      [FORM_ID_FIELD]: "quote",
+      [RENDERED_AT_FIELD]: String(now - 60_000),
+      [SUBMISSION_FIELD]: "0d6f6a1e-2b7c-4c55-9e0f-6b1f5c3a7d21",
+    }))
+      form.set(name, value);
+    try {
+      const outcome = await createAcceptLead(site)(form, "198.51.100.7", {
+        insert: async () => 7,
+        defer: () => {},
+        notify: async () => {},
+        enqueue: (l, id, meta) => hook.enqueue(l, id, meta),
+        capture: () => {},
+        limiter: new RateLimiter(100, 60_000),
+        now,
+        log: { warn: () => {}, error: () => {} },
+      });
+      if (outcome.kind !== "stored") throw new Error(`the lead should be stored, was ${outcome.kind}`);
+      expect(outcome.ref).toMatch(/^lead-7-[0-9a-f]{8}$/);
+      expect(await hook.tick()).toMatchObject({ delivered: 1 });
+      expect(bodies).toHaveLength(1);
+      expect(JSON.parse(bodies[0] ?? "")).toMatchObject({ events: [{ subject: { leadId: outcome.ref } }] });
+      // `panelFlow` is on, but aquafix configures no flows: the kit gives its
+      // leads none, and the panel reads a lead without one as a quote.
+      expect(hook.panelFlow).toBe(true);
+      expect(outcome.lead.flow).toBeUndefined();
+      expect(JSON.parse(bodies[0] ?? "")).toMatchObject({ events: [{ properties: { channel: "form" } }] });
+      expect(bodies[0]).not.toContain('"flow"');
+    } finally {
+      hook.close();
+    }
+  });
+
   /**
    * A lead of each verdict through the webhook as the site builds it, and the
    * `suspect` each body carried to the receiver, by row id.
@@ -226,7 +329,7 @@ describe("the lead webhook, wired as the site wires it", () => {
     });
     const said: Record<string, string | null> = {};
     const hook = leadWebhook(site, env, {
-      ...webhookOptions("aquafix-site", panelSuspect),
+      ...webhookOptions("aquafix-site", panelSuspect === undefined ? undefined : { panelSuspect, panelFlow: PANEL_FLOW }),
       fetch: async (_input, init) => {
         const raw = String(init?.body);
         const row = /"leadId":"lead-(\d+)-/.exec(raw)?.[1] ?? "?";
@@ -246,13 +349,13 @@ describe("the lead webhook, wired as the site wires it", () => {
     return { on: hook.panelSuspect, said };
   }
 
-  // The panel refuses an unknown property, and the outbox would park the lead.
-  it("keeps the panel's suspect marker off, so no body carries it", async () => {
-    expect(PANEL_SUSPECT).toBe(false);
-    expect(await suspects()).toEqual({ on: false, said: { 1: null, 2: null, 3: null, 4: null } });
+  // Panel v0.3.0 takes the property; before it, it refused the event and the outbox parked the lead.
+  it("sends why a lead is suspect, as the site wires it — rate_limited or too_fast, never honeypot", async () => {
+    expect(PANEL_SUSPECT).toBe(true);
+    expect(await suspects()).toEqual({ on: true, said: { 1: null, 2: "too_fast", 3: "rate_limited", 4: null } });
   });
 
-  it("sends why a lead is suspect once turned on — rate_limited or too_fast, never honeypot", async () => {
-    expect(await suspects(true)).toEqual({ on: true, said: { 1: null, 2: "too_fast", 3: "rate_limited", 4: null } });
+  it("carries no suspect marker when turned off", async () => {
+    expect(await suspects(false)).toEqual({ on: false, said: { 1: null, 2: null, 3: null, 4: null } });
   });
 });

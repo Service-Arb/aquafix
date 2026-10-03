@@ -1,29 +1,47 @@
 import "server-only";
 import { leadWebhook, type LeadWebhook, type LeadWebhookOptions } from "@evinvest/kitstart/server";
-import { text } from "@/entities/content";
 import { serverEnv } from "@/shared/config/env";
 import { site } from "@/shared/config/site";
 import { leadCreatedBody, SA_INGEST_SIGNING } from "@/shared/lib/funnel-event";
+import { jobLabelFr } from "./lib/job-label";
+
+export { notifier, NOTIFIER_OPTIONS } from "./api/notify";
+export { jobLabelFr };
 
 /**
- * kitstart's `panelSuspect`: off until the panel's `lead.created` has a
- * `suspect` property. The panel refuses an unknown one and the outbox would
- * park the lead; off, a rate-limited lead stays in the leads file and no body
- * carries the property.
+ * kitstart's `panelSuspect`, on since the panel's `lead.created` has a
+ * `suspect` property (panel v0.3.0): a rate-limited lead is queued too, marked
+ * `rate_limited`, and a fast one `too_fast`, for a person to judge in the
+ * panel. A honeypot lead still goes nowhere, and a suspect one is never mailed.
  */
-export const PANEL_SUSPECT = false;
+export const PANEL_SUSPECT = true;
 
-// French, as the business reads its leads (the mail is French too).
-const JOB_LABELS = new Map<string, string>(Object.entries(text("fr").jobs));
+/**
+ * kitstart's `panelFlow`, on since the panel's `lead.created` has the flow
+ * properties (panel v0.3.0). Every aquafix job is sold as a quote and the site
+ * configures no flows, so its leads carry no `flow` — which the panel reads as
+ * `quote`. A priced flow, once configured, sends its price with it.
+ */
+export const PANEL_FLOW = true;
 
-/** A job in the business's words; a job the form no longer offers stays as posted. */
-export const needLabel = (subject: string): string => JOB_LABELS.get(subject) ?? subject;
+/** kitstart's switches over what `lead.created` carries. */
+export interface PanelSwitches {
+  panelSuspect: boolean;
+  panelFlow: boolean;
+}
 
-/** How the site builds and signs its lead webhook; `panelSuspect` is a parameter for the test that flips it. */
-export function webhookOptions(keyId: string, panelSuspect: boolean = PANEL_SUSPECT): LeadWebhookOptions {
+/** The job as the mail names it; a job the form no longer offers stays as posted. */
+export const needLabel = (subject: string): string => jobLabelFr(subject) ?? subject;
+
+/** How the site builds and signs its lead webhook; the switches are a parameter for the tests that flip them. */
+export function webhookOptions(
+  keyId: string,
+  { panelSuspect, panelFlow }: PanelSwitches = { panelSuspect: PANEL_SUSPECT, panelFlow: PANEL_FLOW },
+): LeadWebhookOptions {
   return {
     signing: SA_INGEST_SIGNING,
     panelSuspect,
+    panelFlow,
     buildBody: (lead, ctx) => leadCreatedBody(lead, ctx, { sourceId: keyId, needLabel }),
   };
 }
