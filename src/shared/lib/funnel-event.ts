@@ -1,7 +1,13 @@
 import "server-only";
 import { createHash } from "node:crypto";
 import { channelOf, type Lead, type LeadSuspect } from "@evinvest/kitstart";
-import { panelChannel, type LeadWebhookContext, type WebhookSigning } from "@evinvest/kitstart/server";
+import {
+  panelChannel,
+  panelFlowProperties,
+  type LeadWebhookContext,
+  type PanelFlowProperties,
+  type WebhookSigning,
+} from "@evinvest/kitstart/server";
 
 /**
  * The panel's ingest scheme (Service-Arb/panel README, "Sending events"): the
@@ -24,7 +30,8 @@ export interface LeadCreatedEvent {
   occurredAt: string;
   source: { kind: "site"; id: string };
   subject: { brandId: string; locationId?: string; leadId: string };
-  properties: {
+  /** The flow fields only under kitstart's `panelFlow`, and only for a lead with a flow. */
+  properties: Partial<PanelFlowProperties> & {
     channel: ReturnType<typeof panelChannel>;
     /** Only under kitstart's `panelSuspect`, and only for a lead it marks. */
     suspect?: LeadSuspect;
@@ -129,7 +136,9 @@ export function panelLeadId(ctx: Pick<LeadWebhookContext, "leadId" | "leadRef" |
  * The callback's consent is not in the body: the panel has no field for it.
  * `locationId` is the point the form was posted from (its slug, which is its
  * subdomain); a lead from no point carries none. `properties.suspect` is
- * there only when kitstart set `ctx.suspect`, i.e. under `panelSuspect`.
+ * there only when kitstart set `ctx.suspect`, i.e. under `panelSuspect`; the
+ * flow (`flow`, and a priced one's `quoted_cents`, `pricing_valid_from`,
+ * `estimate_inputs`) only when it set `ctx.flow`, under `panelFlow`.
  */
 export function leadCreatedBody(lead: Lead, ctx: LeadWebhookContext, { sourceId, needLabel }: BodyOptions): IngestBody {
   const subject: LeadCreatedEvent["subject"] = { brandId: ctx.brandId, leadId: panelLeadId(ctx) };
@@ -142,7 +151,7 @@ export function leadCreatedBody(lead: Lead, ctx: LeadWebhookContext, { sourceId,
     occurredAt: ctx.at.toISOString(),
     source: { kind: "site", id: sourceId },
     subject,
-    properties: { channel: panelChannel(channelOf(lead)) },
+    properties: { channel: panelChannel(channelOf(lead)), ...panelFlowProperties(ctx.flow) },
   };
   if (ctx.suspect) event.properties.suspect = ctx.suspect;
   const pii = piiOf(lead, needLabel);

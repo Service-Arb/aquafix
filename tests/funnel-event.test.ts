@@ -16,7 +16,7 @@ import {
 import { leadWebhook, parseServerEnv, type LeadWebhookContext, type ServerEnv } from "@evinvest/kitstart/server";
 import { afterEach, describe, expect, it } from "vitest";
 import { site } from "@/shared/config/site";
-import { needLabel, PANEL_SUSPECT, webhookOptions } from "@/features/quote-form/server";
+import { needLabel, PANEL_FLOW, PANEL_SUSPECT, webhookOptions } from "@/features/quote-form/server";
 import { isOpaqueId, leadCreatedBody, panelLeadId, uuidV7, type BodyOptions } from "@/shared/lib/funnel-event";
 
 const lead: Lead = {
@@ -140,6 +140,28 @@ describe("lead.created for the panel", () => {
     expect(plain.properties).toEqual({ channel: "form" });
     const [marked] = leadCreatedBody({ ...lead, spamVerdict: "too-fast" }, { ...ctx, suspect: "too_fast" }, OPTS).events;
     expect(marked.properties).toEqual({ channel: "form", suspect: "too_fast" });
+  });
+
+  it("carries the sale only when the kit says how it went — a quote alone, a price with its date and answers", () => {
+    const props = (flow: LeadWebhookContext["flow"]) => leadCreatedBody(lead, flow ? { ...ctx, flow } : ctx, OPTS).events[0].properties;
+    expect(props(undefined)).toEqual({ channel: "form" });
+    expect(props({ flow: "quote" })).toEqual({ channel: "form", flow: "quote" });
+    expect(props({ flow: "fixed", quotedCents: 9_000, pricingValidFrom: "2026-10-01" })).toEqual({
+      channel: "form",
+      flow: "fixed",
+      quoted_cents: 9_000,
+      pricing_valid_from: "2026-10-01",
+    });
+    const estimate = props({ flow: "estimate", quotedCents: 12_500, pricingValidFrom: "2026-10-01", estimateInputs: { zone: "royat" } });
+    expect(estimate).toEqual({
+      channel: "form",
+      flow: "estimate",
+      quoted_cents: 12_500,
+      pricing_valid_from: "2026-10-01",
+      estimate_inputs: { zone: "royat" },
+    });
+    // The panel checks registered properties strictly: an unknown field rejects the event.
+    keysWithin(estimate, "LeadCreatedV1");
   });
 
   it("leaves the location out for a lead from no point", () => {
@@ -282,6 +304,12 @@ describe("the lead webhook, wired as the site wires it", () => {
       expect(await hook.tick()).toMatchObject({ delivered: 1 });
       expect(bodies).toHaveLength(1);
       expect(JSON.parse(bodies[0] ?? "")).toMatchObject({ events: [{ subject: { leadId: outcome.ref } }] });
+      // `panelFlow` is on, but aquafix configures no flows: the kit gives its
+      // leads none, and the panel reads a lead without one as a quote.
+      expect(hook.panelFlow).toBe(true);
+      expect(outcome.lead.flow).toBeUndefined();
+      expect(JSON.parse(bodies[0] ?? "")).toMatchObject({ events: [{ properties: { channel: "form" } }] });
+      expect(bodies[0]).not.toContain('"flow"');
     } finally {
       hook.close();
     }
@@ -301,7 +329,7 @@ describe("the lead webhook, wired as the site wires it", () => {
     });
     const said: Record<string, string | null> = {};
     const hook = leadWebhook(site, env, {
-      ...webhookOptions("aquafix-site", panelSuspect),
+      ...webhookOptions("aquafix-site", panelSuspect === undefined ? undefined : { panelSuspect, panelFlow: PANEL_FLOW }),
       fetch: async (_input, init) => {
         const raw = String(init?.body);
         const row = /"leadId":"lead-(\d+)-/.exec(raw)?.[1] ?? "?";

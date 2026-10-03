@@ -16,14 +16,32 @@ export { jobLabelFr };
  */
 export const PANEL_SUSPECT = true;
 
+/**
+ * kitstart's `panelFlow`, on since the panel's `lead.created` has the flow
+ * properties (panel v0.3.0). Every aquafix job is sold as a quote and the site
+ * configures no flows, so its leads carry no `flow` — which the panel reads as
+ * `quote`. A priced flow, once configured, sends its price with it.
+ */
+export const PANEL_FLOW = true;
+
+/** kitstart's switches over what `lead.created` carries. */
+export interface PanelSwitches {
+  panelSuspect: boolean;
+  panelFlow: boolean;
+}
+
 /** The job as the mail names it; a job the form no longer offers stays as posted. */
 export const needLabel = (subject: string): string => jobLabelFr(subject) ?? subject;
 
-/** How the site builds and signs its lead webhook; `panelSuspect` is a parameter for the test that flips it. */
-export function webhookOptions(keyId: string, panelSuspect: boolean = PANEL_SUSPECT): LeadWebhookOptions {
+/** How the site builds and signs its lead webhook; the switches are a parameter for the tests that flip them. */
+export function webhookOptions(
+  keyId: string,
+  { panelSuspect, panelFlow }: PanelSwitches = { panelSuspect: PANEL_SUSPECT, panelFlow: PANEL_FLOW },
+): LeadWebhookOptions {
   return {
     signing: SA_INGEST_SIGNING,
     panelSuspect,
+    panelFlow,
     buildBody: (lead, ctx) => leadCreatedBody(lead, ctx, { sourceId: keyId, needLabel }),
   };
 }
