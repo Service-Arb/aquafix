@@ -12,31 +12,19 @@ import { CTA_FACE } from "@/shared/ui/brand";
  * Figma height on the card plane, 24px line + 2×13px + 2×1px border.
  */
 const CONTROL = "h-auto w-full rounded-[var(--corner-control)] border border-input bg-card py-[13px] text-ink shadow-none";
-/**
- * The same face for the job's select, in both of its states. `LeadCapture`
- * gives the need's `FormSelect` no part of its own, so it is reached from the
- * form by its slot — the one descendant selector here, until the kit passes
- * `control` to it.
- */
-const SELECT_CONTROL =
-  "[&_:is([data-slot=select-trigger],[data-slot=native-select])]:h-auto [&_:is([data-slot=select-trigger],[data-slot=native-select])]:w-full [&_:is([data-slot=select-trigger],[data-slot=native-select])]:rounded-[var(--corner-control)] [&_:is([data-slot=select-trigger],[data-slot=native-select])]:border-input [&_:is([data-slot=select-trigger],[data-slot=native-select])]:bg-card [&_:is([data-slot=select-trigger],[data-slot=native-select])]:py-[13px] [&_:is([data-slot=select-trigger],[data-slot=native-select])]:text-ink [&_:is([data-slot=select-trigger],[data-slot=native-select])]:shadow-none";
 /** Set solid, as the frame's `normal` leading: the page's 1.5 added ~40px to the card. */
 const LABEL = "text-[12.5px] font-medium leading-[normal] tracking-[0.06em] text-ink-mid";
 /** The kit's `xl` button over `LeadCapture`'s `touch`: the brand's CTA, as every other one on the page. */
 const CTA = `min-h-0 px-[var(--control-px)] py-[var(--control-py)] text-[length:var(--control-text)] ${CTA_FACE}`;
 
 /**
- * The card is the kit's root; the form inside it keeps the kit's own gap, so
- * the head, the fields and the reassurance under the submit sit where the
- * hand-built card had them.
+ * The card is the kit's root — `#quote`, so a CTA lands on its top edge, title
+ * and all; the form inside it keeps the kit's own gap, so the head, the fields
+ * and the reassurance under the submit sit where the hand-built card had them.
  */
 const PARTS: PartClassNames<LeadCapturePart> = {
   // A light island inside a dark band.
   root: "light gap-5 rounded-[var(--corner-float)] bg-background px-6 py-7 text-ink shadow-overlay md:px-[34px] md:pb-[30px] md:pt-8",
-  // `#quote` is the form, under the card's head: the margin is the card's
-  // padding, head and gap above it at each width, so a CTA lands on the card's
-  // top edge, title and all, as it did when the form was the card.
-  form: `${SELECT_CONTROL} scroll-mt-[119px] md:scroll-mt-[111px] lg:scroll-mt-[130px]`,
   field: "w-full",
   label: LABEL,
   control: CONTROL,
@@ -46,10 +34,6 @@ const PARTS: PartClassNames<LeadCapturePart> = {
   // The privacy line is the trust slot's last row, with its tick.
   privacy: "hidden",
   channel: CTA,
-  // The closed callback on a whole pixel: the `xl` face is 52.5px tall on a
-  // phone, and half a pixel more in the hero shifts every band below it off
-  // the pixel grid.
-  callback: "min-h-[53px]",
 };
 
 export type QuoteFormWidgetCopy = CopyOf<Pick<Text, "quoteForm" | "jobs">>;
@@ -73,7 +57,8 @@ function leadText(copy: QuoteFormWidgetCopy, priceAnchor: boolean): LeadCaptureT
 /**
  * kitstart's `LeadCapture` in this brand's card: the job (not asked again when
  * the visitor tapped one on the page — `data-need` on the work tiles and the
- * price rows), the postcode, the mobile, and "call me back". Over the kit's
+ * price rows), the postcode (filled with the storefront's own, which the kit
+ * reads off the place), the mobile, and "call me back". Over the kit's
  * `QuoteFormShell`, so it still posts before any JavaScript arrives, which is
  * when the visitor standing in water submits it.
  *

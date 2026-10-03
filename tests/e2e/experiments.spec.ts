@@ -56,7 +56,7 @@ test("variant b of both experiments renders", async ({ page }, testInfo) => {
     await expect(written).toBeHidden();
   }
   // quote_price_anchor: the fixed-price submit, and each job's published price.
-  const form = page.locator("form#quote");
+  const form = page.locator("form#quote-form");
   await expect(form.getByRole("button", { name: /Recevoir mon tarif fixe/ })).toBeVisible();
   await expect(form.getByText("Sans engagement · Prix TTC")).toBeVisible();
   await form.locator("button[role=combobox]").click();
@@ -72,7 +72,7 @@ test("the control renders as before", async ({ page, context }) => {
   ]);
   await page.goto("/fr");
   await expect(page.getByRole("link", { name: /Appeler un plombier/ })).toHaveCount(0);
-  await expect(page.locator("form#quote").getByRole("button", { name: /Envoyez-moi mon prix/ })).toBeVisible();
+  await expect(page.locator("form#quote-form").getByRole("button", { name: /Envoyez-moi mon prix/ })).toBeVisible();
 });
 
 test("exposure and contact events carry the experiment and the variant", async ({ page }) => {
@@ -125,7 +125,7 @@ test("a crawler gets the control and no cookie, even when it asks for b", async 
 test("lead_layout b asks the job first, and its events carry the arm", async ({ page }) => {
   const events = await capture(page);
   await page.goto("/fr?ab_lead_layout=b&ab_quote_price_anchor=b");
-  const form = page.locator("form#quote");
+  const form = page.locator("form#quote-form");
   const phone = form.locator("input[name=mobile]");
   await expect(phone).toBeHidden();
   // The price anchor rides on the tiles' labels.
