@@ -54,6 +54,7 @@ export const FR = {
   promise: "PRIX FIXE. RÉPARÉ AUJOURD’HUI.",
   emergencyHours: "Urgences — 24 heures sur 24, 7 jours sur 7",
   bookingHours: "Réservations — de 7h à 21h, tous les jours",
+  bookingHoursOf: hours => `Réservations — ${hours}`,
   headerPhoneLabel: "24/7 · UN HUMAIN RÉPOND",
   heroPhotoAlt: "L’équipe Aquafix devant les camionnettes aux couleurs de l’entreprise, au dépôt.",
   cta: "Obtenir mon prix fixe  →",

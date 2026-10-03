@@ -13,6 +13,7 @@ export {
   placeView,
   publicationGaps,
 } from "./model/place";
+export { hoursText } from "./model/hours";
 export {
   freshRating,
   mergeLive,

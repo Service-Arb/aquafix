@@ -1,6 +1,6 @@
 import { telHref } from "@evinvest/marketing";
 import { SERVICE_LIST, type Copy } from "@/entities/content";
-import { contactOf, servedLocalities, storefrontOf, type PlaceView } from "@/entities/place";
+import { contactOf, hoursText, servedLocalities, storefrontOf, type PlaceView } from "@/entities/place";
 import { CARD, site } from "@/shared/config/site";
 import { Lockup } from "@/shared/ui/brand";
 import type { ReactNode } from "react";
@@ -17,6 +17,7 @@ export function Footer({ copy, point }: { copy: Copy; point: PlaceView }) {
   const cols = t.footer.columns;
   const company = t.footer.company;
   const areas = servedLocalities(point.place);
+  const hours = hoursText(point.place.hours, copy.locale);
   return (
     <footer id="footer" className="dark bg-background px-[var(--page-px)] pt-9 md:pt-14">
       <div className="flex flex-col gap-8 lg:flex-row lg:gap-12">
@@ -57,7 +58,8 @@ export function Footer({ copy, point }: { copy: Copy; point: PlaceView }) {
               {phone}
             </a>
             <p>{t.emergencyHours}</p>
-            <p>{t.bookingHours}</p>
+            {/* The point's own hours once the live source has them; the emergency line is the brand's, round the clock. */}
+            <p>{hours ? t.bookingHoursOf(hours) : t.bookingHours}</p>
             <a href={`mailto:${CARD.email}`}>{CARD.email}</a>
             {front && (
               <address className="not-italic">

@@ -173,6 +173,8 @@ export interface Text extends CoreText<PageKey, Facts> {
   promise: string;
   emergencyHours: string;
   bookingHours: string;
+  /** The bookings line over a point's real hours, in place of `bookingHours`. */
+  bookingHoursOf: (hours: string) => string;
   headerPhoneLabel: string;
   heroPhotoAlt: string;
   /** The one CTA label, so a copy change cannot land on some buttons only. */
