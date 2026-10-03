@@ -4,6 +4,7 @@ import { LEAD_CAPTURE_TEXT, MIN_FILL_MS, normalizePhone } from "@evinvest/kitsta
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { JOB_IDS } from "../../src/shared/config/lead";
 import { CONTROL_COOKIES, LEADS_DB, POINT_ORIGIN, POSTHOG_HOST } from "./env";
+import { freshMobile } from "./support/mobile";
 
 // The funnel's floor: the form must submit before any JavaScript has loaded.
 // A regression here is invisible to every other test in the suite and costs
@@ -13,7 +14,7 @@ test.describe("without JavaScript", () => {
 
   test("the quote form posts, gets a 303 and the lead is stored", async ({ page }, testInfo) => {
     // A number no other test (or project) submits, so the row found is this one.
-    const mobile = `06${String(Date.now() % 1e8).padStart(8, "0")}`;
+    const mobile = freshMobile("06");
     const zip = `63130-${testInfo.project.name}`;
 
     // `#quote` is the link every CTA points at, so the form is on screen on
@@ -49,7 +50,7 @@ test.describe("without JavaScript", () => {
 // platform's menu — and the pick still reaches the row. A native `<select>` is
 // a combobox too, so the trigger is found as the button it becomes.
 test("with JavaScript the job is the kit's listbox and the pick is stored", async ({ page }, testInfo) => {
-  const mobile = `07${String(Date.now() % 1e8).padStart(8, "0")}`;
+  const mobile = freshMobile("07");
   const zip = `63130-js-${testInfo.project.name}`;
 
   await page.goto("/fr#quote");
@@ -135,7 +136,7 @@ async function ownClient(page: Page, testInfo: TestInfo, slot: number): Promise<
 // The job tapped on the page is not asked again: a work tile (or a price row)
 // names it with `data-need`, and the form keeps it as chosen.
 test("a tapped work tile is the job the form sends", async ({ page }, testInfo) => {
-  const mobile = `06${String((Date.now() + 7) % 1e8).padStart(8, "0")}`;
+  const mobile = freshMobile("06");
   await ownClient(page, testInfo, 1);
   await page.goto("/fr");
   const form = page.locator("form#quote-form");
@@ -164,7 +165,7 @@ test("a tapped work tile is the job the form sends", async ({ page }, testInfo) 
 // "Call me back": the phone and a consent, posted as its own lead. The consent
 // is the sentence shown, kept word for word with the row.
 test("the callback posts a lead with its consent", async ({ page }, testInfo) => {
-  const mobile = `07${String((Date.now() + 13) % 1e8).padStart(8, "0")}`;
+  const mobile = freshMobile("07");
   await ownClient(page, testInfo, 2);
   await page.goto("/fr");
   const callback = page.locator("details#quote-callback");
@@ -287,7 +288,7 @@ test("a refusal with the script keeps what was typed", async ({ page }, testInfo
 
 // Review finding 12: a callback was thanked with the quote's SMS promise.
 test("callback_thanks_promises_a_call", async ({ page }, testInfo) => {
-  const mobile = `07${String((Date.now() + 29) % 1e8).padStart(8, "0")}`;
+  const mobile = freshMobile("07");
   await ownClient(page, testInfo, 3);
   await page.goto("/fr");
   const callback = page.locator("details#quote-callback");
@@ -310,7 +311,7 @@ test("callback_thanks_promises_a_call", async ({ page }, testInfo) => {
 // browser's error page, losing the form. Now the card says so and resends the
 // same lead — once.
 test("offline, the card says so, keeps the form, and a retry sends one lead", async ({ page, context }, testInfo) => {
-  const mobile = `06${String((Date.now() + 31) % 1e8).padStart(8, "0")}`;
+  const mobile = freshMobile("06");
   await ownClient(page, testInfo, 5);
   await page.goto("/fr");
   const form = await fillQuote(page, "63130-offline", mobile);
