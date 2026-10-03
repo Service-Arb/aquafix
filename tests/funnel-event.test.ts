@@ -88,8 +88,16 @@ describe("lead.created for the panel", () => {
     });
   });
 
+  it("carries the visit's analytics id when the form posted one, and none otherwise", () => {
+    expect(leadCreatedBody(lead, { ...ctx, analyticsId: "0192f1c4-7d1e-7b3a-9c2d-1a2b3c4d5e6f" }, OPTS).events[0].properties).toEqual({
+      channel: "form",
+      analytics_id: "0192f1c4-7d1e-7b3a-9c2d-1a2b3c4d5e6f",
+    });
+    expect(leadCreatedBody(lead, ctx, OPTS).events[0].properties).not.toHaveProperty("analytics_id");
+  });
+
   it("names only fields the proto declares, in their protojson spelling", () => {
-    const body = leadCreatedBody({ ...lead, extras: { note: "x" } }, ctx, OPTS);
+    const body = leadCreatedBody({ ...lead, extras: { note: "x" } }, { ...ctx, analyticsId: "a1" }, OPTS);
     keysWithin(body, "IngestRequest");
     const [event] = body.events;
     keysWithin(event, "Event");

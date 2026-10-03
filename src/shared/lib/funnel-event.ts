@@ -35,6 +35,12 @@ export interface LeadCreatedEvent {
     channel: ReturnType<typeof panelChannel>;
     /** Only under kitstart's `panelSuspect`, and only for a lead it marks. */
     suspect?: LeadSuspect;
+    /**
+     * The visit's PostHog `distinct_id` when the form was sent, so the panel's
+     * own events for this lead join the visit there. Not PII: the beacon's
+     * random id.
+     */
+    analytics_id?: string;
   };
   pii?: Record<string, string>;
 }
@@ -138,7 +144,8 @@ export function panelLeadId(ctx: Pick<LeadWebhookContext, "leadId" | "leadRef" |
  * subdomain); a lead from no point carries none. `properties.suspect` is
  * there only when kitstart set `ctx.suspect`, i.e. under `panelSuspect`; the
  * flow (`flow`, and a priced one's `quoted_cents`, `pricing_valid_from`,
- * `estimate_inputs`) only when it set `ctx.flow`, under `panelFlow`.
+ * `estimate_inputs`) only when it set `ctx.flow`, under `panelFlow`;
+ * `properties.analytics_id` only when the form's POST carried the visit's id.
  */
 export function leadCreatedBody(lead: Lead, ctx: LeadWebhookContext, { sourceId, needLabel }: BodyOptions): IngestBody {
   const subject: LeadCreatedEvent["subject"] = { brandId: ctx.brandId, leadId: panelLeadId(ctx) };
@@ -154,6 +161,7 @@ export function leadCreatedBody(lead: Lead, ctx: LeadWebhookContext, { sourceId,
     properties: { channel: panelChannel(channelOf(lead)), ...panelFlowProperties(ctx.flow) },
   };
   if (ctx.suspect) event.properties.suspect = ctx.suspect;
+  if (ctx.analyticsId) event.properties.analytics_id = ctx.analyticsId;
   const pii = piiOf(lead, needLabel);
   if (Object.keys(pii).length > 0) event.pii = pii;
   return { events: [event] };
