@@ -56,7 +56,7 @@ export const EN = {
   promise: "FIXED PRICE. FIXED TODAY.",
   bookingHours: "Bookings — 7am to 9pm daily",
   bookingHoursOf: hours => `Bookings — ${hours}`,
-  headerPhoneLabel: "24/7 · ANSWERED BY A HUMAN",
+  headerPhoneLabel: "ANSWERED BY A HUMAN",
   heroPhotoAlt: "The Aquafix crew in front of the branded vans at the depot.",
   cta: "Get my flat price  →",
   ctaShort: "Get my flat price",
@@ -73,7 +73,7 @@ export const EN = {
     submit: "Send me my price  →",
     privacy: "Your number is used to send the quote. Nothing else, ever.",
     reassurance: f =>
-      `We text your price band back within 10 minutes, 7am–9pm. Emergency right now? Call ${f.phone} — we pick up 24/7.`,
+      `We text your price band back within 10 minutes, 7am–9pm. Emergency right now? Call ${f.phone}.`,
     jobLabel: "WHAT'S WRONG?",
     zipLabel: "WHERE ARE YOU?",
     mobileLabel: "MOBILE",
@@ -153,7 +153,7 @@ export const EN = {
     reviewsEyebrow: "REVIEWS",
     reviewsTitle: "What the neighbours say.",
     reviewsRating: f => `${f.rating.value} out of 5 · ${f.rating.count}${f.rating.google ? " Google" : ""} reviews`,
-    reviewsCallAside: ["or call ", " — we pick up 24/7"],
+    reviewsCallAside: "or call ",
     coverageEyebrow: f => `SERVICE AREA · ${f.radiusKm} KM AROUND ${f.place.toUpperCase()}`,
     coverageTitle: "Where we go.",
     coverageLede: f => `${f.place} and the communes around it. If you are outside, we will say so on the phone.`,
@@ -179,7 +179,7 @@ export const EN = {
       body: () => "12 months on parts and labour. If the same fault comes back, we come back and fix it at no charge.",
     },
   ],
-  guaranteeCtaAside: f => `or call ${f.phone} — a human picks up, 24 hours a day`,
+  guaranteeCtaAside: f => `or call ${f.phone}`,
   reviews: [
     {
       stars: 5,
@@ -249,7 +249,7 @@ export const EN = {
   faqHead: {
     eyebrow: "BEFORE YOU CALL",
     title: "The questions everybody asks.",
-    callAside: ["Still have a question? A human answers 24/7 on ", "."],
+    callAside: ["Still have a question? Call ", "."],
   },
   faqs: [
     {
@@ -261,11 +261,6 @@ export const EN = {
       q: () => "What if you find something worse once it is open?",
       a: () =>
         "We stop, show you, and requote before touching anything. You can decline and owe only the amount you already approved. We never do extra work and bill for it afterwards.",
-    },
-    {
-      q: () => "Do you actually answer at 2am?",
-      a: f =>
-        `Yes, and it is a person in ${f.place} rather than an answering service. Emergency call-outs between 9pm and 7am carry a ${f.surcharge} surcharge, quoted to you before we dispatch anyone.`,
     },
     {
       q: () => "Are you registered and insured?",
@@ -382,7 +377,7 @@ export const EN = {
     eyebrow: "SERVER ERROR",
     headline: ["Our fault, not yours, ", "and we can still fix your pipes."],
     body: f =>
-      `Something broke on our side. The phone works regardless, and it is answered by a human in ${f.place} 24 hours a day.`,
+      `Something broke on our side. The phone works regardless, and it is answered by a human in ${f.place}.`,
     primary: "call",
     secondary: "retry",
   },
@@ -392,7 +387,7 @@ export const EN = {
     eyebrow: "REQUEST RECEIVED",
     headline: ["We have it. ", "Your price is on its way."],
     body: () =>
-      "We text your flat price band within 10 minutes between 7am and 9pm. If this is an emergency right now, call us — we pick up 24/7.",
+      "We text your flat price band within 10 minutes between 7am and 9pm. If this is an emergency right now, call us.",
     primary: "call",
     secondary: "home",
   },

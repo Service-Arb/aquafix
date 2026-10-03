@@ -596,14 +596,6 @@
           },
           {
             "@type": "Question",
-            "name": "Répondez-vous vraiment à 2h du matin ?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Oui, et c’est une personne à Royat plutôt qu’un service de permanence. Les déplacements d’urgence entre 21h et 7h comportent un supplément de 60 €, annoncé avant que nous envoyions quelqu’un."
-            }
-          },
-          {
-            "@type": "Question",
             "name": "Êtes-vous immatriculés et assurés ?",
             "acceptedAnswer": {
               "@type": "Answer",
@@ -1375,14 +1367,6 @@
             "acceptedAnswer": {
               "@type": "Answer",
               "text": "We stop, show you, and requote before touching anything. You can decline and owe only the amount you already approved. We never do extra work and bill for it afterwards."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Do you actually answer at 2am?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Yes, and it is a person in Royat rather than an answering service. Emergency call-outs between 9pm and 7am carry a €60 surcharge, quoted to you before we dispatch anyone."
             }
           },
           {
@@ -2226,14 +2210,6 @@
             "acceptedAnswer": {
               "@type": "Answer",
               "text": "Nous arrêtons, nous vous montrons, et nous refaisons un devis avant de toucher à quoi que ce soit. Vous pouvez refuser et ne devez que le montant déjà approuvé. Nous ne faisons jamais de travaux supplémentaires pour les facturer après coup."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Répondez-vous vraiment à 2h du matin ?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Oui, et c’est une personne à Royat plutôt qu’un service de permanence. Les déplacements d’urgence entre 21h et 7h comportent un supplément de 60 €, annoncé avant que nous envoyions quelqu’un."
             }
           },
           {
@@ -3145,14 +3121,6 @@
             "acceptedAnswer": {
               "@type": "Answer",
               "text": "We stop, show you, and requote before touching anything. You can decline and owe only the amount you already approved. We never do extra work and bill for it afterwards."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Do you actually answer at 2am?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Yes, and it is a person in Royat rather than an answering service. Emergency call-outs between 9pm and 7am carry a €60 surcharge, quoted to you before we dispatch anyone."
             }
           },
           {

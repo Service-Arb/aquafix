@@ -19,7 +19,6 @@ export function Reviews({ copy, point }: { copy: Copy; point: PlaceView }) {
   const { t, f } = copy;
   const h = t.home;
   const { phone } = contactOf(point.place);
-  const [before, after] = h.reviewsCallAside;
   return (
     <Section surface="card" tight id="reviews">
       <div className="flex flex-col gap-7 md:gap-9">
@@ -57,11 +56,10 @@ export function Reviews({ copy, point }: { copy: Copy; point: PlaceView }) {
             {t.cta}
           </Button>
           <p className="text-[15px] text-ink-soft">
-            {before}
+            {h.reviewsCallAside}
             <a href={telHref(phone)} className="text-primary-ink underline underline-offset-2 hover:no-underline">
               {phone}
             </a>
-            {after}
           </p>
         </div>
       </div>
