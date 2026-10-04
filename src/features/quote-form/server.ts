@@ -25,13 +25,16 @@ export const PANEL_SUSPECT = true;
 export const PANEL_FLOW = true;
 
 /**
- * `lead.created`'s `analytics_id` (the visit's PostHog id). Off until the
- * panel in production takes the property (v0.4.0): v0.3.0 refuses an unknown
- * one, and the outbox would park the real lead it rode on. The declaration of
- * the experiments needs no switch: the panel keeps an unknown event type as
- * unregistered and reads it once it knows it.
+ * `lead.created`'s `analytics_id` (the visit's PostHog id), sent when the form
+ * posted one. On since the panel v0.4.0 takes the property (`LeadCreatedV1`
+ * field 8). Should the site ship before that panel is in production, v0.3.0
+ * refuses the unknown property and the real lead it rode on goes `dead` in the
+ * outbox: once the panel is upgraded, `kitstart-outbox requeue` on the pod
+ * sends it again. The declaration of the experiments needs no switch: the
+ * panel keeps an unknown event type as unregistered and reads it once it
+ * knows it.
  */
-export const PANEL_ANALYTICS_ID = false;
+export const PANEL_ANALYTICS_ID = true;
 
 /** The switches over what `lead.created` carries: kitstart's two, and the site's own. */
 export interface PanelSwitches {

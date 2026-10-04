@@ -194,8 +194,8 @@ container environment at runtime, and so does the lead webhook:
 Service-Arb panel as one `lead.created` event (`sa.funnel.v1`, built in
 `src/shared/lib/funnel-event.ts`), queued in the leads file before the visitor
 is thanked and retried from there. Under `PANEL_ANALYTICS_ID`
-(`features/quote-form/server.ts`, off until the panel in production is v0.4.0,
-which takes the property) it carries the visit's PostHog id (`analytics_id`)
+(`features/quote-form/server.ts`, on with the panel v0.4.0, which takes the
+property) it carries the visit's PostHog id (`analytics_id`)
 when the form posted one, so the lead's later life, which the panel sends to
 PostHog, joins the visit there. Through the same outbox,
 at every start, `instrumentation.ts` declares the build's experiments to the
