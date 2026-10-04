@@ -1,6 +1,7 @@
 # brand_materials
 
-Everything Aquafix prints, as a Typst port of the [Figma design](https://www.figma.com/design/IcOjAnEPBHnQbMWemVZtgE/Aquafix-%E2%80%94-Brand).
+Everything Aquafix prints, as a Typst port of the [Figma design](https://www.figma.com/design/mhgkSWCAKDBhRXlON57wrR/Aquafix?node-id=45-524)
+(file `Aquafix`, page `Brand — business card`).
 
 | material | page | cut | for |
 |---|---|---|---|
@@ -98,10 +99,22 @@ an edit to `assets/brand.toml`, and the parity test will say so.
 
 `tests/__screenshots__/figma-{front,back,sheet-light,sheet-dark}.png` are 300dpi
 exports of the Figma frames — the baseline cannot be regenerated locally, it comes
-from Figma. `tests/figma_parity.sh` renders every cut and counts pixels that
+from Figma. The frames are one unit per 300dpi pixel, so each is exported at 1×:
+
+| baseline | frame | node |
+|---|---|---|
+| `figma-front.png` | Card / Front — en | [`45:529`](https://www.figma.com/design/mhgkSWCAKDBhRXlON57wrR/Aquafix?node-id=45-529) |
+| `figma-back.png` | Card / Back — en | [`45:538`](https://www.figma.com/design/mhgkSWCAKDBhRXlON57wrR/Aquafix?node-id=45-538) |
+| `figma-sheet-light.png` | Sheet / Light — en | [`45:571`](https://www.figma.com/design/mhgkSWCAKDBhRXlON57wrR/Aquafix?node-id=45-571) |
+| `figma-sheet-dark.png` | Sheet / Dark — en | [`45:588`](https://www.figma.com/design/mhgkSWCAKDBhRXlON57wrR/Aquafix?node-id=45-588) |
+
+The card frames carry the dashed trim guide, because the parity render draws it.
+A copy change is a change on both sides: edit `assets/card.toml`, edit the frame,
+re-export. `tests/figma_parity.sh` renders every cut and counts pixels that
 survive a blur, which drops the antialiasing fringe that two different rasterisers
 always disagree on. Failures print the expected / actual / diff paths.
 
-Only `en` has Figma frames. Every other language is checked by rendering it: the
+Only `en` frames are diffed; the `— fr` frames next to them mirror the copy for
+reading, not for the test. Every other language is checked by rendering it: the
 boxes it lands in are fixed, so `lib.typ` asserts each string fits instead of
 letting it wrap into its neighbour.

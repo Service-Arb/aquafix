@@ -3,7 +3,10 @@
 Collected to answer one question: **is the AQUAFIX wordmark on the front of the card too
 small?** Same grading scheme as [`../sites/README.md`](../sites/README.md).
 
-Reproduced side by side in Figma: [`business_card_refs`](https://www.figma.com/design/x7rCDMFviutxIJmbMHntuv).
+The Aquafix card itself lives in Figma at [`Aquafix` → `Brand — business card`](https://www.figma.com/design/mhgkSWCAKDBhRXlON57wrR/Aquafix?node-id=45-524).
+The side-by-side reproductions of the reference cards below were made in a separate file,
+`business_card_refs` (`x7rCDMFviutxIJmbMHntuv`), which is outside the EV Invest team and not
+reachable from it; the measurements are recorded here so they do not depend on it.
 
 | Grade | Means |
 |---|---|

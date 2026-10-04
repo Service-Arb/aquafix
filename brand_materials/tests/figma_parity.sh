@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 # Checks each rendered page against the Figma export in __screenshots__/.
+# Baselines come from Figma file mhgkSWCAKDBhRXlON57wrR ("Aquafix"), page
+# "Brand — business card": frames 45:529 front, 45:538 back, 45:571 sheet-light,
+# 45:588 sheet-dark, each exported as PNG at 1x (the frame unit is a 300dpi pixel).
 #
 # Typst and Figma rasterise glyphs differently, so a raw pixel count is ~4% even
 # when the layouts agree. Both images are blurred first: that erases antialiasing
