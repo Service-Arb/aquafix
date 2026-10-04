@@ -88,16 +88,31 @@ describe("lead.created for the panel", () => {
     });
   });
 
-  // Panel v0.3.0 refuses an unknown property, and the outbox would park the lead: off until v0.4.0.
-  it("sends no analytics id as the site wires it today, so the body stays within v0.3.0's LeadCreatedV1", () => {
-    expect(PANEL_ANALYTICS_ID).toBe(false);
+  // On since the panel v0.4.0 takes the property (`LeadCreatedV1` field 8); v0.3.0 refused it.
+  it("sends the visit's analytics id as the site wires it, within v0.4.0's LeadCreatedV1, and never an absent or empty one", () => {
+    expect(PANEL_ANALYTICS_ID).toBe(true);
+    const wired = webhookOptions("aquafix-site").buildBody;
     const withId = { ...ctx, analyticsId: "0192f1c4-7d1e-7b3a-9c2d-1a2b3c4d5e6f" };
-    const body = leadCreatedBody(lead, withId, { ...OPTS, analyticsId: false });
-    // The body the site's webhook builds is exactly the switched-off one.
-    expect(webhookOptions("aquafix-site").buildBody?.(lead, withId)).toEqual(body);
-    const v030 = new Set([...(protoFields().get("LeadCreatedV1") ?? [])].filter(f => f !== "analytics_id" && f !== "analyticsId"));
-    for (const key of Object.keys(body.events[0].properties)) expect(v030, key).toContain(key);
-    expect(body.events[0].properties).not.toHaveProperty("analytics_id");
+    const body = leadCreatedBody(lead, withId, OPTS);
+    // The body the site's webhook builds is exactly the switched-on one.
+    expect(wired?.(lead, withId)).toEqual(body);
+    expect(body.events[0].properties).toEqual({ channel: "form", analytics_id: "0192f1c4-7d1e-7b3a-9c2d-1a2b3c4d5e6f" });
+    const v040 = protoFields().get("LeadCreatedV1") ?? new Set<string>();
+    expect(v040).toContain("analytics_id");
+    for (const key of Object.keys(body.events[0].properties)) expect(v040, key).toContain(key);
+    // No id posted, or an empty one: the property is left out.
+    expect(wired?.(lead, ctx)).toEqual(leadCreatedBody(lead, ctx, OPTS));
+    expect(leadCreatedBody(lead, ctx, OPTS).events[0].properties).not.toHaveProperty("analytics_id");
+    const blank = { ...ctx, analyticsId: "" };
+    expect(wired?.(lead, blank)).toEqual(leadCreatedBody(lead, blank, OPTS));
+    expect(leadCreatedBody(lead, blank, OPTS).events[0].properties).not.toHaveProperty("analytics_id");
+  });
+
+  it("sends no analytics id when switched off, for a panel that refuses the property", () => {
+    const withId = { ...ctx, analyticsId: "0192f1c4-7d1e-7b3a-9c2d-1a2b3c4d5e6f" };
+    const off = webhookOptions("aquafix-site", { panelSuspect: PANEL_SUSPECT, panelFlow: PANEL_FLOW, panelAnalyticsId: false }).buildBody;
+    expect(off?.(lead, withId)).toEqual(leadCreatedBody(lead, withId, { ...OPTS, analyticsId: false }));
+    expect(leadCreatedBody(lead, withId, { ...OPTS, analyticsId: false }).events[0].properties).not.toHaveProperty("analytics_id");
   });
 
   it("carries the visit's analytics id when switched on and the form posted one, and none otherwise", () => {
