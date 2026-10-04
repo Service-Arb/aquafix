@@ -157,9 +157,9 @@ describe("lead.created for the panel", () => {
     expect(JSON.stringify(event)).not.toContain("\\u0000");
   });
 
-  it("sends a callback as `form` until the panel takes the channel", () => {
+  it("sends a callback as `callback`", () => {
     const [event] = leadCreatedBody({ ...lead, channel: "callback", consent: { text: "J’accepte…", at: "2026-10-01T09:30:00Z" } }, ctx, OPTS).events;
-    expect(event.properties).toEqual({ channel: "form" });
+    expect(event.properties).toEqual({ channel: "callback" });
     // The consent is the lead's record, not the panel's.
     expect(JSON.stringify(event)).not.toContain("J’accepte");
   });

@@ -139,8 +139,8 @@ export function panelLeadId(ctx: Pick<LeadWebhookContext, "leadId" | "leadRef" |
 /**
  * The webhook body for one lead. `properties.channel` goes through
  * kitstart's `panelChannel`: the panel's set is closed and refuses the whole
- * event outside it, so a callback is sent as `form` until the panel takes
- * `callback` — one constant in the kit to flip.
+ * event outside it, so the kit maps a lead's channel onto that set (a
+ * callback is `callback` since kitstart 0.13, which the panel takes).
  * The callback's consent is not in the body: the panel has no field for it.
  * `locationId` is the point the form was posted from (its slug, which is its
  * subdomain); a lead from no point carries none. `properties.suspect` is
