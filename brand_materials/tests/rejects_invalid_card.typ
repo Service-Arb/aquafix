@@ -8,7 +8,7 @@
   langs: (
     en: (
       role: "Master Plumber · Owner",
-      hours: "24 HOURS · 7 DAYS",
+      hours: "PUBLISHED PRICES · WRITTEN QUOTE",
       promise: "FIXED PRICE. FIXED TODAY.",
       trade: "PLUMBING DONE RIGHT",
       credentials: "LICENCE #PL-40219  ·  $2M INSURED",

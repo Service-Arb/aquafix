@@ -17,7 +17,7 @@ site = "aquafix.top"
 
 [langs.en]
 role = "Master Plumber · Owner"
-hours = "24 HOURS · 7 DAYS"
+hours = "PUBLISHED PRICES · WRITTEN QUOTE"
 promise = "FIXED PRICE. FIXED TODAY."
 trade = "PLUMBING DONE RIGHT"
 territory = "PLUMBING & HEATING — CLERMONT-FERRAND"
@@ -31,7 +31,7 @@ guarantees = [
 
 [langs.fr]
 role = "Maître plombier · Propriétaire"
-hours = "24 HEURES · 7 JOURS"
+hours = "PRIX PUBLIÉS · DEVIS ÉCRIT"
 promise = "PRIX FIXE. RÉPARÉ AUJOURD’HUI."
 trade = "PLOMBERIE BIEN FAITE"
 territory = "PLOMBIER CHAUFFAGISTE — CLERMONT-FERRAND"
