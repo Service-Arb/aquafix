@@ -68,6 +68,8 @@ nix run .#dev
 - `POSTHOG_KEY` — unset, analytics sends nothing.
 
 A point is then `http://royat.localhost:$PORT/fr`.
+Each arm of the lead form test is one link away: `/fr?ab_lead_form=a`, `b` or `c`
+(docs/EXPERIMENTS.md).
 
 ### Visual baselines
 

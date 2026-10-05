@@ -8,9 +8,9 @@ winner goes into the page, the loser is deleted.
 
 ## Running now
 
-All three split 50/50 in code, independently: a visitor is in one arm of
-each. The panel may have changed a split or switched a test off since — its
-"Experiments" screen is what runs now.
+Two tests, drawn independently: a visitor is in one arm of each. The splits
+below are the code's; the panel may have changed a split or switched a test
+off since — its "Experiments" screen is what runs now.
 
 ### `hero_call_first`
 
@@ -28,50 +28,58 @@ each. The panel may have changed a split or switched a test off since — its
   the phone in the hero, but as text beside a WhatsApp button, and gives the
   card's space to the form.
 
-### `quote_price_anchor`
+### `lead_form`
 
-- **Change (`b`).** The quote form's job list shows each job's published
-  "from" price (`Canalisation bouchée · dès 149 €`), read from the same
-  `PRICE_LIST` integer as the price table (`JOB_PRICE` maps a job to its row;
-  the fit-out and "something else" are quoted on site and show none). The
-  submit reads "Recevoir mon tarif fixe", with "Sans engagement · Prix TTC"
-  under it — both already said elsewhere on the page. No new claim.
-- **Hypothesis.** The price is the page's differentiator (no competitor
-  publishes one), but it sits in a table below the fold; the form asks for a
-  mobile number without restating it. Showing the price at the moment the
-  visitor commits removes the fear the form otherwise raises — "they'll quote
-  low and bill high" — and lifts form submissions.
-- **Evidence.** `docs/refs/sites/README.md`, "Where we went further than any
-  reference": the published price list is the single largest differentiator.
-- **On kitstart's form.** The prices ride on `LeadCapture`'s need labels — the
-  select's options in `lead_layout` `a`, the tiles in `b` — and the note sits in
-  its trust slot under the submit.
+Three arms, 1:1:1, all on kitstart's `LeadCapture` in the same compact card
+(Figma, Aquafix file, page "Lead form A/B"): placeholders instead of drawn
+labels, one line under the mobile ("Prix par SMS sous 10 min. Votre numéro ne
+sert qu’à ça."), and "Pas envie de taper ? Rappelez-moi" as a line of text
+under the card. The call and WhatsApp stay where they were — the hero beside
+the card and the call bar under it — so the card repeats neither.
 
-### `lead_layout`
-
-- **Change (`b`).** The quote form is kitstart's `LeadCapture` in both arms;
-  `a` is its `single` layout (the job as a select, the postcode and the mobile
-  on one screen — the form as it was), `b` its `qualify-first`: a tile per job
-  first, and the postcode and mobile only once one is tapped (the mobile takes
-  the focus inside that tap). A job the visitor already tapped on the page — a
-  work tile or a price row (`data-need`) — is not asked again in either arm.
-- **Hypothesis.** A first question that is one tap and about the problem, not
-  about the visitor, starts more forms than three fields at once, and a form
-  started is mostly finished: `b` lifts leads per visit. It is the switch the
-  form-research literature does not settle (qualification-first wins sometimes,
-  not always), so it is tested rather than chosen.
+- **`a`, compact (control).** One screen: the job as a select, the postcode,
+  the mobile; after the job the focus moves to the next empty field. The
+  card is 463 px tall at 390 in the frame: the SMS paragraph, the rule and the
+  ticked privacy line under the submit are gone.
+- **`b`, step by step.** One question per screen with a thin progress bar,
+  "Retour" and the answered screens as chips: the job (a tile each), the
+  postcode, the mobile. A postcode the page knows — Royat serves one — is
+  not asked again, so there it is the job, then the mobile.
+- **`c`, urgency first.** "C’est pour quand ?" — "Urgent — aujourd’hui",
+  "Cette semaine", "Je compare les prix". Urgent turns the form into a call
+  back: the mobile and the consent only, "Rappel immédiat". Otherwise the jobs
+  as cards with an icon each, the postcode, the mobile. The answer goes with
+  the lead as the extra `urgency` (`today`, `week`, `compare`): stored, sent to
+  the panel and printed in the lead mail ("Urgence : Urgent — aujourd’hui").
+- **Hypothesis.** A first question that is one tap and about the problem —
+  or, for a plumber, about how soon — starts more forms than three fields at
+  once, and a form started is mostly finished: `b` and `c` lift leads per
+  visit over `a`. `c` also routes the visitor standing in water to a call back
+  at once.
 - **Metric.** Lead rate (`experiment_lead` ÷ `experiment_exposed`) is primary;
-  the contact rate is the guardrail — a layout that wins leads by losing calls
+  the contact rate is the guardrail — an arm that wins leads by losing calls
   is not shipped.
-- **Pooled with vifnet.** vifnet runs the same key with the same arms (`a`
-  single, `b` qualify-first, 50/50), so one test reads across both brands: the
-  PostHog funnel filtered on `experiment` alone, without `brand_id`, sums the
-  arms (each site splits its own visitors by the same weights, so the sums
-  stay comparable — keep the two brands' weights equal in the panel). The key
-  is shared on purpose; never rename it. kitstart's own form events — `lead_form_view`,
-  `lead_form_start`, `lead_form_field_error`, `lead_form_step`, and the
-  server's `lead_form_submit` — carry `experiment: "lead_layout"` and the
-  `variant` on every brand, for the funnel inside the form.
+- **Pooled with vifnet.** vifnet runs the same key; its `a` (compact) and `b`
+  (step by step) are the same treatments, so the PostHog funnel filtered on
+  `experiment` and `variant` alone, without `brand_id`, sums those two arms
+  across brands (each site splits by the same weights — keep them equal in the
+  panel). `c` is each brand's own hypothesis and is read per brand. The key is
+  shared on purpose; never rename it. kitstart's own form events —
+  `lead_form_view`, `lead_form_start`, `lead_form_field_error`,
+  `lead_form_step` (each screen: `intro`, `need`, `locality`, `phone`), and the
+  server's `lead_form_submit` — carry `experiment: "lead_form"` and the
+  `variant`, for the funnel inside the form.
+
+### Ended
+
+- **`lead_layout`** (one screen against the job first, `qualify-first`) —
+  replaced by `lead_form`, whose `a` and `b` carry the question further.
+- **`quote_price_anchor`** (each job's "from" price in the select and a
+  fixed-price submit) — ended without a winner declared; the control (no
+  prices in the form) stays, and its note "Sans engagement · Prix TTC" folds
+  into the line under the mobile. The prices stay in the price table.
+
+Their cookies are ignored and expire on their own.
 
 ## Metrics
 
@@ -80,7 +88,7 @@ each. The panel may have changed a split or switched a test off since — its
 | Primary | contact rate | (`experiment_lead` + `experiment_contact` with `channel` phone or whatsapp) ÷ `experiment_exposed` |
 | Guardrail | lead rate | `experiment_lead` ÷ `experiment_exposed` |
 
-`lead_layout` swaps the two: lead rate primary, contact rate the guardrail.
+`lead_form` swaps the two: lead rate primary, contact rate the guardrail.
 | Reported | form opens | `experiment_contact` with `channel = form_open` — an intent, not a contact |
 
 The analytics are cookieless: every page load has a new `distinct_id`, so an
@@ -138,8 +146,8 @@ is applied by a person to what PostHog shows.
   for 30 days. The apex brand page, `/quote` and the other non-page routes are
   not assigned.
 - **Caching.** Pages stay ISR. The proxy rewrites a point's home to
-  `/<locale>/<point>/ab/<letters>` — `ab/baa` is `hero_call_first=b`,
-  `quote_price_anchor=a`, `lead_layout=a` — so each combination is its own
+  `/<locale>/<point>/ab/<letters>` — `ab/bc` is `hero_call_first=b`,
+  `lead_form=c` — so each combination is its own
   cache entry and no page reads a cookie. All-control keeps the plain path. The canonical URL
   never carries the bucket.
 - **Bots.** Crawlers, unfurlers and ad reviewers (user agent matching
@@ -156,7 +164,7 @@ is applied by a person to what PostHog shows.
   as `lead_form_submit` (stored, not held as spam). kitstart's own events are
   unchanged; its allow-list would drop `variant`, so these go through a sink
   of their own with the same key and host. The exception is kitstart's lead
-  form: `LeadCapture` is given `lead_layout`'s assignment and puts it on its
+  form: `LeadCapture` is given `lead_form`'s assignment and puts it on its
   `lead_form_*` events itself (the kit's allow-list has `experiment` and
   `variant`). The page cannot tell a control visitor from a crawler — both get
   the plain path — so those events say `variant: "a"` for both; a crawler
@@ -169,8 +177,8 @@ Add `?ab_<experiment>=<variant>` to a point's URL:
 
 ```text
 https://royat.aquafix.top/fr?ab_hero_call_first=b
-https://royat.aquafix.top/fr?ab_hero_call_first=b&ab_quote_price_anchor=b
-https://royat.aquafix.top/fr?ab_lead_layout=b
+https://royat.aquafix.top/fr?ab_hero_call_first=b&ab_lead_form=c
+https://royat.aquafix.top/fr?ab_lead_form=b
 ```
 
 The forced variant is stored in the cookie, and a session cookie `ab_forced=1`
