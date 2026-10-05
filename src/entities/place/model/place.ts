@@ -46,16 +46,14 @@ export const publicationGaps = (place: Place): PublicationField[] => gapsBy(plac
 export const isPublished = (place: Place): boolean => isPublishedBy(place, site.publication, site.brand);
 
 /**
- * A storefront's printed address and the query its map searches for — what
- * kitstart's `Coverage` builds for its `MapFacade`, for the bands that lay the
- * facade out themselves. `null` for a service-area point: it has no address.
+ * A storefront's printed address, one line. `null` for a service-area point:
+ * it has no address.
  */
-export function mapOf(place: Place): { address: string; query: string } | null {
+export function addressOf(place: Place): string | null {
   const front = storefrontOf(place);
   if (!front) return null;
   const { street, postalCode, locality } = front.address;
-  const address = `${street}, ${postalCode} ${locality}`;
-  return { address, query: `${place.gbpName}, ${address}` };
+  return `${street}, ${postalCode} ${locality}`;
 }
 
 export const parseLive = (body: unknown): PlaceLive => parsePlaceLive(body, LOCALES);

@@ -157,8 +157,6 @@ export const EN = {
     coverageEyebrow: f => `SERVICE AREA · ${f.radiusKm} KM AROUND ${f.place.toUpperCase()}`,
     coverageTitle: "Where we go.",
     coverageLede: f => `${f.place} and the communes around it. If you are outside, we will say so on the phone.`,
-    mapShow: "Show the map",
-    mapTitle: f => `Map: Aquafix ${f.place}`,
     backToTop: "Back to top",
   },
   pillars: [

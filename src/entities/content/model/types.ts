@@ -136,8 +136,6 @@ export interface HomeCopy {
   coverageEyebrow: Said;
   coverageTitle: string;
   coverageLede: Said;
-  mapShow: string;
-  mapTitle: Said;
   backToTop: string;
 }
 

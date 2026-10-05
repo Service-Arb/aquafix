@@ -156,8 +156,6 @@ export const FR = {
     coverageEyebrow: f => `ZONE D’INTERVENTION · ${f.radiusKm} KM AUTOUR DE ${f.place.toUpperCase()}`,
     coverageTitle: "Où nous allons.",
     coverageLede: f => `${f.place} et les communes alentour. Si vous êtes en dehors, nous vous le dirons au téléphone.`,
-    mapShow: "Afficher la carte",
-    mapTitle: f => `Carte : Aquafix ${f.place}`,
     backToTop: "Haut de page",
   },
   pillars: [
