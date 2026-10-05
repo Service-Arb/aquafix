@@ -1,9 +1,21 @@
 import "server-only";
 import type { Lead } from "@evinvest/kitstart";
 import { leadNotifier, type LeadMail, type LeadMailShown, type LeadNotifier } from "@evinvest/kitstart/server";
+import { text } from "@/entities/content";
 import { serverEnv } from "@/shared/config/env";
+import { URGENCIES, URGENCY_FIELD } from "@/shared/config/lead";
 import { site } from "@/shared/config/site";
 import { jobLabelFr } from "../lib/job-label";
+
+const URGENCY = text("fr").quoteForm.urgency.options;
+
+/** An extra as the mail prints it: the urgency in the form's words, any other as posted. */
+function extraLine(name: string, value: string): string {
+  if (name !== URGENCY_FIELD) return `${name} : ${value}`;
+  const urgency = URGENCIES.find(u => u === value);
+  const said = urgency === undefined ? value : URGENCY[urgency].label;
+  return `Urgence      : ${said}`;
+}
 
 /** The business reads its leads in French, whatever language the visitor wrote in. */
 function frenchMail(lead: Lead, id: number, shown: LeadMailShown): LeadMail {
@@ -15,7 +27,7 @@ function frenchMail(lead: Lead, id: number, shown: LeadMailShown): LeadMail {
       `Intervention : ${shown.need}`,
       `Commune / CP : ${lead.locality}`,
       `Mobile       : ${lead.mobile}`,
-      ...Object.entries(lead.extras).map(([name, value]) => `${name} : ${value}`),
+      ...Object.entries(lead.extras).map(([name, value]) => extraLine(name, value)),
     ].join("\n"),
   };
 }

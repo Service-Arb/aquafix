@@ -1,14 +1,16 @@
+import { DatabaseSync } from "node:sqlite";
+import { MIN_FILL_MS, normalizePhone } from "@evinvest/kitstart";
+import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { JOB_IDS } from "../../src/shared/config/lead";
-import { expect, test, type Page } from "@playwright/test";
-import { POSTHOG_HOST } from "./env";
+import { LEADS_DB, POSTHOG_HOST } from "./env";
+import { freshMobile } from "./support/mobile";
 
 // The A/B tests (docs/EXPERIMENTS.md). Every other spec starts in the control
 // (the config's `storageState`); these start with no assignment, like a new
 // visitor, and reach a variant through the QA force parameter or a cookie.
 test.use({ storageState: { cookies: [], origins: [] } });
 
-// `lead_layout` held at `a`: the price anchor is asserted on the select.
-const BOTH_B = "/fr?ab_hero_call_first=b&ab_quote_price_anchor=b&ab_lead_layout=a";
+const HERO_B = "/fr?ab_hero_call_first=b&ab_lead_form=a";
 
 type Captured = { event: string; properties: Record<string, unknown> };
 
@@ -34,18 +36,45 @@ const of = (events: Captured[], event: string) =>
     .map(e => ({ experiment: e.properties["experiment"], variant: e.properties["variant"], forced: e.properties["forced"], channel: e.properties["channel"] }))
     .sort((a, b) => String(a.experiment).localeCompare(String(b.experiment)));
 
+/** An address of the test's own: the funnel allows five leads per address in ten minutes (see funnel.spec.ts). */
+async function ownClient(page: Page, testInfo: TestInfo, slot: number): Promise<void> {
+  await page.setExtraHTTPHeaders({ "x-forwarded-for": `198.51.100.${slot * 10 + testInfo.parallelIndex}` });
+}
+
+/** The stored row for one number: what the lead carried, as the store keeps it. */
+function rowFor(mobile: string): { job: string; channel: string; extras: string | null } | undefined {
+  const db = new DatabaseSync(LEADS_DB, { readOnly: true });
+  try {
+    const row = db.prepare("SELECT job, channel, extras FROM leads WHERE mobile = ?").get(normalizePhone(mobile));
+    return row === undefined ? undefined : { job: String(row.job), channel: String(row.channel), extras: row.extras === null ? null : String(row.extras) };
+  } finally {
+    db.close();
+  }
+}
+
+/**
+ * A tap on a tile, as the radio receives it: a pointer down, then the click.
+ * Dispatched, not clicked at coordinates — on a phone the sticky call bar may
+ * sit over the tile, and a click there dials.
+ */
+async function tap(page: Page, value: string): Promise<void> {
+  const radio = page.locator(`form#quote-form input[type=radio][value="${value}"]`);
+  await expect(radio).toBeAttached();
+  await radio.dispatchEvent("pointerdown");
+  await radio.dispatchEvent("click");
+}
+
 test("a new visitor is assigned a sticky variant of every experiment", async ({ page, context }) => {
   await page.goto("/fr");
   const first = (await context.cookies()).filter(c => c.name.startsWith("ab_"));
-  expect(first.map(c => c.name).sort()).toEqual(["ab_hero_call_first", "ab_lead_layout", "ab_quote_price_anchor"]);
+  expect(first.map(c => c.name).sort()).toEqual(["ab_hero_call_first", "ab_lead_form"]);
   await page.goto("/fr/prices");
   expect((await context.cookies()).filter(c => c.name.startsWith("ab_"))).toEqual(first);
 });
 
-test("variant b of both experiments renders", async ({ page }, testInfo) => {
-  await page.goto(BOTH_B);
+test("hero_call_first b puts the call first on a phone", async ({ page }, testInfo) => {
+  await page.goto(HERO_B);
   const hero = page.locator("main > section").first();
-  // hero_call_first: the phone first, below `md` only.
   const call = hero.getByRole("link", { name: /Appeler un plombier/ });
   const written = hero.getByRole("link", { name: "ou recevez un devis écrit" });
   if (testInfo.project.name === "mobile") {
@@ -56,33 +85,36 @@ test("variant b of both experiments renders", async ({ page }, testInfo) => {
     await expect(call).toBeHidden();
     await expect(written).toBeHidden();
   }
-  // quote_price_anchor: the fixed-price submit, and each job's published price.
-  const form = page.locator("form#quote-form");
-  await expect(form.getByRole("button", { name: /Recevoir mon tarif fixe/ })).toBeVisible();
-  await expect(form.getByText("Sans engagement · Prix TTC")).toBeVisible();
-  await form.locator("button[role=combobox]").click();
-  await expect(page.getByRole("option", { name: /^Canalisation bouchée · dès 149\s€$/ })).toBeVisible();
-  await expect(page.getByRole("option", { name: "Autre chose" })).toBeVisible();
 });
 
-test("the control renders as before", async ({ page, context }) => {
-  await context.addCookies([
-    { name: "ab_hero_call_first", value: "a", url: "http://royat.localhost" },
-    { name: "ab_quote_price_anchor", value: "a", url: "http://royat.localhost" },
-    { name: "ab_lead_layout", value: "a", url: "http://royat.localhost" },
-  ]);
-  await page.goto("/fr");
-  await expect(page.getByRole("link", { name: /Appeler un plombier/ })).toHaveCount(0);
-  await expect(page.locator("form#quote-form").getByRole("button", { name: /Envoyez-moi mon prix/ })).toBeVisible();
+// lead_form a, the control: the compact card — no visible labels, one line
+// under the mobile, the call back as a line of text — about one screen tall.
+test("lead_form a is the compact card on one screen", async ({ page }) => {
+  await page.goto("/fr?ab_lead_form=a");
+  const card = page.locator("#quote");
+  const form = card.locator("form#quote-form");
+  await expect(form.locator("button[role=combobox]")).toBeVisible();
+  await expect(form.locator("input[name=zip]")).toBeVisible();
+  await expect(form.locator("input[name=mobile]")).toHaveAttribute("placeholder", "Mobile · 06 00 00 00 00");
+  // The labels are the fields' accessible names, not drawn.
+  await expect(form.getByText("Votre mobile", { exact: true })).toHaveClass(/sr-only/);
+  await expect(form.getByText("Prix par SMS sous 10 min. Votre numéro ne sert qu’à ça.")).toBeVisible();
+  await expect(form.getByRole("button", { name: /Envoyez-moi mon prix/ })).toBeVisible();
+  await expect(card.locator("details#quote-callback summary")).toHaveText("Pas envie de taper ?Rappelez-moi");
+  await expect(card.getByRole("progressbar")).toHaveCount(0);
+  // The old trust block (the SMS paragraph, the rule, the ticked privacy line) is gone.
+  await expect(card.getByText(/Nous vous envoyons votre fourchette/)).toHaveCount(0);
+  // Figma's 463px at 390 (54:525); a few px of type metrics either way.
+  const box = await card.boundingBox();
+  expect(box?.height ?? 0).toBeLessThan(500);
 });
 
 test("exposure and contact events carry the experiment and the variant", async ({ page }) => {
   const events = await capture(page);
-  await page.goto(BOTH_B);
+  await page.goto("/fr?ab_hero_call_first=b&ab_lead_form=c");
   await expect.poll(() => of(events, "experiment_exposed")).toEqual([
     { experiment: "hero_call_first", variant: "b", forced: true, channel: undefined },
-    { experiment: "lead_layout", variant: "a", forced: true, channel: undefined },
-    { experiment: "quote_price_anchor", variant: "b", forced: true, channel: undefined },
+    { experiment: "lead_form", variant: "c", forced: true, channel: undefined },
   ]);
   const exposed = events.find(e => e.event === "experiment_exposed")?.properties;
   expect(exposed).toMatchObject({ brand_id: "aquafix", location_id: "royat" });
@@ -90,64 +122,72 @@ test("exposure and contact events carry the experiment and the variant", async (
   await page.locator('main a[href^="tel:"]:visible').first().click({ noWaitAfter: true });
   await expect.poll(() => of(events, "experiment_contact")).toEqual([
     { experiment: "hero_call_first", variant: "b", forced: true, channel: "phone" },
-    { experiment: "lead_layout", variant: "a", forced: true, channel: "phone" },
-    { experiment: "quote_price_anchor", variant: "b", forced: true, channel: "phone" },
+    { experiment: "lead_form", variant: "c", forced: true, channel: "phone" },
   ]);
 });
 
 test("an assigned (not forced) visit says forced: false", async ({ page, context }) => {
   await context.addCookies([
     { name: "ab_hero_call_first", value: "b", url: "http://royat.localhost" },
-    { name: "ab_quote_price_anchor", value: "a", url: "http://royat.localhost" },
-    { name: "ab_lead_layout", value: "b", url: "http://royat.localhost" },
+    { name: "ab_lead_form", value: "b", url: "http://royat.localhost" },
   ]);
   const events = await capture(page);
   await page.goto("/fr");
   await expect.poll(() => of(events, "experiment_exposed")).toEqual([
     { experiment: "hero_call_first", variant: "b", forced: false, channel: undefined },
-    { experiment: "lead_layout", variant: "b", forced: false, channel: undefined },
-    { experiment: "quote_price_anchor", variant: "a", forced: false, channel: undefined },
+    { experiment: "lead_form", variant: "b", forced: false, channel: undefined },
   ]);
 });
 
-test("a crawler gets the control and no cookie, even when it asks for b", async ({ request }) => {
+test("a crawler gets the control and no cookie, even when it asks for b or c", async ({ request }) => {
   for (const ua of ["Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)", "AdsBot-Google (+http://www.google.com/adsbot.html)", "Mozilla/5.0 (compatible; bingbot/2.0)"]) {
-    const res = await request.get(BOTH_B, { headers: { "user-agent": ua } });
+    const res = await request.get("/fr?ab_hero_call_first=b&ab_lead_form=c", { headers: { "user-agent": ua } });
     expect(res.status(), ua).toBe(200);
     expect(res.headersArray().filter(h => h.name.toLowerCase() === "set-cookie" && h.value.startsWith("ab_")), ua).toEqual([]);
     const html = await res.text();
     expect(html, ua).not.toContain("Appeler un plombier");
-    expect(html, ua).not.toContain("Recevoir mon tarif fixe");
+    expect(html, ua).not.toContain("C’est pour quand");
   }
 });
 
-// lead_layout b: kitstart's `qualify-first` — a tile per job, then the contact
-// step — and the form's own events carry the arm, so the brands pool.
-test("lead_layout b asks the job first, and its events carry the arm", async ({ page }) => {
+// lead_form b: kitstart's `steps` — the job, then (Royat's one postcode known,
+// so not asked) the mobile — and the form's events carry the arm.
+test("lead_form b asks one question per screen, and its events carry the arm", async ({ page }, testInfo) => {
   const events = await capture(page);
-  await page.goto("/fr?ab_lead_layout=b&ab_quote_price_anchor=b");
-  const form = page.locator("form#quote-form");
+  const mobile = freshMobile("06");
+  await ownClient(page, testInfo, 7);
+  await page.goto("/fr?ab_lead_form=b");
+  const card = page.locator("#quote");
+  const form = card.locator("form#quote-form");
   const phone = form.locator("input[name=mobile]");
+  await expect(card.getByText("Obtenez votre prix fixe")).toBeVisible();
   await expect(phone).toBeHidden();
-  // The price anchor rides on the tiles' labels.
-  const tile = form.getByRole("radio", { name: /^Canalisation bouchée · dès 149\s€$/ });
-  // Centred first: on a phone the sticky call bar covers the bottom of the
-  // viewport, where a scroll-if-needed would leave the tile.
-  await tile.evaluate(el => el.scrollIntoView({ block: "center" }));
-  await tile.click();
+  await expect(form.getByRole("radio")).toHaveCount(JOB_IDS.length);
+  await tap(page, "hot_water");
   await expect(phone).toBeVisible();
-  await expect(form.getByRole("button", { name: /Recevoir mon tarif fixe/ })).toBeVisible();
+  await expect(phone).toBeFocused();
+  // The answered job is a chip; the head gives way to it.
+  await expect(form.getByRole("button", { name: /Eau chaude/ })).toBeVisible();
+  await expect(card.getByText("Obtenez votre prix fixe")).toBeHidden();
   await expect
     .poll(() => events.find(e => e.event === "lead_form_view")?.properties)
-    .toMatchObject({ experiment: "lead_layout", variant: "b", layout: "qualify-first", form_id: "quote", brand_id: "aquafix" });
-  await expect.poll(() => events.find(e => e.event === "lead_form_step")?.properties).toMatchObject({ step: "contact", experiment: "lead_layout", variant: "b" });
+    .toMatchObject({ experiment: "lead_form", variant: "b", layout: "steps", form_id: "quote", brand_id: "aquafix" });
+  await expect.poll(() => events.find(e => e.event === "lead_form_step")?.properties).toMatchObject({ step: "phone", experiment: "lead_form", variant: "b" });
+
+  // "Retour" opens the screen it skipped, the postcode, filled; "Suivant" comes back.
+  await form.getByRole("button", { name: /Retour/ }).click();
+  await expect(form.locator("input[name=zip]")).toHaveValue("63130");
+  await expect(phone).toBeHidden();
+  await form.getByRole("button", { name: /Suivant/ }).click();
+
+  await phone.fill(mobile);
+  await page.waitForTimeout(MIN_FILL_MS + 250);
+  await form.getByRole("button", { name: /Envoyez-moi mon prix/ }).click();
+  await expect.poll(() => rowFor(mobile)).toEqual({ job: "hot_water", channel: "form", extras: null });
 });
 
-// Review finding 7: the first arrow key picked the next job and carried the
-// focus off to the contact step. The tiles are a radio group: the arrows move
-// the choice and stay; Enter or Space answers and moves on.
-test("lead_layout b: arrows move the choice, Space moves on", async ({ page }) => {
-  await page.goto("/fr?ab_lead_layout=b");
+test("lead_form b: arrows move the choice, Space moves on", async ({ page }) => {
+  await page.goto("/fr?ab_lead_form=b");
   const form = page.locator("form#quote-form");
   const tiles = form.getByRole("radio");
   await expect(tiles.first()).toBeVisible();
@@ -156,14 +196,51 @@ test("lead_layout b: arrows move the choice, Space moves on", async ({ page }) =
   await page.keyboard.press("ArrowDown");
   await expect(tiles.nth(1)).toBeFocused();
   await expect(tiles.nth(1)).toBeChecked();
-  // Still in the group: a second arrow moves on to the next job, not the page.
-  await page.keyboard.press("ArrowDown");
-  await expect(tiles.nth(2)).toBeFocused();
-  await expect(tiles.nth(2)).toBeChecked();
   await page.keyboard.press("Space");
-  // Answered: the job is summed up and the focus is on the first empty contact field.
-  await expect(tiles).toHaveCount(0);
-  await expect.poll(() => page.evaluate(() => document.activeElement?.getAttribute("name"))).toMatch(/^(zip|mobile)$/);
-  await expect(form.locator("input[type=hidden][name=job]")).toHaveValue(JOB_IDS[2]);
+  await expect.poll(() => page.evaluate(() => document.activeElement?.getAttribute("name"))).toBe("mobile");
+  await expect(form.locator(`input[name=job][value="${JOB_IDS[1]}"]`)).toBeChecked();
 });
 
+// lead_form c, not urgent: the urgency, then the jobs as icon cards, then the
+// mobile; the urgency goes with the lead.
+test("lead_form c asks the urgency first, then the job on a card", async ({ page }, testInfo) => {
+  const mobile = freshMobile("07");
+  await ownClient(page, testInfo, 8);
+  await page.goto("/fr?ab_lead_form=c");
+  const form = page.locator("form#quote-form");
+  await expect(form.getByText("C’est pour quand ?")).toBeVisible();
+  await expect(form.getByText("Prix fixe par SMS sous 10 min")).toBeVisible();
+  await tap(page, "week");
+  const cards = form.locator('input[name=job] + span');
+  await expect(cards).toHaveCount(JOB_IDS.length);
+  await expect(cards.locator("svg")).toHaveCount(JOB_IDS.length);
+  await tap(page, "blocked_drain");
+  await expect(form.getByRole("button", { name: /Cette semaine/ })).toBeVisible();
+  const phone = form.locator("input[name=mobile]");
+  await expect(phone).toBeFocused();
+  await phone.fill(mobile);
+  await page.waitForTimeout(MIN_FILL_MS + 250);
+  await form.getByRole("button", { name: /Envoyez-moi mon prix/ }).click();
+  await expect.poll(() => rowFor(mobile)).toEqual({ job: "blocked_drain", channel: "form", extras: JSON.stringify({ urgency: "week" }) });
+});
+
+// lead_form c, urgent: the phone and the consent only, posted as a call back.
+test("lead_form c, urgent today, is a call back with the phone alone", async ({ page }, testInfo) => {
+  const mobile = freshMobile("06");
+  await ownClient(page, testInfo, 9);
+  await page.goto("/fr?ab_lead_form=c");
+  const form = page.locator("form#quote-form");
+  await tap(page, "today");
+  await expect(form.getByText("On vous rappelle tout de suite", { exact: true }).last()).toBeVisible();
+  await expect(form.getByText("Votre numéro ne sert qu’à ce rappel.")).toBeVisible();
+  await expect(form.getByText("Prix par SMS sous 10 min. Votre numéro ne sert qu’à ça.")).toBeHidden();
+  await expect(form.getByRole("radio", { name: /Canalisation bouchée/ })).toBeHidden();
+  // The folded call back is not offered a second time.
+  await expect(page.locator("details#quote-callback")).toHaveCount(0);
+  await form.locator("input[name=mobile]").fill(mobile);
+  await form.locator("input[name=consent]").check();
+  await page.waitForTimeout(MIN_FILL_MS + 250);
+  await form.getByRole("button", { name: "Rappel immédiat" }).click();
+  await expect.poll(() => rowFor(mobile)?.channel).toBe("callback");
+  expect(rowFor(mobile)?.extras).toBe(JSON.stringify({ urgency: "today" }));
+});
