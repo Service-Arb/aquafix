@@ -95,6 +95,15 @@ describe("the proxy's assignment", () => {
     expect((await visit(`https://${ROYAT}/fr?ab_lead_form=z`, { cookie: "ab_hero_call_first=a; ab_lead_form=a" })).cookies).toEqual([]);
   });
 
+  it("keeps QA's mark as long as the forced variant, so a closed browser stays a test", async () => {
+    const proxy = createExperimentProxy(live());
+    const headers = { host: ROYAT, "user-agent": PHONE_UA, cookie: "ab_hero_call_first=a; ab_lead_form=a" };
+    const setCookies = (await proxy(new NextRequest(new URL(`https://${ROYAT}/fr?ab_lead_form=b`), { headers }))).headers.getSetCookie();
+    const maxAge = (name: string) => /max-age=(\d+)/i.exec(setCookies.find(c => c.startsWith(`${name}=`)) ?? "")?.[1];
+    expect(maxAge("ab_forced")).toBeDefined();
+    expect(maxAge("ab_forced")).toBe(maxAge("ab_lead_form"));
+  });
+
   it("does not assign again on Next's second pass over the rewritten path", async () => {
     expect(await visit("http://localhost:3000/fr/_royat/ab/bc", { cookie: "" })).toEqual({ rewrite: null, cookies: [] });
     expect(await visit("http://localhost:3000/fr/_royat", { cookie: "" })).toEqual({ rewrite: null, cookies: [] });

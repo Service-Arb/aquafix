@@ -3,7 +3,7 @@ import { abProxy } from "@evinvest/experiments/next";
 import { createRouting, GONE_HEADER, LANG_COOKIE, parsePlaceParam } from "@evinvest/kitstart";
 import { createProxy } from "@evinvest/kitstart/proxy";
 import { NextResponse, type NextRequest } from "next/server";
-import { EXPERIMENT_IDS, FORCE_PARAM, FORCED_COOKIE, type LiveExperiments } from "@/shared/config/experiments";
+import { EXPERIMENT_IDS, FORCE_PARAM, FORCED_COOKIE, FORCED_MAX_AGE, type LiveExperiments } from "@/shared/config/experiments";
 import { site } from "@/shared/config/site";
 import { assignmentOf, BUCKET_SEGMENT, decodeBucket, disabledCookies, encodeBucket, isBot } from "@/shared/lib/experiments";
 import { liveExperiments, type LiveConfig } from "../api/live";
@@ -86,9 +86,9 @@ function assign(config: LiveExperiments, request: NextRequest): NextResponse {
   // Dropped rather than kept for a test that may come back: an operator's
   // switch is "stop counting this", and a visitor re-entering is drawn anew.
   for (const name of dropped) response.headers.append("set-cookie", `${name}=; Path=/; Max-Age=0; SameSite=Lax`);
-  // A session cookie: QA's browser stays marked until it is closed. Appended
-  // raw, like the ones above: `response.cookies.set` would rewrite the header
-  // from its own map and drop them.
-  if (wasForced(config, request)) response.headers.append("set-cookie", `${FORCED_COOKIE}=1; Path=/; SameSite=Lax`);
+  // As long-lived as the variant it marks (`FORCED_MAX_AGE`). Appended raw,
+  // like the ones above: `response.cookies.set` would rewrite the header from
+  // its own map and drop them.
+  if (wasForced(config, request)) response.headers.append("set-cookie", `${FORCED_COOKIE}=1; Path=/; Max-Age=${FORCED_MAX_AGE}; SameSite=Lax`);
   return response;
 }

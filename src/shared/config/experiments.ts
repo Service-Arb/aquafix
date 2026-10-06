@@ -78,7 +78,14 @@ export const AB_SWITCHER_EXPERIMENTS = /* @__PURE__ */ EXPERIMENT_IDS.map(key =>
 export const FORCE_PARAM = "ab_";
 
 /**
- * Set (for the browser session) when a visit forced a variant, so every event
- * from that browser says `forced: true` and PostHog's funnel can leave it out.
+ * Set when a visit forced a variant, so every event from that browser says
+ * `forced: true` and PostHog's funnel can leave it out.
  */
 export const FORCED_COOKIE = "ab_forced";
+
+/**
+ * As long as the variant cookies it marks (30 days): a session-only mark
+ * expired with the browser while the forced variant stayed, and QA's later
+ * visits counted as real ones in that arm.
+ */
+export const FORCED_MAX_AGE = 60 * 60 * 24 * 30;
