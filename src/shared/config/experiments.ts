@@ -17,14 +17,12 @@ import type { ExperimentConfig, OverriddenConfig, Variant } from "@evinvest/expe
 export const EXPERIMENTS = {
   /** Mobile hero: a full-width call button first, the form behind a link. */
   hero_call_first: { variants: ["a", "b"], weights: [1, 1], enabled: true },
-  /** Quote form: each job's published price in the select, a fixed-price submit. */
-  quote_price_anchor: { variants: ["a", "b"], weights: [1, 1], enabled: true },
   /**
-   * Lead form: one screen (`a`, kitstart's `single`) or the job first, then
-   * the contact (`b`, `qualify-first`). Same key and arms as vifnet's, so the
-   * two brands' results pool.
+   * Lead form: the compact card on one screen (`a`), one question per screen
+   * (`b`), or "how urgent?" first (`c`). `a` and `b` are vifnet's arms under
+   * the same key, so the two brands' results pool; `c` is this brand's own.
    */
-  lead_layout: { variants: ["a", "b"], weights: [1, 1], enabled: true },
+  lead_form: { variants: ["a", "b", "c"], weights: [1, 1, 1], enabled: true },
 } as const satisfies ExperimentConfig;
 
 export type ExperimentId = keyof typeof EXPERIMENTS;
@@ -38,8 +36,8 @@ export type LiveExperiments = OverriddenConfig<typeof EXPERIMENTS>;
  */
 export const EXPERIMENT_SUMMARIES: { readonly [K in ExperimentId]: string } = {
   hero_call_first: "On a phone, a full-width call button first, the form behind a link, turns more visits into contacts.",
-  quote_price_anchor: "Each job's published price in the quote form and a fixed-price submit lift form submissions.",
-  lead_layout: "The job first as one tap, then the contact, lifts leads per visit over one screen of three fields.",
+  lead_form:
+    "One question per screen (b), or urgency first with an urgent call-back and job cards (c), lifts leads per visit over the compact one-screen form (a).",
 };
 
 /** One visitor's variant of every experiment. */
@@ -50,8 +48,7 @@ export const EXPERIMENT_IDS = Object.keys(EXPERIMENTS) as readonly ExperimentId[
 /** Everyone's page when no test applies: bots, the apex, a disabled test. */
 export const CONTROL: Assignment = {
   hero_call_first: "a",
-  quote_price_anchor: "a",
-  lead_layout: "a",
+  lead_form: "a",
 };
 
 /** `?ab_<experiment>=<variant>` forces a variant, for QA. */

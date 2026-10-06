@@ -1,14 +1,13 @@
-import { AreaChips, MapFacade } from "@evinvest/kitstart/react";
+import { AreaChips } from "@evinvest/kitstart/react";
 import { Display, Eyebrow, Section } from "@evinvest/uikit";
 import type { Copy } from "@/entities/content";
-import { mapOf, servedLocalities, type PlaceView } from "@/entities/place";
-import { MAP_FACE, MAP_FACE_PARTS } from "@/shared/ui/map";
+import { servedLocalities, type PlaceView } from "@/entities/place";
 
 /**
  * The refusal is the point: a window we cannot hit is worth nothing, so the
- * radius is published and everything past it is turned down. The map is the
- * home page's facade: under the words from `md`, beside them from `lg`; the
- * mobile frame has none.
+ * radius is published and everything past it is turned down. No map, as on
+ * the home page: the words take the left column from `lg` and the chips the
+ * right one; below `lg` the chips go under the words.
  */
 
 /** The Figma frame's chips over kitstart's: on the card plane, taller, the page's leading. */
@@ -18,26 +17,15 @@ const CHIP = "whitespace-nowrap bg-card py-2.5 text-[14px] leading-[inherit]";
 export function ServiceArea({ copy, point }: { copy: Copy; point: PlaceView }) {
   const { t, f } = copy;
   const head = t.areaHead;
-  const map = mapOf(point.place);
   return (
     <Section tight id="areas">
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:gap-14">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-14">
         <div className="flex flex-col gap-3 md:gap-3.5 lg:w-[460px] lg:shrink-0">
           <Eyebrow>{head.eyebrow}</Eyebrow>
           <Display>{head.title(f)}</Display>
           <p className="text-[15px] leading-[1.62] text-ink-soft md:text-[16.5px]">{head.lede}</p>
-          <AreaChips areas={servedLocalities(point.place)} className={CHIPS} chipClassName={CHIP} />
         </div>
-        {map && (
-          <MapFacade
-            query={map.query}
-            title={t.home.mapTitle(f)}
-            show={t.home.mapShow}
-            address={map.address}
-            className={`hidden md:block md:h-[320px] lg:h-[360px] lg:flex-1 ${MAP_FACE}`}
-            classNames={MAP_FACE_PARTS}
-          />
-        )}
+        <AreaChips areas={servedLocalities(point.place)} className={`${CHIPS} lg:flex-1`} chipClassName={CHIP} />
       </div>
     </Section>
   );

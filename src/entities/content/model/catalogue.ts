@@ -52,23 +52,6 @@ export function priceOf(id: PriceId): number {
 }
 
 /**
- * The price row a job the form offers starts at, or `null` for a job quoted on
- * site. The lowest row where a job spans two (a tap is 129, a toilet 189), so
- * "from" is never an understatement of the price list.
- */
-export const JOB_PRICE: Record<JobId, PriceId | null> = {
-  blocked_drain: "drain",
-  burst_pipe: "pipe",
-  hot_water: "water_heater_repair",
-  tap_toilet: "tap",
-  sewer_line: "sewer",
-  leak_detection: "camera",
-  repipe: "repipe",
-  fit_out: null,
-  other: null,
-};
-
-/**
  * The job a price row is a price for: tapping the row tells the lead form
  * (`data-need`), so the visitor is not asked again what they already chose.
  */

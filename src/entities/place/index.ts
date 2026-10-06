@@ -1,10 +1,10 @@
 export type { DayOfWeek, Geo, OpeningHours, Place, PlaceLive, PlaceView, PostalAddress, Rating, ServiceArea } from "./model/types";
 export {
+  addressOf,
   bakedPlace,
   brandOrigin,
   contactOf,
   isPublished,
-  mapOf,
   parseLive,
   PLACE_SLUGS,
   PLACES,

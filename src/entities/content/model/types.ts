@@ -6,6 +6,7 @@ import type {
   StatusCopy as CoreStatusCopy,
 } from "@evinvest/kitstart";
 import type { Locale } from "@/shared/config/i18n";
+import type { Urgency } from "@/shared/config/lead";
 import type { PageKey } from "@/shared/config/site";
 import type { JobId, NavId, PriceId, ServiceId, WorkId } from "./catalogue";
 
@@ -88,22 +89,34 @@ export type StatusCopy = CoreStatusCopy<Facts>;
 
 /** The shared frame plus the three fields a plumbing quote asks for. */
 export interface QuoteFormCopy extends CoreQuoteFormCopy<Facts> {
+  /** Each field's question: hidden on one screen (placeholders), a screen's heading in steps. */
   jobLabel: string;
   zipLabel: string;
   mobileLabel: string;
   zipPlaceholder: string;
   mobilePlaceholder: string;
-  /**
-   * The `quote_price_anchor` treatment (docs/EXPERIMENTS.md): each job's
-   * published "from" price beside it, and a submit that names the fixed price.
-   */
-  anchored: {
-    /** A job's option label with its formatted "from" price. */
-    option: (job: string, price: string) => string;
-    submit: string;
-    /** Under the submit: restates what the page already says, no new claim. */
-    note: string;
-  };
+  /** The one line under the mobile: when the price comes, and what the number is for. */
+  afterPhone: string;
+  /** The way out to a call back, under the card: the ask, then the link that opens it. */
+  callbackAsk: string;
+  callback: string;
+  /** `layout="steps"`: on from the postcode, and back one screen. */
+  next: string;
+  back: string;
+  /** `lead_form` `c` (docs/EXPERIMENTS.md): how urgent, asked first. */
+  urgency: UrgencyCopy;
+}
+
+export interface UrgencyCopy {
+  question: string;
+  /** Each answer's title and the line under it; the title also names it in the lead mail. */
+  options: Record<Urgency, { label: string; hint: string }>;
+  /** "Today" turns the form into a call back: its heading, its lede, the line under the mobile, the consent, the submit. */
+  callTitle: string;
+  callLede: string;
+  callAfterPhone: string;
+  callConsent: string;
+  callSubmit: string;
 }
 
 export interface HomeCopy {
@@ -136,8 +149,6 @@ export interface HomeCopy {
   coverageEyebrow: Said;
   coverageTitle: string;
   coverageLede: Said;
-  mapShow: string;
-  mapTitle: Said;
   backToTop: string;
 }
 
@@ -189,6 +200,8 @@ export interface Text extends CoreText<PageKey, Facts> {
   whatsappMessage: Said;
   quoteForm: QuoteFormCopy;
   jobs: Record<JobId, string>;
+  /** A job on a card of the lead form, under `sm`, where the whole label would wrap to four lines. */
+  jobsShort: Record<JobId, string>;
   prices: Record<PriceId, { job: string; time: string }>;
   priceColumns: { job: string; price: string; time: string };
   /** The price table's `<caption>`, for a screen reader. */

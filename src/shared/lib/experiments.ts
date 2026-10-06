@@ -49,8 +49,7 @@ export function assignedVariants(config: LiveExperiments, read: (name: string) =
 export function assignmentOf(config: LiveExperiments, read: (name: string) => string | undefined): Assignment {
   return {
     hero_call_first: resolveVariant(config, "hero_call_first", read(cookieName("hero_call_first"))),
-    quote_price_anchor: resolveVariant(config, "quote_price_anchor", read(cookieName("quote_price_anchor"))),
-    lead_layout: resolveVariant(config, "lead_layout", read(cookieName("lead_layout"))),
+    lead_form: resolveVariant(config, "lead_form", read(cookieName("lead_form"))),
   };
 }
 

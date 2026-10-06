@@ -92,9 +92,7 @@ export function Hero({
             copy={copy}
             point={point}
             renderedAt={renderedAt}
-            priceAnchor={variants.quote_price_anchor === "b"}
-            layout={variants.lead_layout === "b" ? "qualify-first" : "single"}
-            experiment={{ name: "lead_layout", variant: variants.lead_layout }}
+            arm={variants.lead_form}
           />
         </div>
       </div>

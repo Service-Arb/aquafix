@@ -86,4 +86,23 @@ describe("the lead mail", () => {
     expect(sink.bodies[0]).not.toContain("hot_water");
     expect(sink.bodies[1]).toContain("Intervention : gas_leak");
   });
+
+  // lead_form c posts how urgent the job is; the business reads it in the form's words.
+  it("names the urgency in French, and an unknown one as posted", async () => {
+    const sink = smtpSink();
+    server = sink.server;
+    await new Promise<void>(resolve => sink.server.listen(0, "127.0.0.1", resolve));
+    const env = parseServerEnv(site, {
+      LEADS_DB_PATH: "/tmp/unused-aquafix-leads.db",
+      SMTP_URL: `smtp://127.0.0.1:${sink.port()}`,
+      LEAD_NOTIFY_TO: "owner@example.test",
+      LEAD_NOTIFY_FROM: "leads@example.test",
+    });
+    const mail = leadNotifier(site, env, NOTIFIER_OPTIONS);
+    await mail.notify({ ...lead, extras: { urgency: "today" } }, 9);
+    await mail.notify({ ...lead, extras: { urgency: "someday" } }, 10);
+
+    expect(sink.bodies[0]).toContain("Urgence      : Urgent — aujourd’hui");
+    expect(sink.bodies[1]).toContain("Urgence      : someday");
+  });
 });

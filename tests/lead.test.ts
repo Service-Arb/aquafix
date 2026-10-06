@@ -20,6 +20,11 @@ describe("the lead schema", () => {
     });
   });
 
+  it("keeps the urgency lead_form c posts, and drops what the schema does not declare", () => {
+    const candidate = readCandidate(LEAD, form({ job: "other", zip: "63130", mobile: "0612345678", urgency: "today", note: "x" }), null);
+    expect(candidate.extras).toEqual({ urgency: "today" });
+  });
+
   it("keeps the mobile as E.164 when it reads as one, and as typed when not", () => {
     const mobile = (typed: string) => readCandidate(LEAD, form({ job: "other", zip: "63130", mobile: typed }), null).mobile;
     expect(mobile("+33 (0)6 12 34 56 78")).toBe("+33612345678");

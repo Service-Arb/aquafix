@@ -15,6 +15,15 @@ export const JOB_IDS = [
 export type JobId = (typeof JOB_IDS)[number];
 
 /**
+ * How soon the customer needs the plumber: the first question of
+ * `lead_form` `c` (docs/EXPERIMENTS.md), posted as the extra `urgency`.
+ * `today` turns the form into a call-back request.
+ */
+export const URGENCIES = ["today", "week", "compare"] as const;
+export type Urgency = (typeof URGENCIES)[number];
+export const URGENCY_FIELD = "urgency";
+
+/**
  * The one rule worth enforcing: a lead with no way to reach the customer is
  * not a lead. The phone is kitstart's rule — the one the form blocks on, so the
  * server never refuses a number the form let through (the landing contract
@@ -29,7 +38,8 @@ export function quoteRule(lead: Pick<LeadCandidate, "locality" | "mobile">): Lea
 }
 
 /**
- * What a plumbing quote asks: the job, the commune or postcode, the mobile.
+ * What a plumbing quote asks: the job, the commune or postcode, the mobile —
+ * and, in one arm of `lead_form`, how urgent it is.
  * Posted as `job` / `zip` / `mobile`, the Rust form's names, which pages
  * cached before the port still send. The mobile is kept as E.164
  * (`+33612345678`) when it reads as a number — one spelling per customer for
@@ -38,6 +48,8 @@ export function quoteRule(lead: Pick<LeadCandidate, "locality" | "mobile">): Lea
 export const LEAD: LeadSchema<JobId> = {
   subjects: JOB_IDS,
   wire: { subject: "job", locality: "zip", mobile: "mobile" },
+  // Declared, or the server drops what the intro question posts.
+  extras: [{ name: URGENCY_FIELD, max: 16 }],
   validate: quoteRule,
   mobileFormat: "e164",
 };

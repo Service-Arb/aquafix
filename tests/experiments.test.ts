@@ -29,18 +29,16 @@ describe("the variant bucket in the path", () => {
   it("round-trips every non-control assignment and keeps the control's plain URL", () => {
     expect(encodeBucket(CONTROL)).toBeNull();
     for (const hero of ["a", "b"] as const) {
-      for (const quote of ["a", "b"] as const) {
-        for (const layout of ["a", "b"] as const) {
-          const assignment = { hero_call_first: hero, quote_price_anchor: quote, lead_layout: layout };
-          const bucket = encodeBucket(assignment);
-          if (bucket) expect(decodeBucket(EXPERIMENTS, bucket)).toEqual(assignment);
-        }
+      for (const form of ["a", "b", "c"] as const) {
+        const assignment = { hero_call_first: hero, lead_form: form };
+        const bucket = encodeBucket(assignment);
+        if (bucket) expect(decodeBucket(EXPERIMENTS, bucket)).toEqual(assignment);
       }
     }
   });
 
   it("refuses a bucket the proxy never writes", () => {
-    for (const junk of ["aaa", "zzz", "b", "bb", "bbbb", "~ab", "", "Bbb"]) expect(decodeBucket(EXPERIMENTS, junk), junk).toBeNull();
+    for (const junk of ["aa", "zz", "b", "bd", "ca", "bbb", "~a", "", "Bb"]) expect(decodeBucket(EXPERIMENTS, junk), junk).toBeNull();
   });
 
   it("declares one-letter variants with `a` first, which the path encoding needs", () => {
@@ -63,7 +61,7 @@ describe("bots", () => {
   });
 
   it("get the control page and no cookie, whatever they send", async () => {
-    const res = await visit(`https://${ROYAT}/fr`, { "user-agent": "Googlebot/2.1", cookie: "ab_hero_call_first=b; ab_quote_price_anchor=b" });
+    const res = await visit(`https://${ROYAT}/fr`, { "user-agent": "Googlebot/2.1", cookie: "ab_hero_call_first=b; ab_lead_form=c" });
     expect(res).toEqual({ rewrite: "/fr/_royat", cookies: [] });
   });
 });
@@ -71,39 +69,41 @@ describe("bots", () => {
 describe("the proxy's assignment", () => {
   it("gives a new visitor a sticky cookie per experiment", async () => {
     const { cookies } = await visit(`https://${ROYAT}/fr`);
-    expect(cookies.map(c => c.split("=")[0] ?? "").sort()).toEqual(["ab_hero_call_first", "ab_lead_layout", "ab_quote_price_anchor"]);
+    expect(cookies.map(c => c.split("=")[0] ?? "").sort()).toEqual(["ab_hero_call_first", "ab_lead_form"]);
   });
 
   it("rewrites a point's home to its visitor's bucket, and leaves the control on the plain path", async () => {
-    expect(await visit(`https://${ROYAT}/fr`, { cookie: "ab_hero_call_first=b; ab_quote_price_anchor=a; ab_lead_layout=a" })).toEqual({ rewrite: "/fr/_royat/ab/baa", cookies: [] });
-    expect(await visit(`https://${ROYAT}/fr`, { cookie: "ab_hero_call_first=a; ab_quote_price_anchor=a; ab_lead_layout=b" })).toEqual({ rewrite: "/fr/_royat/ab/aab", cookies: [] });
-    expect(await visit(`https://${ROYAT}/en`, { cookie: "ab_hero_call_first=a; ab_quote_price_anchor=a; ab_lead_layout=a" })).toEqual({ rewrite: "/en/_royat", cookies: [] });
-    expect((await visit("https://aquafix.top/fr/royat", { cookie: "ab_hero_call_first=b; ab_quote_price_anchor=b; ab_lead_layout=b" })).rewrite).toBe("/fr/royat/ab/bbb");
+    expect(await visit(`https://${ROYAT}/fr`, { cookie: "ab_hero_call_first=b; ab_lead_form=a" })).toEqual({ rewrite: "/fr/_royat/ab/ba", cookies: [] });
+    expect(await visit(`https://${ROYAT}/fr`, { cookie: "ab_hero_call_first=a; ab_lead_form=b" })).toEqual({ rewrite: "/fr/_royat/ab/ab", cookies: [] });
+    expect(await visit(`https://${ROYAT}/fr`, { cookie: "ab_hero_call_first=a; ab_lead_form=c" })).toEqual({ rewrite: "/fr/_royat/ab/ac", cookies: [] });
+    expect(await visit(`https://${ROYAT}/en`, { cookie: "ab_hero_call_first=a; ab_lead_form=a" })).toEqual({ rewrite: "/en/_royat", cookies: [] });
+    expect((await visit("https://aquafix.top/fr/royat", { cookie: "ab_hero_call_first=b; ab_lead_form=c" })).rewrite).toBe("/fr/royat/ab/bc");
   });
 
   it("assigns on a point's other pages without rewriting them: nothing there differs", async () => {
     const res = await visit(`https://${ROYAT}/fr/prices`);
     expect(res.rewrite).toBe("/fr/_royat/prices");
-    expect(res.cookies).toHaveLength(3);
+    expect(res.cookies).toHaveLength(2);
   });
 
   it("forces a variant from the query, and marks the browser as QA's", async () => {
-    const res = await visit(`https://${ROYAT}/fr?ab_quote_price_anchor=b`, { cookie: "ab_hero_call_first=a; ab_quote_price_anchor=a; ab_lead_layout=a" });
-    expect(res.rewrite).toBe("/fr/_royat/ab/aba");
-    expect(res.cookies.sort()).toEqual(["ab_forced=1", "ab_quote_price_anchor=b"]);
+    const res = await visit(`https://${ROYAT}/fr?ab_lead_form=b`, { cookie: "ab_hero_call_first=a; ab_lead_form=a" });
+    expect(res.rewrite).toBe("/fr/_royat/ab/ab");
+    expect(res.cookies.sort()).toEqual(["ab_forced=1", "ab_lead_form=b"]);
+    expect((await visit(`https://${ROYAT}/fr?ab_lead_form=c`, { cookie: "ab_hero_call_first=a; ab_lead_form=a" })).rewrite).toBe("/fr/_royat/ab/ac");
     // A variant the test does not declare forces nothing.
-    expect((await visit(`https://${ROYAT}/fr?ab_quote_price_anchor=z`, { cookie: "ab_hero_call_first=a; ab_quote_price_anchor=a; ab_lead_layout=a" })).cookies).toEqual([]);
+    expect((await visit(`https://${ROYAT}/fr?ab_lead_form=z`, { cookie: "ab_hero_call_first=a; ab_lead_form=a" })).cookies).toEqual([]);
   });
 
   it("does not assign again on Next's second pass over the rewritten path", async () => {
-    expect(await visit("http://localhost:3000/fr/_royat/ab/bbb", { cookie: "" })).toEqual({ rewrite: null, cookies: [] });
+    expect(await visit("http://localhost:3000/fr/_royat/ab/bc", { cookie: "" })).toEqual({ rewrite: null, cookies: [] });
     expect(await visit("http://localhost:3000/fr/_royat", { cookie: "" })).toEqual({ rewrite: null, cookies: [] });
   });
 
   it("leaves the brand's pages, /quote and dead paths to kitstart", async () => {
     expect((await visit("https://aquafix.top/fr")).cookies).toEqual([]);
     expect((await visit(`https://${ROYAT}/quote`)).cookies).toEqual([]);
-    expect((await visit(`https://${ROYAT}/fr/_royat/ab/zzz`)).rewrite).toBe("/fr/404/404");
+    expect((await visit(`https://${ROYAT}/fr/_royat/ab/zz`)).rewrite).toBe("/fr/404/404");
   });
 });
 
@@ -111,10 +111,10 @@ describe("the panel's overrides", () => {
   const HERO_OFF = { hero_call_first: { enabled: false } };
 
   it("give a test the panel switched off its control letter, even with a cookie for b, and drop that cookie", async () => {
-    const res = await visit(`https://${ROYAT}/fr`, { cookie: "ab_hero_call_first=b; ab_quote_price_anchor=a; ab_lead_layout=b" }, HERO_OFF);
-    expect(res).toEqual({ rewrite: "/fr/_royat/ab/aab", cookies: ["ab_hero_call_first="] });
+    const res = await visit(`https://${ROYAT}/fr`, { cookie: "ab_hero_call_first=b; ab_lead_form=b" }, HERO_OFF);
+    expect(res).toEqual({ rewrite: "/fr/_royat/ab/ab", cookies: ["ab_hero_call_first="] });
     // All control once the switched-off test is: the plain, shared cache entry.
-    expect(await visit(`https://${ROYAT}/fr`, { cookie: "ab_hero_call_first=b; ab_quote_price_anchor=a; ab_lead_layout=a" }, HERO_OFF)).toEqual({
+    expect(await visit(`https://${ROYAT}/fr`, { cookie: "ab_hero_call_first=b; ab_lead_form=a" }, HERO_OFF)).toEqual({
       rewrite: "/fr/_royat",
       cookies: ["ab_hero_call_first="],
     });
@@ -122,16 +122,16 @@ describe("the panel's overrides", () => {
 
   it("neither assign nor force a switched-off test, nor pass a bucket with its b", async () => {
     const fresh = await visit(`https://${ROYAT}/fr?ab_hero_call_first=b`, {}, HERO_OFF);
-    expect(fresh.cookies.map(c => c.split("=")[0]).sort()).toEqual(["ab_lead_layout", "ab_quote_price_anchor"]);
+    expect(fresh.cookies.map(c => c.split("=")[0]).sort()).toEqual(["ab_lead_form"]);
     expect(fresh.rewrite ?? "").not.toMatch(/\/ab\/b/);
-    expect(decodeBucket(applyOverrides(EXPERIMENTS, HERO_OFF), "baa")).toBeNull();
-    expect((await visit(`https://${ROYAT}/fr/_royat/ab/baa`, {}, HERO_OFF)).rewrite).toBe("/fr/404/404");
+    expect(decodeBucket(applyOverrides(EXPERIMENTS, HERO_OFF), "ba")).toBeNull();
+    expect((await visit(`https://${ROYAT}/fr/_royat/ab/ba`, {}, HERO_OFF)).rewrite).toBe("/fr/404/404");
   });
 
   it("re-weight new visitors only: an arm already carried is kept", async () => {
-    const ALL_A = { hero_call_first: { weights: [1, 0] }, quote_price_anchor: { weights: [1, 0] }, lead_layout: { weights: [1, 0] } };
+    const ALL_A = { hero_call_first: { weights: [1, 0] }, lead_form: { weights: [1, 0, 0] } };
     expect((await visit(`https://${ROYAT}/fr`, {}, ALL_A)).rewrite).toBe("/fr/_royat");
-    expect((await visit(`https://${ROYAT}/fr`, { cookie: "ab_hero_call_first=b; ab_quote_price_anchor=a; ab_lead_layout=a" }, ALL_A)).rewrite).toBe("/fr/_royat/ab/baa");
+    expect((await visit(`https://${ROYAT}/fr`, { cookie: "ab_hero_call_first=b; ab_lead_form=c" }, ALL_A)).rewrite).toBe("/fr/_royat/ab/bc");
   });
 
   it("declare one summary per experiment, within the panel's 200 characters", () => {
@@ -142,8 +142,9 @@ describe("the panel's overrides", () => {
 
 describe("reading the cookies back", () => {
   it("takes only enabled experiments the browser carries, a bad value as control", () => {
-    const read = cookieReader("lang=fr; ab_hero_call_first=b; ab_quote_price_anchor=%7A; ab_forced=1");
-    expect(assignedVariants(EXPERIMENTS, read)).toEqual({ hero_call_first: "b", quote_price_anchor: "a" });
+    const read = cookieReader("lang=fr; ab_hero_call_first=b; ab_lead_form=%7A; ab_quote_price_anchor=b; ab_forced=1");
+    // An ended test's leftover cookie is not an experiment any more.
+    expect(assignedVariants(EXPERIMENTS, read)).toEqual({ hero_call_first: "b", lead_form: "a" });
     expect(assignedVariants(EXPERIMENTS, cookieReader(null))).toEqual({});
   });
 });
@@ -199,22 +200,22 @@ describe("experiment_lead", () => {
 
   it("goes out once per experiment for an accepted lead, with the variant and the point", async () => {
     const { post, run } = route();
-    const res = await post(submit("ab_hero_call_first=b; ab_quote_price_anchor=a"));
+    const res = await post(submit("ab_hero_call_first=b; ab_lead_form=c"));
     expect(res.status).toBe(303);
     await run();
     const events = captured.mock.calls.map(([body]) => JSON.parse(body) as { event: string; properties: Record<string, unknown> });
     expect(events.map(e => [e.event, e.properties["experiment"], e.properties["variant"], e.properties["forced"], e.properties["location_id"]])).toEqual([
       ["experiment_lead", "hero_call_first", "b", false, "royat"],
-      ["experiment_lead", "quote_price_anchor", "a", false, "royat"],
+      ["experiment_lead", "lead_form", "c", false, "royat"],
     ]);
   });
 
   it("leaves out a test the panel switched off, whatever the cookie says", async () => {
     const { post, run } = route({ hero_call_first: { enabled: false } });
-    expect((await post(submit("ab_hero_call_first=b; ab_quote_price_anchor=a"))).status).toBe(303);
+    expect((await post(submit("ab_hero_call_first=b; ab_lead_form=c"))).status).toBe(303);
     await run();
     const events = captured.mock.calls.map(([body]) => JSON.parse(body) as { properties: Record<string, unknown> });
-    expect(events.map(e => e.properties["experiment"])).toEqual(["quote_price_anchor"]);
+    expect(events.map(e => e.properties["experiment"])).toEqual(["lead_form"]);
   });
 
   it("stays silent for a lead held as spam, a rejected one, and a visitor in no test", async () => {
