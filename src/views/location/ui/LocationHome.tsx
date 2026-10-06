@@ -1,8 +1,9 @@
+import { AbSwitcher } from "@evinvest/kitstart/react";
 import { JsonLd } from "@evinvest/marketing";
 import { withLiveRating, type Copy } from "@/entities/content";
 import { freshRating, type PlaceView } from "@/entities/place";
 import { locationGraph } from "@/features/seo";
-import { CONTROL, type Assignment } from "@/shared/config/experiments";
+import { AB_SWITCHER_EXPERIMENTS, CONTROL, FORCED_COOKIE, type Assignment } from "@/shared/config/experiments";
 import { CallBar } from "@/widgets/call-bar";
 import { Coverage } from "@/widgets/coverage";
 import { Faq } from "@/widgets/faq";
@@ -51,6 +52,10 @@ export function LocationHome({
         <QuietFooter copy={copy} point={point} />
       </div>
       <CallBar copy={copy} point={point} renderedAt={now.getTime()} />
+      {/* The QA menu: here, not in the layout, because the experiments run on
+          this page alone. Renders nothing on the server, so the page stays
+          static; on a phone it sits above the call bar. */}
+      <AbSwitcher experiments={AB_SWITCHER_EXPERIMENTS} qaCookie={FORCED_COOKIE} className="bottom-24 md:bottom-4" />
     </>
   );
 }

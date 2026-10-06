@@ -4,3 +4,10 @@
 #callbar {
   display: none !important;
 }
+
+/* The QA menu (kitstart's `AbSwitcher`) shows only to a forced visit, never
+ * to the control the shots start in; hidden in case one ever carries it.
+ * The call bar's own shot does without this sheet and relies on that. */
+[data-ab-switcher] {
+  display: none !important;
+}
