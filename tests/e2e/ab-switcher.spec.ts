@@ -3,7 +3,7 @@ import { POSTHOG_HOST } from "./env";
 
 // The QA menu (kitstart's `AbSwitcher`, docs/EXPERIMENTS.md "Forcing a
 // variant"). The build under test is production, so the chip shows only to a
-// visit the force parameter marked with `ab_forced`. Like experiments.spec.ts,
+// visit the force parameter marked with `ab__qa`. Like experiments.spec.ts,
 // every test starts as a new visitor, with no cookie.
 test.use({ storageState: { cookies: [], origins: [] } });
 
@@ -95,10 +95,10 @@ test("Reset draws the variants again and keeps the visit a test", async ({ page,
   await page.getByRole("button", CHIP).click();
   const sent = await nextLoadCookies(page, () => page.getByRole("dialog", CHIP).getByRole("button", { name: "Reset" }).click());
   expect(names(sent)).not.toContain("ab_lead_form");
-  expect(names(sent)).toContain("ab_forced");
+  expect(names(sent)).toContain("ab__qa");
   await expect(page).not.toHaveURL(/ab_lead_form=/);
   await expect(page.getByRole("button", CHIP)).toBeVisible();
-  expect((await context.cookies()).map(c => c.name)).toContain("ab_forced");
+  expect((await context.cookies()).map(c => c.name)).toContain("ab__qa");
 });
 
 test("Leave test drops the QA mark and the chip", async ({ page, context }) => {
@@ -106,9 +106,21 @@ test("Leave test drops the QA mark and the chip", async ({ page, context }) => {
   await page.goto("/fr?ab_lead_form=b");
   await page.getByRole("button", CHIP).click();
   const sent = await nextLoadCookies(page, () => page.getByRole("dialog", CHIP).getByRole("button", { name: "Leave test" }).click());
-  expect(names(sent)).not.toContain("ab_forced");
+  expect(names(sent)).not.toContain("ab__qa");
   await expect(page).not.toHaveURL(/ab_lead_form=/);
   await ready();
   await expect(page.getByRole("button", CHIP)).toHaveCount(0);
-  expect((await context.cookies()).map(c => c.name)).not.toContain("ab_forced");
+  expect((await context.cookies()).map(c => c.name)).not.toContain("ab__qa");
+});
+
+// A browser QA marked under the old name (`ab_forced`, read until 2026-11-05):
+// the proxy moves the mark on the first request, before the page's scripts
+// run, so the chip shows on that very load — no second visit needed.
+test("a browser with the legacy QA mark keeps it under the new name, chip included", async ({ page, context }) => {
+  await context.addCookies([{ name: "ab_forced", value: "1", url: "http://royat.localhost" }]);
+  await page.goto("/fr");
+  await expect(page.getByRole("button", CHIP)).toBeVisible();
+  const jar = await context.cookies();
+  expect(jar.find(c => c.name === "ab__qa")?.value).toBe("1");
+  expect(jar.map(c => c.name)).not.toContain("ab_forced");
 });
