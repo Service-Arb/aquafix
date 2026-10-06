@@ -244,3 +244,26 @@ test("lead_form c, urgent today, is a call back with the phone alone", async ({ 
   await expect.poll(() => rowFor(mobile)?.channel).toBe("callback");
   expect(rowFor(mobile)?.extras).toBe(JSON.stringify({ urgency: "today" }));
 });
+
+/** The properties of the first `location_page_view` the page sends to PostHog. */
+async function pageView(page: Page, url: string): Promise<Record<string, unknown>> {
+  await capture(page);
+  const sent = page.waitForRequest(req => req.url().startsWith(POSTHOG_HOST) && (req.postData() ?? "").includes('"location_page_view"'));
+  await page.goto(url);
+  const body: unknown = JSON.parse((await sent).postData() ?? "null");
+  const properties: unknown = typeof body === "object" && body !== null ? Reflect.get(body, "properties") : undefined;
+  if (typeof properties !== "object" || properties === null) throw new Error("a page view without properties");
+  return { ...properties };
+}
+
+// The QA cookie marks the page view too, so a tester's reloads stay out of a
+// place's traffic; an ordinary visit's page view carries no `forced` at all.
+test("a forced visit's page view says forced: true", async ({ page }) => {
+  expect(await pageView(page, "/fr?ab_lead_form=b")).toMatchObject({ forced: true, location_id: "royat" });
+});
+
+test("a new visitor's page view has no forced key", async ({ page }) => {
+  const properties = await pageView(page, "/fr");
+  expect(properties).toMatchObject({ location_id: "royat" });
+  expect(properties).not.toHaveProperty("forced");
+});
