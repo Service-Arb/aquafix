@@ -51,6 +51,29 @@ export const CONTROL: Assignment = {
   lead_form: "a",
 };
 
+/**
+ * The QA menu's words for each test and each arm. Keyed by the config, so a
+ * new experiment or arm without a label fails the type check rather than
+ * showing a bare letter.
+ */
+const AB_MENU_LABELS: {
+  readonly [K in ExperimentId]: { readonly label: string; readonly variants: { readonly [V in Variant<typeof EXPERIMENTS, K>]: string } };
+} = {
+  hero_call_first: { label: "Mobile hero", variants: { a: "Form first", b: "Call first" } },
+  lead_form: { label: "Lead form", variants: { a: "Compact", b: "Steps", c: "Urgent first" } },
+};
+
+/**
+ * The experiments as kitstart's `AbSwitcher` takes them: plain data, so a
+ * server layout passes it. Marked pure because the client beacon imports this
+ * module: unread, the list and its labels drop out of every visitor's bundle.
+ */
+export const AB_SWITCHER_EXPERIMENTS = /* @__PURE__ */ EXPERIMENT_IDS.map(key => ({
+  key,
+  label: AB_MENU_LABELS[key].label,
+  variants: Object.entries(AB_MENU_LABELS[key].variants).map(([value, label]) => ({ value, label })),
+}));
+
 /** `?ab_<experiment>=<variant>` forces a variant, for QA. */
 export const FORCE_PARAM = "ab_";
 
