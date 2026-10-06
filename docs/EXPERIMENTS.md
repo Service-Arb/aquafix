@@ -181,7 +181,7 @@ https://royat.aquafix.top/fr?ab_hero_call_first=b&ab_lead_form=c
 https://royat.aquafix.top/fr?ab_lead_form=b
 ```
 
-The forced variant is stored in the cookie, and a cookie `ab_forced=1` — kept
+The forced variant is stored in the cookie, and a cookie `ab__qa=1` — kept
 30 days, as long as the variant it marks — tags that browser's experiment
 events `forced: true`, and also kitstart's `location_page_view` and
 `contact_intent_click`, so a tester's reloads stay out of a place's traffic;
@@ -191,21 +191,29 @@ the PostHog funnel leaves them out. kitstart's lead-form events (`lead_form_*`,
 the QA menu (below), or deleting the site's cookies, makes the browser an
 ordinary visitor again. A disabled experiment cannot be forced.
 
+`ab__qa` is the QA mark's name on every brand (vifnet's too). Until October
+2026 Aquafix called it `ab_forced`. That name is still read as a mark, and
+the proxy moves it on a browser's next visit to a point: `ab__qa=1` set for
+30 days, `ab_forced` deleted, on the same response — so a browser marked
+before the rename stays a test, and the chip shows on that first load. The
+legacy name is read until **2026-11-05**; then delete `LEGACY_QA_COOKIE`
+(`src/shared/config/experiments.ts`) and the migration in the proxy.
+
 ### The QA menu on a phone
 
 A forced visit also gets kitstart's A/B menu on a point's home page — the only
 page the experiments run on: a chip in the bottom-right corner (on a phone, above the call bar) showing each test's current letter.
 
 1. Open any point with a force parameter, e.g.
-   `https://royat.aquafix.top/fr?ab_lead_form=a`. The proxy sets `ab_forced`,
+   `https://royat.aquafix.top/fr?ab_lead_form=a`. The proxy sets `ab__qa`,
    and the chip appears.
 2. Tap the chip, then a variant: the page reloads with that variant forced.
 3. **Reset** drops the assignments and draws new random variants; the visit
-   stays a test and the menu stays. **Leave test** drops `ab_forced` too: the
+   stays a test and the menu stays. **Leave test** drops `ab__qa` too: the
    chip is gone and the browser counts as an ordinary visitor again.
    **Minimize** and **Hide** last until the next page load.
 
-`ab_forced` lasts 30 days, like the variant it marks, so closing the browser
+`ab__qa` lasts 30 days, like the variant it marks, so closing the browser
 does not leave the test — use **Leave test**. (Until 2026-10 it was a session
 cookie: a closed browser kept the forced variant but lost the mark.) A visitor without it never downloads the menu: the page's first load
 carries only a small gate that checks for the cookie. Under `next dev` the chip
