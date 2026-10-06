@@ -5,9 +5,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { applyOverrides, type ExperimentOverrides } from "@evinvest/experiments";
 import { createExperimentProxy } from "@/features/experiments/proxy";
 import { experimentLeads } from "@/features/experiments/server";
-import { CONTROL, EXPERIMENT_SUMMARIES, EXPERIMENTS } from "@/shared/config/experiments";
+import { CONTROL, EXPERIMENT_SUMMARIES, EXPERIMENTS, FORCED_MAX_AGE } from "@/shared/config/experiments";
 import { site } from "@/shared/config/site";
-import { assignedVariants, cookieReader, decodeBucket, encodeBucket, isBot } from "@/shared/lib/experiments";
+import { assignedVariants, cookieReader, decodeBucket, encodeBucket, isBot, isForced } from "@/shared/lib/experiments";
 
 const ROYAT = "royat.aquafix.top";
 const PHONE_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1";
@@ -89,7 +89,7 @@ describe("the proxy's assignment", () => {
   it("forces a variant from the query, and marks the browser as QA's", async () => {
     const res = await visit(`https://${ROYAT}/fr?ab_lead_form=b`, { cookie: "ab_hero_call_first=a; ab_lead_form=a" });
     expect(res.rewrite).toBe("/fr/_royat/ab/ab");
-    expect(res.cookies.sort()).toEqual(["ab_forced=1", "ab_lead_form=b"]);
+    expect(res.cookies.sort()).toEqual(["ab__qa=1", "ab_lead_form=b"]);
     expect((await visit(`https://${ROYAT}/fr?ab_lead_form=c`, { cookie: "ab_hero_call_first=a; ab_lead_form=a" })).rewrite).toBe("/fr/_royat/ab/ac");
     // A variant the test does not declare forces nothing.
     expect((await visit(`https://${ROYAT}/fr?ab_lead_form=z`, { cookie: "ab_hero_call_first=a; ab_lead_form=a" })).cookies).toEqual([]);
@@ -100,8 +100,26 @@ describe("the proxy's assignment", () => {
     const headers = { host: ROYAT, "user-agent": PHONE_UA, cookie: "ab_hero_call_first=a; ab_lead_form=a" };
     const setCookies = (await proxy(new NextRequest(new URL(`https://${ROYAT}/fr?ab_lead_form=b`), { headers }))).headers.getSetCookie();
     const maxAge = (name: string) => /max-age=(\d+)/i.exec(setCookies.find(c => c.startsWith(`${name}=`)) ?? "")?.[1];
-    expect(maxAge("ab_forced")).toBeDefined();
-    expect(maxAge("ab_forced")).toBe(maxAge("ab_lead_form"));
+    expect(maxAge("ab__qa")).toBeDefined();
+    expect(maxAge("ab__qa")).toBe(maxAge("ab_lead_form"));
+  });
+
+  it("moves QA's legacy mark to its new name on the next visit, for as long", async () => {
+    const proxy = createExperimentProxy(live());
+    const headers = { host: ROYAT, "user-agent": PHONE_UA, cookie: "ab_hero_call_first=a; ab_lead_form=b; ab_forced=1" };
+    const setCookies = (await proxy(new NextRequest(new URL(`https://${ROYAT}/fr`), { headers }))).headers.getSetCookie();
+    expect(setCookies).toEqual([
+      `ab__qa=1; Path=/; Max-Age=${FORCED_MAX_AGE}; SameSite=Lax`,
+      "ab_forced=; Path=/; Max-Age=0; SameSite=Lax",
+    ]);
+    // Already moved: only the leftover is dropped; never marked: nothing.
+    expect((await visit(`https://${ROYAT}/fr`, { cookie: "ab_hero_call_first=a; ab_lead_form=a; ab__qa=1; ab_forced=1" })).cookies).toEqual(["ab_forced="]);
+    expect((await visit(`https://${ROYAT}/fr`, { cookie: "ab_hero_call_first=a; ab_lead_form=a; ab__qa=1" })).cookies).toEqual([]);
+  });
+
+  it("forcing a legacy-marked browser sets the new mark once and drops the old", async () => {
+    const res = await visit(`https://${ROYAT}/fr?ab_lead_form=c`, { cookie: "ab_hero_call_first=a; ab_lead_form=a; ab_forced=1" });
+    expect(res.cookies.sort()).toEqual(["ab__qa=1", "ab_forced=", "ab_lead_form=c"]);
   });
 
   it("does not assign again on Next's second pass over the rewritten path", async () => {
@@ -155,6 +173,14 @@ describe("reading the cookies back", () => {
     // An ended test's leftover cookie is not an experiment any more.
     expect(assignedVariants(EXPERIMENTS, read)).toEqual({ hero_call_first: "b", lead_form: "a" });
     expect(assignedVariants(EXPERIMENTS, cookieReader(null))).toEqual({});
+  });
+
+  it("takes QA's mark under its name or the legacy one, and nothing else", () => {
+    expect(isForced(cookieReader("ab__qa=1"))).toBe(true);
+    expect(isForced(cookieReader("lang=fr; ab_forced=1"))).toBe(true);
+    expect(isForced(cookieReader("ab_lead_form=b"))).toBe(false);
+    expect(isForced(cookieReader("ab__qa=; ab_forced=0"))).toBe(false);
+    expect(isForced(cookieReader(null))).toBe(false);
   });
 });
 

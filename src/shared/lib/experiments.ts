@@ -1,5 +1,5 @@
 import { cookieName, resolveVariant } from "@evinvest/experiments";
-import { CONTROL, EXPERIMENT_IDS, FORCED_COOKIE, type Assignment, type ExperimentId, type LiveExperiments } from "@/shared/config/experiments";
+import { CONTROL, EXPERIMENT_IDS, LEGACY_QA_COOKIE, QA_COOKIE, type Assignment, type ExperimentId, type LiveExperiments } from "@/shared/config/experiments";
 
 /**
  * Crawlers, link unfurlers and ad reviewers. They always get the control and
@@ -58,8 +58,9 @@ export function disabledCookies(config: LiveExperiments, read: (name: string) =>
   return EXPERIMENT_IDS.filter(id => config[id].enabled === false && read(cookieName(id)) !== undefined).map(id => cookieName(id));
 }
 
+/** Whether the browser carries QA's mark, under its name or the legacy one the proxy has yet to move. */
 export function isForced(read: (name: string) => string | undefined): boolean {
-  return read(FORCED_COOKIE) === "1";
+  return read(QA_COOKIE) === "1" || read(LEGACY_QA_COOKIE) === "1";
 }
 
 /**

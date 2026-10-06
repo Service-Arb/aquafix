@@ -4,6 +4,7 @@ import { experimentLeads } from "@/features/experiments/server";
 import { contactOf } from "@/entities/place";
 import { notifier, webhook } from "@/features/quote-form/server";
 import { serverEnv } from "@/shared/config/env";
+import { QA_COOKIE } from "@/shared/config/experiments";
 import { CARD, site } from "@/shared/config/site";
 
 /**
@@ -22,6 +23,8 @@ const leads = experimentLeads({
 
 const post = quoteRoute(site, {
   env: serverEnv,
+  // A QA browser's lead_form_submit says forced: true, as its page events do.
+  qaCookie: QA_COOKIE,
   defer: leads.defer,
   notifier,
   webhook,

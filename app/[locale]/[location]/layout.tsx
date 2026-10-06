@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { AnalyticsBoundary } from "@evinvest/kitstart/react";
 import { ExperimentBeacon } from "@/features/experiments";
 import { serverEnv } from "@/shared/config/env";
-import { FORCED_COOKIE } from "@/shared/config/experiments";
+import { QA_COOKIE } from "@/shared/config/experiments";
 import { site } from "@/shared/config/site";
 import { loadPoint, type LocationParams } from "@/views/location/server";
 
@@ -42,7 +42,7 @@ export default async function LocationLayout({
   // build: the image carries no secret, and PostHog's project key is public.
   const target = { key: env.posthogKey, host: env.posthogHost, brandId: site.brand.id };
   return (
-    <AnalyticsBoundary target={target} placeSlug={point.place.slug} qaCookie={FORCED_COOKIE}>
+    <AnalyticsBoundary target={target} placeSlug={point.place.slug} qaCookie={QA_COOKIE}>
       <ExperimentBeacon target={target} placeSlug={point.place.slug} />
       {children}
     </AnalyticsBoundary>
