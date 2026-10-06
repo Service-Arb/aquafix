@@ -186,6 +186,26 @@ marks every later event from that browser `forced: true`; the PostHog funnel
 leaves them out. Close the browser (or delete the cookies) to become an ordinary
 visitor again. A disabled experiment cannot be forced.
 
+### The QA menu on a phone
+
+A forced visit also gets kitstart's A/B menu on a point's home page — the only
+page the experiments run on: a chip in the bottom-right corner (on a phone, above the call bar) showing each test's current letter.
+
+1. Open any point with a force parameter, e.g.
+   `https://royat.aquafix.top/fr?ab_lead_form=a`. The proxy sets `ab_forced`,
+   and the chip appears.
+2. Tap the chip, then a variant: the page reloads with that variant forced.
+3. **Reset** drops the assignments and draws new random variants; the visit
+   stays a test and the menu stays. **Leave test** drops `ab_forced` too: the
+   chip is gone and the browser counts as an ordinary visitor again.
+   **Minimize** and **Hide** last until the next page load.
+
+`ab_forced` is a session cookie, so closing the browser leaves the test as
+well. A visitor without it never downloads the menu: the page's first load
+carries only a small gate that checks for the cookie. Under `next dev` the chip
+is always there. The tests and their labels come from `AB_SWITCHER_EXPERIMENTS`
+in `src/shared/config/experiments.ts`.
+
 ## Ending an experiment
 
 - **Stop now, keep the control:** switch the test off in the panel — no
