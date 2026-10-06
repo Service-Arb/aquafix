@@ -183,7 +183,9 @@ https://royat.aquafix.top/fr?ab_lead_form=b
 
 The forced variant is stored in the cookie, and a cookie `ab_forced=1` — kept
 30 days, as long as the variant it marks — tags every later event from that
-browser `forced: true`; the PostHog funnel leaves them out. **Leave test** in
+browser `forced: true` — the experiment events and also `location_page_view`
+and `contact_intent_click`, so a tester's reloads stay out of a place's traffic;
+the PostHog funnel leaves them out. **Leave test** in
 the QA menu (below), or deleting the site's cookies, makes the browser an
 ordinary visitor again. A disabled experiment cannot be forced.
 
