@@ -3,7 +3,7 @@ import { abProxy } from "@evinvest/experiments/next";
 import { createRouting, GONE_HEADER, LANG_COOKIE, parsePlaceParam } from "@evinvest/kitstart";
 import { createProxy } from "@evinvest/kitstart/proxy";
 import { NextResponse, type NextRequest } from "next/server";
-import { EXPERIMENT_IDS, FORCE_PARAM, FORCED_COOKIE, FORCED_MAX_AGE, type LiveExperiments } from "@/shared/config/experiments";
+import { EXPERIMENT_IDS, FORCE_PARAM, FORCED_MAX_AGE, LEGACY_QA_COOKIE, QA_COOKIE, type LiveExperiments } from "@/shared/config/experiments";
 import { site } from "@/shared/config/site";
 import { assignmentOf, BUCKET_SEGMENT, decodeBucket, disabledCookies, encodeBucket, isBot } from "@/shared/lib/experiments";
 import { liveExperiments, type LiveConfig } from "../api/live";
@@ -51,6 +51,20 @@ function wasForced(config: LiveExperiments, request: NextRequest): boolean {
   return EXPERIMENT_IDS.some(id => forcedVariant(config, id, request.nextUrl.searchParams.get(`${FORCE_PARAM}${id}`)) !== undefined);
 }
 
+/**
+ * QA's mark: set on a forced visit, and moved from its legacy name on the
+ * first visit that still carries it — the page that answers already has the
+ * new name, so the QA menu and the analytics see it on that same load.
+ */
+function qaMark(config: LiveExperiments, request: NextRequest, read: (name: string) => string | undefined): string[] {
+  const legacy = read(LEGACY_QA_COOKIE) !== undefined;
+  const mark = wasForced(config, request) || (legacy && read(QA_COOKIE) === undefined);
+  return [
+    ...(mark ? [`${QA_COOKIE}=1; Path=/; Max-Age=${FORCED_MAX_AGE}; SameSite=Lax`] : []),
+    ...(legacy ? [`${LEGACY_QA_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax`] : []),
+  ];
+}
+
 /** The proxy over a source of the applied config; `experimentProxy` reads the panel's. */
 export function createExperimentProxy(live: LiveConfig): (request: NextRequest) => Promise<NextResponse> {
   return async request => assign(await live(), request);
@@ -89,6 +103,6 @@ function assign(config: LiveExperiments, request: NextRequest): NextResponse {
   // As long-lived as the variant it marks (`FORCED_MAX_AGE`). Appended raw,
   // like the ones above: `response.cookies.set` would rewrite the header from
   // its own map and drop them.
-  if (wasForced(config, request)) response.headers.append("set-cookie", `${FORCED_COOKIE}=1; Path=/; Max-Age=${FORCED_MAX_AGE}; SameSite=Lax`);
+  for (const cookie of qaMark(config, request, read)) response.headers.append("set-cookie", cookie);
   return response;
 }
