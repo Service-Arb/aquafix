@@ -72,6 +72,13 @@
             "proxy.ts"
             "instrumentation.ts"
           ];
+          # TODO: drop with the npm swap — @evinvest/kitstart 0.17.0 with the
+          # messenger channels (MESSENGER-CHANNELS-SPEC §2) is a vendored tarball
+          # until the owner publishes it, and `importNpmLock` would read the
+          # `file:` spec as a path with the scheme still on it.
+          packageSourceOverrides = {
+            "node_modules/@evinvest/kitstart" = ./vendor/evinvest/evinvest-kitstart-0.17.0-messenger.tgz;
+          };
           # The OG card sets type in these; tracing cannot infer a path read at run time.
           requiredFiles = [ "assets/fonts/Archivo-Bold.ttf" "assets/fonts/Inter-Medium.ttf" ];
           # A point on its own host, its OG card, and a person's quote landing in /data.
