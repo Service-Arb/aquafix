@@ -111,6 +111,18 @@ const CTA_48 = `h-12 min-h-0 px-[var(--control-px)] py-0 text-[length:var(--cont
 const MESSENGER_HINT =
   "text-[13px] font-medium leading-4 text-ink-mid [p&]:-mt-1 [p&]:flex [p&]:h-8 [p&]:gap-2 [p&]:before:font-semibold [p&]:before:text-positive [p&]:before:content-['✓']";
 
+/**
+ * On a computer a WhatsApp tap draws the QR code in the slot (kitstart's
+ * `QrPanel`, its code an `svg[role=img]`): taller than any phone state, so
+ * the slot gives up its fixed height for it and the card grows, as Figma's
+ * desktop frames do (AQ-3 PC). Every other state keeps the fixed box — on a
+ * phone there is no QR state, and the boards' heights are unchanged.
+ */
+const QR_GROWS = "has-[svg[role=img]]:h-auto";
+
+/** The channel's slot: the phone and its line, or the message ready — 92px, but for the QR code. */
+const SLOT_92 = `h-[92px] ${QR_GROWS}`;
+
 /** The kit's «Message envoyé ?» screen over the card, padded and rounded as the card is. */
 const RETURN = "rounded-[var(--corner-float)] px-6 py-7 md:px-[34px] md:pb-[30px] md:pt-8";
 
@@ -132,7 +144,7 @@ const MESSENGER: PartClassNames<LeadCapturePart> = {
   // column, or its gap is 12px more card than Figma's.
   trust: "[&:not(:has(>:not(noscript)))]:hidden",
   messengerSecondary: CTA_FACE,
-  messengerSlot: "h-[92px]",
+  messengerSlot: SLOT_92,
   messengerPreview: "h-full items-center gap-3 rounded-[var(--corner-control)] bg-primary/8 px-4 py-3",
   messengerHint: MESSENGER_HINT,
   messengerQr: "rounded-[var(--corner-control)]",
@@ -160,7 +172,7 @@ const BY_KIND: { readonly [K in MessengerKind]?: PartClassNames<LeadCapturePart>
   },
   // AQ-4: slot A is the WhatsApp button or the phone, 52px; row B under it.
   swap: {
-    messengerSlot: "h-[52px] [&>a]:h-full",
+    messengerSlot: `h-[52px] [&>a]:h-full ${QR_GROWS}`,
     messengerSecondary: `h-[49px] min-h-0 ${CTA_FACE}`,
     messengerSquare: "size-[49px] min-h-0 rounded-[var(--corner-control)]",
   },
