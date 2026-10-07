@@ -140,12 +140,13 @@ const MESSENGER: PartClassNames<LeadCapturePart> = {
 };
 
 /**
- * «ou via Telegram» under the button: a line of orange text, Figma's 17px —
- * not the kit's 44px link box, which would make the board taller than its
- * frame. The boards that draw it have no other secondary button in the card
- * (the return screen's «Rouvrir WhatsApp» is drawn over it).
+ * «ou via Telegram» under the button: a line of orange text in a 24px box —
+ * the least a tap target may be (WCAG 2.5.8), Figma's text is 17px — not the
+ * kit's 44px link box, which would make the board taller than its frame. The
+ * boards that draw it have no other secondary button in the card (the return
+ * screen's «Rouvrir WhatsApp» is drawn over it).
  */
-const VIA_TELEGRAM = `h-auto min-h-0 py-0.5 text-[14px] leading-[17px] text-primary-ink ${CTA_FACE}`;
+const VIA_TELEGRAM = `h-6 min-h-0 py-0 text-[14px] leading-[17px] text-primary-ink ${CTA_FACE}`;
 
 /** What one board sets over {@link MESSENGER}. */
 const BY_KIND: { readonly [K in MessengerKind]?: PartClassNames<LeadCapturePart> } = {
