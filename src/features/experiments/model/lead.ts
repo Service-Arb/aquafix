@@ -1,11 +1,11 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { after } from "next/server";
-import { CHANNELS_FIELD, LOCATION_FIELD, type AnalyticsTarget } from "@evinvest/kitstart";
+import { CHANNEL_FIELD, CHANNELS_FIELD, EXPERIMENT_FIELD, LEAD_CHANNELS, LOCATION_FIELD, type AnalyticsTarget } from "@evinvest/kitstart";
 import { EXPERIMENT_IDS } from "@/shared/config/experiments";
 import { site } from "@/shared/config/site";
 import { assignedVariants, cookieReader, isForced, isSuperseded } from "@/shared/lib/experiments";
 import { liveExperiments, type LiveConfig } from "../api/live";
-import { EXPERIMENT_EVENTS, experimentSink, supersededProp } from "./events";
+import { channelsProp, EXPERIMENT_EVENTS, experimentSink, supersededProp } from "./events";
 
 type Deferred = () => Promise<void> | void;
 
@@ -51,16 +51,30 @@ export function experimentLeads(deps: ExperimentLeadDeps) {
         later(async () => {
           const form = await copy.formData();
           const slug = form.get(LOCATION_FIELD);
-          // What the card offered, as kitstart posts it: a lead_channel arm overrides lead_form only where it drew.
-          const offered = form.get(CHANNELS_FIELD);
-          const channels = typeof offered === "string" ? offered : null;
+          // What the card posted of itself (kitstart's fields): the experiment it was drawn under, the messengers it offered.
+          const text = (name: string): string | null => {
+            const value = form.get(name);
+            return typeof value === "string" ? value : null;
+          };
+          const card = text(EXPERIMENT_FIELD);
+          const channels = text(CHANNELS_FIELD);
+          // The lead's channel — form, callback, whatsapp, telegram: a messenger lead is an intent until its message arrives.
+          const posted = text(CHANNEL_FIELD);
+          const channel = LEAD_CHANNELS.find(c => c === posted) ?? "form";
           const place = typeof slug === "string" && site.placeSlugs.includes(slug) ? slug : null;
           const sink = experimentSink(deps.target(), place);
           const forced = isForced(read);
           for (const id of EXPERIMENT_IDS) {
             const variant = variants[id];
             if (variant === undefined) continue;
-            sink.capture(EXPERIMENT_EVENTS.lead, { experiment: id, variant, forced, ...supersededProp(isSuperseded(id, variants, channels)) });
+            sink.capture(EXPERIMENT_EVENTS.lead, {
+              experiment: id,
+              variant,
+              forced,
+              channel,
+              ...supersededProp(isSuperseded(id, card)),
+              ...channelsProp(channels),
+            });
           }
         });
       }

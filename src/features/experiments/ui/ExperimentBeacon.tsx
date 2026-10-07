@@ -6,15 +6,17 @@ import { usePathname } from "next/navigation";
 import { useEffect, useMemo } from "react";
 import { EXPERIMENT_IDS, EXPERIMENTS } from "@/shared/config/experiments";
 import { assignedVariants, cookieReader, isForced, isSuperseded } from "@/shared/lib/experiments";
-import { EXPERIMENT_EVENTS, experimentSink, supersededProp, type ExperimentChannel } from "../model/events";
+import { channelsProp, EXPERIMENT_EVENTS, experimentSink, supersededProp, type ExperimentChannel } from "../model/events";
 
 /**
- * What the lead card offered (`channels_available` on its root, kitstart's),
- * for `isSuperseded`; `null` on a page without the card.
+ * What the lead card says of itself, on its root (kitstart's `LeadCapture`):
+ * the experiment it was drawn under, for `isSuperseded`, and the messengers it
+ * offered. `null` on a page without the card.
  */
-function cardChannels(): string | null {
+function cardFacts(): { experiment: string | null; channels: string | null } {
   // `LeadCapture`'s default id, the one every `#quote` link points at.
-  return document.getElementById("quote")?.getAttribute("data-channels-available") ?? null;
+  const card = document.getElementById("quote");
+  return { experiment: card?.getAttribute("data-experiment") ?? null, channels: card?.getAttribute("data-channels-available") ?? null };
 }
 
 function channelOf(target: EventTarget | null): ExperimentChannel | null {
@@ -43,10 +45,17 @@ export function ExperimentBeacon({ target, placeSlug }: { target: AnalyticsTarge
     const read = cookieReader(document.cookie);
     const forced = isForced(read);
     const variants = assignedVariants(EXPERIMENTS, read);
+    const card = cardFacts();
     for (const id of EXPERIMENT_IDS) {
       const variant = variants[id];
       if (variant === undefined) continue;
-      sink.capture(EXPERIMENT_EVENTS.exposed, { experiment: id, variant, forced, ...supersededProp(isSuperseded(id, variants, cardChannels())) });
+      sink.capture(EXPERIMENT_EVENTS.exposed, {
+        experiment: id,
+        variant,
+        forced,
+        ...supersededProp(isSuperseded(id, card.experiment)),
+        ...channelsProp(card.channels),
+      });
     }
   }, [sink, pathname]);
 
@@ -60,7 +69,7 @@ export function ExperimentBeacon({ target, placeSlug }: { target: AnalyticsTarge
       for (const id of EXPERIMENT_IDS) {
         const variant = variants[id];
         if (variant === undefined) continue;
-        sink.capture(EXPERIMENT_EVENTS.contact, { experiment: id, variant, channel, forced, ...supersededProp(isSuperseded(id, variants, cardChannels())) }, { transport: "beacon" });
+        sink.capture(EXPERIMENT_EVENTS.contact, { experiment: id, variant, channel, forced, ...supersededProp(isSuperseded(id, cardFacts().experiment)) }, { transport: "beacon" });
       }
     };
     document.addEventListener("click", onClick, { capture: true });

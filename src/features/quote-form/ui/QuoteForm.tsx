@@ -5,7 +5,7 @@ import type { CopyOf, Text } from "@/entities/content";
 import type { PlaceView } from "@/entities/place";
 import { LEAD, URGENCIES, URGENCY_FIELD } from "@/shared/config/lead";
 import { site } from "@/shared/config/site";
-import { channelArmDraws } from "@/shared/lib/experiments";
+import { leadChannelRuns } from "@/shared/lib/experiments";
 import { AfterPhone, CALLBACK_STEP, CallbackHeading } from "./FormLines";
 import { JobIcon } from "./JobIcon";
 import { messengerProps, messengerVariantOf, REF_PREFIX, type LeadChannelArm } from "./messenger";
@@ -94,14 +94,13 @@ function armProps(copy: QuoteFormWidgetCopy, arm: LeadFormArm): Partial<LeadCapt
  * beside it (`HeroActions`) and the call bar under it, so the kit is given no
  * number and keeps to the form and the callback.
  *
- * `channelArm` is the visitor's `lead_channel` arm. At a place that offers a
- * messenger (`messengerFacts`: its own WhatsApp, or the bot) any arm but `a`
- * draws its board over the compact card, whatever `lead_form` says, and names
- * `lead_channel` on the kit's events (the beacon marks the `lead_form`
- * exposure `superseded`); with the bot alone kitstart draws the control and
- * «ou via Telegram». At a place with neither the arm is inert: the card is
- * `lead_form`'s, as vifnet's (`channelArmDraws`). Every arm, the control
- * included, gives the kit the facts, so every event says `channels_available`.
+ * `channelArm` is the visitor's `lead_channel` arm. At a place with its own
+ * WhatsApp (`messengerFacts`, `leadChannelRuns`) the test runs: every arm,
+ * the control `a` included, draws the compact card whatever `lead_form` says
+ * and names `lead_channel` on the kit's events — the beacon and `/quote` mark
+ * `lead_form`'s `superseded` — and `b`–`g` add their board. Elsewhere (the bot
+ * alone, or neither) the test is inert and the card is `lead_form`'s. Every
+ * card gives the kit the facts, so every event says `channels_available`.
  */
 export function QuoteForm({
   copy,
@@ -118,8 +117,9 @@ export function QuoteForm({
 }) {
   const q = copy.t.quoteForm;
   const facts = messengerFacts(site, point.place);
-  const variant = channelArmDraws(channelArm, channelsAvailable(facts)) ? messengerVariantOf(channelArm) : undefined;
-  const formArm = variant ? "a" : arm;
+  const runs = leadChannelRuns(channelsAvailable(facts));
+  const variant = runs ? messengerVariantOf(channelArm) : undefined;
+  const formArm = runs ? "a" : arm;
   const text = leadText(copy, formArm);
   const props: LeadCaptureProps = {
     place: point.place,
@@ -136,7 +136,7 @@ export function QuoteForm({
       // The cards of `c` are a third of a phone wide: a short label there, the whole one in `b`'s tiles.
       ...(formArm === "c" ? { shortLabel: copy.t.jobsShort[id], icon: <JobIcon job={id} /> } : {}),
     })),
-    experiment: variant ? { name: "lead_channel", variant: channelArm } : { name: "lead_form", variant: formArm },
+    experiment: runs ? { name: "lead_channel", variant: channelArm } : { name: "lead_form", variant: formArm },
     text,
     channelsDisplay: "row",
     channelIcons: { callback: q.callbackAsk },

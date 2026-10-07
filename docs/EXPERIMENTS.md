@@ -97,31 +97,37 @@ is 92 px, `e`'s 52 px, every main button 48 px; AQ-5's card is 449 px tall at 39
   answer is the lead's extra `urgency`, `today` or `later` (the mail prints
   «Pas urgent — compare» for `later`).
 
-A place with the bot but without its own WhatsApp number — or with WhatsApp
-switched off in the panel — draws the control in every arm, with «ou via
-Telegram» (`d` and `g` keep their bot / question); no bot, no Telegram piece;
-neither, and the arm is inert (below). The arm stays assigned: every kitstart event of the
-card says `channels_available` (`wa,tg` | `wa` | `tg` | `none`) — read an arm
-only where its channels were there. No place has its own WhatsApp number or bot yet:
-until the owner sets them in the panel, every arm is inert.
+The test runs only at a place with its own WhatsApp number (and WhatsApp not
+switched off in the panel): the card's `channels_available` is `wa,tg` or `wa`.
+A place with the bot alone would draw the control in every arm — six identical
+arms taking traffic from `lead_form` — so there, as at a place with neither,
+the test is inert: the card is the visitor's `lead_form` arm, its events name
+`lead_form`. With no bot, a running arm draws no Telegram piece. No place has
+its own WhatsApp number yet: until the owner sets them in the panel, the test
+is inert everywhere.
 
-- **Precedence over `lead_form`** (as vifnet's). At a place that offers a
-  messenger — its own WhatsApp, or the bot — any arm but `a` draws the compact
-  card (`lead_form` `a`), whatever the visitor's `lead_form` arm; such a
+- **Precedence over `lead_form`.** Where the test runs every arm — the control
+  `a` included — draws the compact card (`lead_form` `a`), whatever the
+  visitor's `lead_form` arm, so the two tests' effects never mix; kitstart's
+  form events name `lead_channel` (with `messenger_variant` in `b`–`g`). That
   visitor's `lead_form` events (`experiment_exposed`, `experiment_contact`,
   `experiment_lead`) carry `superseded: true`: leave them out of `lead_form`'s
-  funnel (`superseded` is not `true`). kitstart's own form events name
-  `lead_channel` for them, with `messenger_variant`. At a place with neither,
-  the arm is inert: the card is the `lead_form` arm's, its events name
-  `lead_form`, nothing is superseded. Which one a page was is the card's
-  `channels_available` (on the page, and posted with the lead). Pausing
-  `lead_form` in the panel instead is the owner's call.
+  funnel (`superseded` is not `true`). The mark follows the card itself — the
+  experiment it names on the page (`data-experiment`) and posts with the lead
+  — not the cookies. `experiment_exposed` and `experiment_lead` carry the
+  card's `channels_available`: read `lead_channel` with `channels_available`
+  `wa,tg` or `wa`. Pausing `lead_form` in the panel instead is the owner's
+  call.
 - **Hypothesis.** A plumbing customer would rather send a message — with a
   photo of the leak — than type a phone number and wait: WhatsApp first, the
   message written for them, lifts contacts per visit over the phone-only form.
-- **Metric.** Contact rate primary (a messenger tap posts the lead first, so
-  it counts as `experiment_lead`); kitstart's `lead_messenger_return` (`sent` /
-  `failed`) says how many chats were really started.
+- **Metric.** Leads per exposure, where a lead is a form or callback lead
+  (`experiment_lead` with `channel` `form` | `callback`) or a messenger lead
+  confirmed by its message — the panel's `sa_lead_messaged` for the lead's
+  `message_ref`. A raw `experiment_lead` with `channel` `whatsapp` |
+  `telegram` is only an intent: the tap posts the lead before the app opens,
+  sent or not. kitstart's `lead_messenger_return` (`sent` / `failed`) is the
+  page's own guess at the same; the contact rate is the guardrail.
 - **The lead.** A messenger lead is posted in the background before the app
   opens (`channel=whatsapp|telegram`, `message_ref`), needs no phone and no
   postcode, is mailed with «Canal» and «Réf.», and goes to the panel as its own
