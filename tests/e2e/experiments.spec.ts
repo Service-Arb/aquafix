@@ -150,6 +150,8 @@ test("a lead_channel arm at a point without messengers is inert: lead_form's eve
     { experiment: "lead_channel", variant: "e", forced: true, channel: undefined, superseded: undefined },
     { experiment: "lead_form", variant: "c", forced: true, channel: undefined, superseded: undefined },
   ]);
+  // Each exposure says what the card offered: nothing here, so lead_channel reads none of them.
+  for (const e of events.filter(e => e.event === "experiment_exposed")) expect(e.properties["channels_available"], String(e.properties["experiment"])).toBe("none");
   await page.locator('main a[href^="tel:"]:visible').first().click({ noWaitAfter: true });
   await expect.poll(() => of(events, "experiment_contact")).toHaveLength(3);
   for (const e of events.filter(e => e.event.startsWith("experiment_"))) expect(e.properties, e.event).not.toHaveProperty("superseded");

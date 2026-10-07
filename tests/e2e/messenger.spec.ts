@@ -37,10 +37,17 @@ async function heightOf(card: Locator): Promise<number> {
   return box.height;
 }
 
-test("a, the control: the compact card, no messenger in it, though Royat has both", async ({ page }) => {
-  const card = await open(page, "a");
-  await expect(card).toHaveAttribute("data-experiment", "lead_form");
+// Where the test runs (Royat here has its own WhatsApp), the control is the
+// compact card under lead_channel's name, whatever lead_form says: the two
+// tests' effects never mix (docs/EXPERIMENTS.md).
+test("a, the control: the compact card under lead_channel, no messenger in it, though Royat has both", async ({ page }) => {
+  await page.route(`${POSTHOG_HOST}/**`, route => route.fulfill({ status: 200, body: "{}" }));
+  await page.goto("/fr?ab_lead_form=c&ab_lead_channel=a");
+  const card = cardOf(page);
+  await expect(card).toHaveAttribute("data-experiment", "lead_channel");
+  await expect(card).toHaveAttribute("data-variant", "a");
   await expect(card).toHaveAttribute("data-channels-available", "wa,tg");
+  await expect(card.getByText("C’est pour quand ?")).toHaveCount(0);
   await expect(card.getByRole("button", { name: "Envoyez-moi mon prix →" })).toBeVisible();
   await expect(card.getByRole("textbox", { name: "Votre mobile" })).toBeVisible();
   await expect(card.getByRole("link", { name: /WhatsApp|Telegram/ })).toHaveCount(0);
@@ -244,11 +251,11 @@ test("a drawn lead_channel arm marks lead_form's exposure superseded, and no oth
   await page.goto("/fr?ab_lead_form=c&ab_lead_channel=e");
   await expect(cardOf(page)).toHaveAttribute("data-experiment", "lead_channel");
   await expect
-    .poll(() => exposed.map(p => [p["experiment"], p["variant"], p["superseded"]]).sort((a, b) => String(a[0]).localeCompare(String(b[0]))))
+    .poll(() => exposed.map(p => [p["experiment"], p["variant"], p["superseded"], p["channels_available"]]).sort((a, b) => String(a[0]).localeCompare(String(b[0]))))
     .toEqual([
-      ["hero_call_first", "a", undefined],
-      ["lead_channel", "e", undefined],
-      ["lead_form", "c", true],
+      ["hero_call_first", "a", undefined, "wa,tg"],
+      ["lead_channel", "e", undefined, "wa,tg"],
+      ["lead_form", "c", true, "wa,tg"],
     ]);
 });
 
