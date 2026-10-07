@@ -271,9 +271,10 @@ cannot be forced.
 
 **Moving around keeps QA.** Inside the site the forced variants stay: the
 language switch (`/en` without the query shows the same variant in English),
-the logo, the thanks page's link home, the other pages (`/fr/prices`), and a
-move between the apex and a point's subdomain. The proxy tells them by the
-browser's `Sec-Fetch-Site` (`same-origin`, `same-site`).
+the logo, the thanks page's link home and the other pages (`/fr/prices`). The
+proxy tells them by the browser's `Sec-Fetch-Site` (`same-origin`,
+`same-site`). The cookies are host-only, so the apex and each point's
+subdomain keep QA apart: a move between them reaches a host with no mark.
 
 **Leaving QA:** come to the point's home from outside, without any valid
 `?ab_*` — type or paste `https://royat.aquafix.top/fr` in the address bar,
