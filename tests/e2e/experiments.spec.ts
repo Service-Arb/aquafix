@@ -10,7 +10,9 @@ import { freshMobile } from "./support/mobile";
 // visitor, and reach a variant through the QA force parameter or a cookie.
 test.use({ storageState: { cookies: [], origins: [] } });
 
-const HERO_B = "/fr?ab_hero_call_first=b&ab_lead_form=a";
+// lead_channel pinned to its control wherever a test reads lead_form: any
+// other arm draws the compact card whatever lead_form says.
+const HERO_B = "/fr?ab_hero_call_first=b&ab_lead_form=a&ab_lead_channel=a";
 
 type Captured = { event: string; properties: Record<string, unknown> };
 
@@ -33,7 +35,13 @@ async function capture(page: Page): Promise<Captured[]> {
 const of = (events: Captured[], event: string) =>
   events
     .filter(e => e.event === event)
-    .map(e => ({ experiment: e.properties["experiment"], variant: e.properties["variant"], forced: e.properties["forced"], channel: e.properties["channel"] }))
+    .map(e => ({
+      experiment: e.properties["experiment"],
+      variant: e.properties["variant"],
+      forced: e.properties["forced"],
+      channel: e.properties["channel"],
+      superseded: e.properties["superseded"],
+    }))
     .sort((a, b) => String(a.experiment).localeCompare(String(b.experiment)));
 
 /** An address of the test's own: the funnel allows five leads per address in ten minutes (see funnel.spec.ts). */
@@ -67,7 +75,7 @@ async function tap(page: Page, value: string): Promise<void> {
 test("a new visitor is assigned a sticky variant of every experiment", async ({ page, context }) => {
   await page.goto("/fr");
   const first = (await context.cookies()).filter(c => c.name.startsWith("ab_"));
-  expect(first.map(c => c.name).sort()).toEqual(["ab_hero_call_first", "ab_lead_form"]);
+  expect(first.map(c => c.name).sort()).toEqual(["ab_hero_call_first", "ab_lead_channel", "ab_lead_form"]);
   await page.goto("/fr/prices");
   expect((await context.cookies()).filter(c => c.name.startsWith("ab_"))).toEqual(first);
 });
@@ -90,7 +98,7 @@ test("hero_call_first b puts the call first on a phone", async ({ page }, testIn
 // lead_form a, the control: the compact card — no visible labels, one line
 // under the mobile, the call back as a line of text — about one screen tall.
 test("lead_form a is the compact card on one screen", async ({ page }) => {
-  await page.goto("/fr?ab_lead_form=a");
+  await page.goto("/fr?ab_lead_form=a&ab_lead_channel=a");
   const card = page.locator("#quote");
   const form = card.locator("form#quote-form");
   await expect(form.locator("button[role=combobox]")).toBeVisible();
@@ -111,9 +119,10 @@ test("lead_form a is the compact card on one screen", async ({ page }) => {
 
 test("exposure and contact events carry the experiment and the variant", async ({ page }) => {
   const events = await capture(page);
-  await page.goto("/fr?ab_hero_call_first=b&ab_lead_form=c");
+  await page.goto("/fr?ab_hero_call_first=b&ab_lead_form=c&ab_lead_channel=a");
   await expect.poll(() => of(events, "experiment_exposed")).toEqual([
     { experiment: "hero_call_first", variant: "b", forced: true, channel: undefined },
+    { experiment: "lead_channel", variant: "a", forced: true, channel: undefined },
     { experiment: "lead_form", variant: "c", forced: true, channel: undefined },
   ]);
   const exposed = events.find(e => e.event === "experiment_exposed")?.properties;
@@ -122,19 +131,57 @@ test("exposure and contact events carry the experiment and the variant", async (
   await page.locator('main a[href^="tel:"]:visible').first().click({ noWaitAfter: true });
   await expect.poll(() => of(events, "experiment_contact")).toEqual([
     { experiment: "hero_call_first", variant: "b", forced: true, channel: "phone" },
+    { experiment: "lead_channel", variant: "a", forced: true, channel: "phone" },
     { experiment: "lead_form", variant: "c", forced: true, channel: "phone" },
   ]);
+  // Under lead_channel's control, lead_form's arm is the one drawn: no mark at all, not `false`.
+  for (const e of events.filter(e => e.event.startsWith("experiment_"))) expect(e.properties, e.event).not.toHaveProperty("superseded");
+});
+
+// Any lead_channel arm but a draws the compact card whatever lead_form says
+// (docs/EXPERIMENTS.md): lead_form's events say so, the others' do not.
+test("under a lead_channel arm, lead_form's exposure and contact are marked superseded", async ({ page }) => {
+  const events = await capture(page);
+  await page.goto("/fr?ab_hero_call_first=b&ab_lead_form=c&ab_lead_channel=e");
+  await expect.poll(() => of(events, "experiment_exposed")).toEqual([
+    { experiment: "hero_call_first", variant: "b", forced: true, channel: undefined, superseded: undefined },
+    { experiment: "lead_channel", variant: "e", forced: true, channel: undefined, superseded: undefined },
+    { experiment: "lead_form", variant: "c", forced: true, channel: undefined, superseded: true },
+  ]);
+  await page.locator('main a[href^="tel:"]:visible').first().click({ noWaitAfter: true });
+  await expect.poll(() => of(events, "experiment_contact")).toEqual([
+    { experiment: "hero_call_first", variant: "b", forced: true, channel: "phone", superseded: undefined },
+    { experiment: "lead_channel", variant: "e", forced: true, channel: "phone", superseded: undefined },
+    { experiment: "lead_form", variant: "c", forced: true, channel: "phone", superseded: true },
+  ]);
+  const unmarked = events.filter(e => e.event.startsWith("experiment_") && e.properties["experiment"] !== "lead_form");
+  for (const e of unmarked) expect(e.properties, `${e.event} ${String(e.properties["experiment"])}`).not.toHaveProperty("superseded");
+});
+
+// Royat here has no WhatsApp of its own: the arm stays assigned and named,
+// and the card is the control's, compact — not lead_form c's urgency first.
+test("a lead_channel arm at a point without WhatsApp draws the compact control, whatever lead_form says", async ({ page }) => {
+  await page.goto("/fr?ab_lead_form=c&ab_lead_channel=c");
+  const card = page.locator("#quote");
+  await expect(card).toHaveAttribute("data-experiment", "lead_channel");
+  await expect(card).toHaveAttribute("data-variant", "c");
+  await expect(card).toHaveAttribute("data-channels-available", "none");
+  await expect(card.getByRole("button", { name: /Envoyez-moi mon prix/ })).toBeVisible();
+  await expect(card.getByText("C’est pour quand ?")).toHaveCount(0);
+  await expect(card.getByRole("link", { name: /WhatsApp|Telegram/ })).toHaveCount(0);
 });
 
 test("an assigned (not forced) visit says forced: false", async ({ page, context }) => {
   await context.addCookies([
     { name: "ab_hero_call_first", value: "b", url: "http://royat.localhost" },
     { name: "ab_lead_form", value: "b", url: "http://royat.localhost" },
+    { name: "ab_lead_channel", value: "a", url: "http://royat.localhost" },
   ]);
   const events = await capture(page);
   await page.goto("/fr");
   await expect.poll(() => of(events, "experiment_exposed")).toEqual([
     { experiment: "hero_call_first", variant: "b", forced: false, channel: undefined },
+    { experiment: "lead_channel", variant: "a", forced: false, channel: undefined },
     { experiment: "lead_form", variant: "b", forced: false, channel: undefined },
   ]);
 });
@@ -156,7 +203,7 @@ test("lead_form b asks one question per screen, and its events carry the arm", a
   const events = await capture(page);
   const mobile = freshMobile("06");
   await ownClient(page, testInfo, 7);
-  await page.goto("/fr?ab_lead_form=b");
+  await page.goto("/fr?ab_lead_form=b&ab_lead_channel=a");
   const card = page.locator("#quote");
   const form = card.locator("form#quote-form");
   const phone = form.locator("input[name=mobile]");
@@ -187,7 +234,7 @@ test("lead_form b asks one question per screen, and its events carry the arm", a
 });
 
 test("lead_form b: arrows move the choice, Space moves on", async ({ page }) => {
-  await page.goto("/fr?ab_lead_form=b");
+  await page.goto("/fr?ab_lead_form=b&ab_lead_channel=a");
   const form = page.locator("form#quote-form");
   const tiles = form.getByRole("radio");
   await expect(tiles.first()).toBeVisible();
@@ -206,7 +253,7 @@ test("lead_form b: arrows move the choice, Space moves on", async ({ page }) => 
 test("lead_form c asks the urgency first, then the job on a card", async ({ page }, testInfo) => {
   const mobile = freshMobile("07");
   await ownClient(page, testInfo, 8);
-  await page.goto("/fr?ab_lead_form=c");
+  await page.goto("/fr?ab_lead_form=c&ab_lead_channel=a");
   const form = page.locator("form#quote-form");
   await expect(form.getByText("C’est pour quand ?")).toBeVisible();
   await expect(form.getByText("Prix fixe par SMS sous 10 min")).toBeVisible();
@@ -228,7 +275,7 @@ test("lead_form c asks the urgency first, then the job on a card", async ({ page
 test("lead_form c, urgent today, is a call back with the phone alone", async ({ page }, testInfo) => {
   const mobile = freshMobile("06");
   await ownClient(page, testInfo, 9);
-  await page.goto("/fr?ab_lead_form=c");
+  await page.goto("/fr?ab_lead_form=c&ab_lead_channel=a");
   const form = page.locator("form#quote-form");
   await tap(page, "today");
   await expect(form.getByText("On vous rappelle tout de suite", { exact: true }).last()).toBeVisible();

@@ -1,6 +1,19 @@
 import { dirname } from "node:path";
 import { defineConfig, devices } from "@playwright/test";
-import { CONTROL_COOKIES, LEADS_DB, POINT_ORIGIN, PORT, POSTHOG_HOST, POSTHOG_KEY } from "./env";
+import { CONTROL_COOKIES, LEADS_DB, MESSENGER_LEADS_DB, MESSENGER_ORIGIN, MESSENGER_PORT, PLACES_API_PORT, POINT_ORIGIN, PORT, POSTHOG_HOST, POSTHOG_KEY } from "./env";
+
+/** The standalone server's environment, but for its port and its database. */
+const serverEnv = (port: number, leadsDb: string): Record<string, string> => ({
+  PORT: String(port),
+  HOSTNAME: "127.0.0.1",
+  LEADS_DB_PATH: leadsDb,
+  // The standalone server runs as production, which refuses to boot
+  // without knowing whose address the rate limit counts; nothing sits
+  // in front of it here.
+  TRUSTED_PROXY: "xff:1",
+  POSTHOG_KEY,
+  POSTHOG_HOST,
+});
 
 // Run through the flake (`nix run .#test`), which supplies `@playwright/test`
 // and the nixpkgs-pinned browsers — the pin is what makes a screenshot render
@@ -51,8 +64,15 @@ export default defineConfig({
   // once squeezed the headline to a 100px column at 768), so it gets a project
   // of its own — for the sections that change shape there, and nothing else.
   projects: [
-    { name: "desktop", use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } } },
-    { name: "mobile", use: { ...devices["Desktop Chrome"], viewport: { width: 390, height: 844 } } },
+    { name: "desktop", testIgnore: "messenger.spec.ts", use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } } },
+    { name: "mobile", testIgnore: "messenger.spec.ts", use: { ...devices["Desktop Chrome"], viewport: { width: 390, height: 844 } } },
+    // `lead_channel`'s boards are drawn only for a point with its own
+    // WhatsApp: their own server (`webServer` below), at Figma's 390.
+    {
+      name: "messenger",
+      testMatch: "messenger.spec.ts",
+      use: { ...devices["Desktop Chrome"], viewport: { width: 390, height: 844 }, baseURL: MESSENGER_ORIGIN },
+    },
     {
       name: "tablet",
       testMatch: "sections.spec.ts",
@@ -63,24 +83,33 @@ export default defineConfig({
   // The artefact that ships, not `next dev`: the standalone server, with the
   // traced files only — a font `/og` needs and the trace missed fails here.
   // `npm run build` first; `nix run .#test` does.
-  webServer: {
-    command: `rm -rf "${dirname(LEADS_DB)}" && node .next/standalone/server.js`,
-    cwd: "../..",
-    url: `http://localhost:${PORT}/health`,
-    // Never someone else's server: a dev server has no test key and no
-    // throwaway database, and would pass or fail for the wrong reasons.
-    reuseExistingServer: false,
-    timeout: 60_000,
-    env: {
-      PORT: String(PORT),
-      HOSTNAME: "127.0.0.1",
-      LEADS_DB_PATH: LEADS_DB,
-      // The standalone server runs as production, which refuses to boot
-      // without knowing whose address the rate limit counts; nothing sits
-      // in front of it here.
-      TRUSTED_PROXY: "xff:1",
-      POSTHOG_KEY,
-      POSTHOG_HOST,
+  webServer: [
+    {
+      command: `rm -rf "${dirname(LEADS_DB)}" && node .next/standalone/server.js`,
+      cwd: "../..",
+      url: `http://localhost:${PORT}/health`,
+      // Never someone else's server: a dev server has no test key and no
+      // throwaway database, and would pass or fail for the wrong reasons.
+      reuseExistingServer: false,
+      timeout: 60_000,
+      env: serverEnv(PORT, LEADS_DB),
     },
-  },
+    // Up before the server that asks it: a point read while it is down is
+    // the baked one, and that page stays cached for ten minutes.
+    {
+      command: `node --experimental-strip-types --disable-warning=ExperimentalWarning tests/e2e/support/places-api.ts ${PLACES_API_PORT}`,
+      cwd: "../..",
+      url: `http://127.0.0.1:${PLACES_API_PORT}/health`,
+      reuseExistingServer: false,
+      timeout: 10_000,
+    },
+    {
+      command: `rm -rf "${dirname(MESSENGER_LEADS_DB)}" && node .next/standalone/server.js`,
+      cwd: "../..",
+      url: `http://localhost:${MESSENGER_PORT}/health`,
+      reuseExistingServer: false,
+      timeout: 60_000,
+      env: { ...serverEnv(MESSENGER_PORT, MESSENGER_LEADS_DB), LOCATIONS_API_URL: `http://127.0.0.1:${PLACES_API_PORT}` },
+    },
+  ],
 });

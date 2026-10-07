@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { LEAD } from "@/shared/config/lead";
 import { readCandidate, validateCandidate } from "@evinvest/kitstart";
+import { messengerRuleDisagreements } from "@evinvest/kitstart/testing";
 
 const form = (fields: Record<string, string>): FormData => {
   const data = new FormData();
@@ -58,5 +59,37 @@ describe("the lead schema", () => {
   it("refuses what kitstart's form refuses: +1 with too few digits", () => {
     const lead = readCandidate(LEAD, form({ job: "other", zip: "63130", mobile: "+12345678" }), null);
     expect(validateCandidate(LEAD, lead)).toMatchObject({ field: "phone" });
+  });
+});
+
+describe("a messenger lead", () => {
+  // The chat carries the rest: refusing it for a missing commune or phone loses a customer who already wrote.
+  it("takes a WhatsApp lead with the job only, no phone and no commune", () => {
+    const lead = readCandidate(LEAD, form({ job: "blocked_drain", zip: "", mobile: "", channel: "whatsapp", message_ref: "AQ-7K3F" }), "royat");
+    expect(lead).toMatchObject({ channel: "whatsapp", messageRef: "AQ-7K3F", mobile: "", locality: "" });
+    expect(validateCandidate(LEAD, lead)).toBeNull();
+  });
+
+  it("takes a Telegram lead with the job only, no phone and no commune", () => {
+    const lead = readCandidate(LEAD, form({ job: "blocked_drain", zip: "  ", channel: "telegram" }), "royat");
+    expect(lead.channel).toBe("telegram");
+    expect(validateCandidate(LEAD, lead)).toBeNull();
+  });
+
+  it("still refuses a number the form would block when a messenger lead types one: the operator may call it", () => {
+    const lead = readCandidate(LEAD, form({ job: "other", zip: "", mobile: "0612", channel: "whatsapp" }), null);
+    expect(validateCandidate(LEAD, lead)).toMatchObject({ field: "phone" });
+  });
+
+  it("keeps the commune rule for the form and the callback: only a messenger skips it", () => {
+    const formLead = readCandidate(LEAD, form({ job: "other", zip: "", mobile: "06 12 34 56 78" }), null);
+    expect(validateCandidate(LEAD, formLead)).toEqual({ field: "locality", why: expect.any(String) });
+    const unknownChannel = readCandidate(LEAD, form({ job: "other", zip: "", mobile: "06 12 34 56 78", channel: "signal" }), null);
+    expect(unknownChannel.channel).toBe("form");
+    expect(validateCandidate(LEAD, unknownChannel)).toEqual({ field: "locality", why: expect.any(String) });
+  });
+
+  it("agrees with kitstart's messenger rule: no bare messenger lead refused, no blocked number taken", () => {
+    expect(messengerRuleDisagreements(LEAD)).toEqual([]);
   });
 });

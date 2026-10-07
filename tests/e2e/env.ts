@@ -16,6 +16,21 @@ export const APEX_ORIGIN = `http://localhost:${PORT}`;
 /** Emptied when the server starts: an earlier run's rows must not satisfy this one. */
 export const LEADS_DB = join(tmpdir(), `aquafix-e2e-${PORT}`, "leads.db");
 
+/**
+ * `messenger.spec.ts`'s own server: the same build, with `LOCATIONS_API_URL`
+ * on a stand-in places API (`support/places-api.ts`) that gives Royat its own
+ * WhatsApp number and the brand's Telegram bot. A server of its own, so the
+ * other specs keep a Royat without either — and the control in every
+ * `lead_channel` arm, which they assume.
+ */
+export const MESSENGER_PORT = PORT + 1;
+export const MESSENGER_ORIGIN = `http://royat.localhost:${MESSENGER_PORT}`;
+export const MESSENGER_LEADS_DB = join(tmpdir(), `aquafix-e2e-${MESSENGER_PORT}`, "leads.db");
+export const PLACES_API_PORT = PORT + 2;
+/** What the stand-in places API answers for Royat. */
+export const ROYAT_WHATSAPP = "33612345678";
+export const ROYAT_TELEGRAM_BOT = "aquafix_devis_bot";
+
 /** Never resolves: every request to it is intercepted by the spec, or fails. */
 export const POSTHOG_HOST = "https://posthog.e2e.invalid";
 /** A syntactically plausible project key, so the beacon sink is live. */
