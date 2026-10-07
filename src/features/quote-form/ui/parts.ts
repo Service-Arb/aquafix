@@ -120,8 +120,12 @@ const MESSENGER_HINT =
  */
 const QR_GROWS = "has-[svg[role=img]]:h-auto";
 
-/** The channel's slot: the phone and its line, or the message ready — 92px, but for the QR code. */
-const SLOT_92 = `h-[92px] ${QR_GROWS}`;
+/**
+ * The channel's slot: the phone and its line, or the message ready — 92px,
+ * but for the QR code. The phone's line sits 8px under the field, as in the
+ * card's column: the slot's 12px gap less `AfterPhone`'s -4px (52 + 8 + 32).
+ */
+const SLOT_92 = `h-[92px] gap-3 ${QR_GROWS}`;
 
 /** The kit's «Message envoyé ?» screen over the card, padded and rounded as the card is. */
 const RETURN = "rounded-[var(--corner-float)] px-6 py-7 md:px-[34px] md:pb-[30px] md:pt-8";

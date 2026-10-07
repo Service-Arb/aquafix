@@ -1,11 +1,13 @@
 /**
- * The channels' marks on `lead_channel`'s cards, in the surrounding colour.
- * WhatsApp and Telegram are their owners' glyphs as published (Simple Icons,
- * CC0), unaltered. WhatsApp is green, as Figma draws it — the theme's
- * `positive`, not a hex of its own; Telegram is single-colour, in the
- * surrounding one, which its brand allows. The phone is a line
- * glyph in the job icons' stroke (`JobIcon`). Inline rather than an icon
- * package: three paths do not earn a dependency.
+ * The channels' marks on `lead_channel`'s cards. WhatsApp and Telegram are
+ * their apps' own badges, as Figma draws them and the same everywhere — on a
+ * filled CTA, in a segment, a preview, a menu item, a square: a disc in the
+ * brand's colour, the white glyph on it. The glyphs are the owners' as
+ * published (Simple Icons, CC0), unaltered; the colours are tokens
+ * (`--brand-whatsapp`, `--brand-telegram`, `--brand-app-glyph` in
+ * app/globals.css), not literals here. The phone is a line glyph in the
+ * surrounding colour, in the job icons' stroke (`JobIcon`). Inline rather
+ * than an icon package: three paths do not earn a dependency.
  */
 
 const WHATSAPP =
@@ -39,9 +41,20 @@ export function ChannelGlyph({ name }: { name: ChannelGlyphName }) {
       </svg>
     );
   }
+  if (name === "whatsapp") {
+    return (
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+        <circle cx="12" cy="12" r="12" fill="var(--brand-whatsapp)" />
+        {/* The bubble and handset at 60 %, centred on the disc. */}
+        <path d={WHATSAPP} fill="var(--brand-app-glyph)" transform="translate(4.8 4.8) scale(0.6)" />
+      </svg>
+    );
+  }
+  // Telegram's mark is the disc with the plane cut out: a white disc under it shows the plane white.
   return (
-    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false" className={name === "whatsapp" ? "text-positive" : undefined}>
-      <path d={name === "whatsapp" ? WHATSAPP : TELEGRAM} fill="currentColor" />
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+      <circle cx="12" cy="12" r="10" fill="var(--brand-app-glyph)" />
+      <path d={TELEGRAM} fill="var(--brand-telegram)" />
     </svg>
   );
 }
