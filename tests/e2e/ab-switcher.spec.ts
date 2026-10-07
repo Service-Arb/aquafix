@@ -67,7 +67,8 @@ test("a new visitor gets no chip and never downloads the menu", async ({ page, b
 });
 
 test("picking a variant in the menu switches the form", async ({ page }) => {
-  await page.goto("/fr?ab_lead_form=a");
+  // lead_channel at its control: any other arm draws the compact card whatever lead_form says.
+  await page.goto("/fr?ab_lead_form=a&ab_lead_channel=a");
   await page.getByRole("button", CHIP).click();
   const menu = page.getByRole("dialog", CHIP);
   await expect(menu).toBeVisible();
@@ -77,6 +78,19 @@ test("picking a variant in the menu switches the form", async ({ page }) => {
   // The menu reads the new assignment off the cookie.
   await page.getByRole("button", CHIP).click();
   await expect(menu.getByRole("button", { name: "Urgent first" })).toHaveAttribute("aria-pressed", "true");
+});
+
+test("the menu offers every lead_channel board and forces the one picked", async ({ page }) => {
+  await page.goto("/fr?ab_lead_form=a&ab_lead_channel=a");
+  await page.getByRole("button", CHIP).click();
+  const group = page.getByRole("dialog", CHIP).getByRole("group", { name: "Lead channel" });
+  await expect(group.getByRole("button")).toHaveText(["Control", "AQ-1 select", "AQ-2 segment", "AQ-3 thanks", "AQ-4 swap", "AQ-5 saga", "AQ-6 urgency"]);
+  await group.getByRole("button", { name: "AQ-4 swap" }).click();
+  await expect(page).toHaveURL(/[?&]ab_lead_channel=e(&|$)/);
+  // This server's Royat offers no messenger: the arm is assigned but inert, the card lead_form's.
+  await expect(page.locator("#quote")).toHaveAttribute("data-experiment", "lead_form");
+  await page.getByRole("button", CHIP).click();
+  await expect(group.getByRole("button", { name: "AQ-4 swap" })).toHaveAttribute("aria-pressed", "true");
 });
 
 /** The `Cookie` header of the next page load: what the browser kept after the menu's reset. */

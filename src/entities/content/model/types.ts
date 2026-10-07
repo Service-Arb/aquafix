@@ -1,5 +1,8 @@
 import type {
   CoreText,
+  LeadCaptureMessengerText,
+  LeadCaptureText,
+  MessengerKind,
   PageMetaCopy as CorePageMetaCopy,
   QuoteFormCopy as CoreQuoteFormCopy,
   Said as CoreSaid,
@@ -105,6 +108,28 @@ export interface QuoteFormCopy extends CoreQuoteFormCopy<Facts> {
   back: string;
   /** `lead_form` `c` (docs/EXPERIMENTS.md): how urgent, asked first. */
   urgency: UrgencyCopy;
+  /** `lead_channel` (docs/EXPERIMENTS.md): WhatsApp and the bot in the card. */
+  messenger: MessengerCopy;
+}
+
+/**
+ * The words of `lead_channel`'s arms (Figma, Aquafix "Lead form A/B", the
+ * messengers v3 section 78:642), laid over kitstart's messenger defaults.
+ */
+export interface MessengerCopy {
+  /** The kit's messenger words where this brand says them its own way; a key left out is the kit's. */
+  text: Partial<LeadCaptureMessengerText>;
+  /** One board's own wording of a key, over `text` — only while that board is drawn. */
+  byKind: { readonly [K in MessengerKind]?: Partial<LeadCaptureText> };
+  /** Under the phone where the arm asks it for a call: this test promises no text message. */
+  callAfterPhone: string;
+  /** The submit where the arm asks the phone for a call. */
+  callSubmit: string;
+  /** AQ-3's success in the card, over the photo ask; `{phone}` the number as typed. */
+  doneTitle: string;
+  doneBody: string;
+  /** The lead mail's word for AQ-6's "not urgent" (`urgency=later`). */
+  notUrgent: string;
 }
 
 export interface UrgencyCopy {

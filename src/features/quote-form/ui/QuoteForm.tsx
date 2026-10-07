@@ -1,12 +1,16 @@
-import { LEAD_CAPTURE_TEXT, type LeadCaptureText } from "@evinvest/kitstart";
+import { channelsAvailable, LEAD_CAPTURE_TEXT, messengerFacts, type LeadCaptureText } from "@evinvest/kitstart";
 import { LeadCapture, type LeadCaptureProps, type LeadIntro } from "@evinvest/kitstart/react";
 import { cn } from "@evinvest/uikit";
 import type { CopyOf, Text } from "@/entities/content";
 import type { PlaceView } from "@/entities/place";
 import { LEAD, URGENCIES, URGENCY_FIELD } from "@/shared/config/lead";
+import { site } from "@/shared/config/site";
+import { leadChannelRuns } from "@/shared/lib/experiments";
 import { AfterPhone, CALLBACK_STEP, CallbackHeading } from "./FormLines";
 import { JobIcon } from "./JobIcon";
+import { messengerProps, messengerVariantOf, REF_PREFIX, type LeadChannelArm } from "./messenger";
 import { COMPACT, STEPS, URGENT_FIRST } from "./parts";
+import { ThanksCapture } from "./ThanksCapture";
 
 export type QuoteFormWidgetCopy = CopyOf<Pick<Text, "quoteForm" | "jobs" | "jobsShort">>;
 
@@ -89,43 +93,64 @@ function armProps(copy: QuoteFormWidgetCopy, arm: LeadFormArm): Partial<LeadCapt
  * The call and WhatsApp are not repeated in the card: the hero offers both
  * beside it (`HeroActions`) and the call bar under it, so the kit is given no
  * number and keeps to the form and the callback.
+ *
+ * `channelArm` is the visitor's `lead_channel` arm. At a place with its own
+ * WhatsApp (`messengerFacts`, `leadChannelRuns`) the test runs: every arm,
+ * the control `a` included, draws the compact card whatever `lead_form` says
+ * and names `lead_channel` on the kit's events — the beacon and `/quote` mark
+ * `lead_form`'s `superseded` — and `b`–`g` add their board. Elsewhere (the bot
+ * alone, or neither) the test is inert and the card is `lead_form`'s. Every
+ * card gives the kit the facts, so every event says `channels_available`.
  */
 export function QuoteForm({
   copy,
   point,
   renderedAt,
   arm = "a",
+  channelArm = "a",
 }: {
   copy: QuoteFormWidgetCopy;
   point: PlaceView;
   renderedAt: number;
   arm?: LeadFormArm;
+  channelArm?: LeadChannelArm;
 }) {
   const q = copy.t.quoteForm;
-  return (
-    <LeadCapture
-      place={point.place}
-      contact={{ phone: null, whatsapp: null }}
-      locale={copy.locale}
-      renderedAt={renderedAt}
-      wire={LEAD.wire}
-      needs={LEAD.subjects.map(id => ({
-        value: id,
-        label: copy.t.jobs[id],
-        // The cards of `c` are a third of a phone wide: a short label there, the whole one in `b`'s tiles.
-        ...(arm === "c" ? { shortLabel: copy.t.jobsShort[id], icon: <JobIcon job={id} /> } : {}),
-      }))}
-      experiment={{ name: "lead_form", variant: arm }}
-      text={leadText(copy, arm)}
-      channelsDisplay="row"
-      channelIcons={{ callback: q.callbackAsk }}
-      head={
-        <div className="flex flex-col gap-[7px]">
-          <p className="font-display text-[24px] font-bold leading-[1.1] text-ink md:text-[30px]">{q.title}</p>
-          <p className="text-[15px] leading-[18px] text-ink-soft">{q.lede}</p>
-        </div>
-      }
-      {...armProps(copy, arm)}
-    />
-  );
+  const facts = messengerFacts(site, point.place);
+  const runs = leadChannelRuns(channelsAvailable(facts));
+  const variant = runs ? messengerVariantOf(channelArm) : undefined;
+  const formArm = runs ? "a" : arm;
+  const text = leadText(copy, formArm);
+  const props: LeadCaptureProps = {
+    place: point.place,
+    contact: { phone: null, whatsapp: null },
+    messengers: facts,
+    refPrefix: REF_PREFIX,
+    brand: site.brand.name,
+    locale: copy.locale,
+    renderedAt,
+    wire: LEAD.wire,
+    needs: LEAD.subjects.map(id => ({
+      value: id,
+      label: copy.t.jobs[id],
+      // The cards of `c` are a third of a phone wide: a short label there, the whole one in `b`'s tiles.
+      ...(formArm === "c" ? { shortLabel: copy.t.jobsShort[id], icon: <JobIcon job={id} /> } : {}),
+    })),
+    experiment: runs ? { name: "lead_channel", variant: channelArm } : { name: "lead_form", variant: formArm },
+    text,
+    channelsDisplay: "row",
+    channelIcons: { callback: q.callbackAsk },
+    head: (
+      <div className="flex flex-col gap-[7px]">
+        <p className="font-display text-[24px] font-bold leading-[1.1] text-ink md:text-[30px]">{q.title}</p>
+        <p className="text-[15px] leading-[18px] text-ink-soft">{q.lede}</p>
+      </div>
+    ),
+    ...armProps(copy, formArm),
+    ...(variant ? { messenger: variant, ...messengerProps(copy, variant, facts, text) } : {}),
+  };
+  if (variant?.kind === "thanks") {
+    return <ThanksCapture {...props} doneTitle={q.messenger.doneTitle} doneBody={q.messenger.doneBody} />;
+  }
+  return <LeadCapture {...props} />;
 }

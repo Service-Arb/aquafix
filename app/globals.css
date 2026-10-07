@@ -18,6 +18,15 @@
   --breakpoint-3xl: 110rem;
 }
 
+/* Other brands' colours, for their marks only (the WhatsApp and Telegram
+ * badges, features/quote-form ChannelGlyph): the apps' own, published values,
+ * the same in either theme — never a colour of this brand's palette. */
+:root {
+  --brand-whatsapp: #25d366;
+  --brand-telegram: #2aabee;
+  --brand-app-glyph: #ffffff;
+}
+
 /* Layout scalars, which the kit's `Section`, `Button size="xl"` and the section
  * files read. `assets/` carries values, never layout, so they live here. Scoped
  * to the brand rather than `:root` so they outrank the kit's zero-specificity

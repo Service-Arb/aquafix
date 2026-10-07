@@ -105,4 +105,73 @@ describe("the lead mail", () => {
     expect(sink.bodies[0]).toContain("Urgence      : Urgent — aujourd’hui");
     expect(sink.bodies[1]).toContain("Urgence      : someday");
   });
+
+  // lead_channel g posts `later` for "Non, je compare": the kit's word, not one of lead_form c's.
+  it("names lead_channel g's not-urgent answer in French", async () => {
+    const sink = smtpSink();
+    server = sink.server;
+    await new Promise<void>(resolve => sink.server.listen(0, "127.0.0.1", resolve));
+    const env = parseServerEnv(site, {
+      LEADS_DB_PATH: "/tmp/unused-aquafix-leads.db",
+      SMTP_URL: `smtp://127.0.0.1:${sink.port()}`,
+      LEAD_NOTIFY_TO: "owner@example.test",
+      LEAD_NOTIFY_FROM: "leads@example.test",
+    });
+    const mail = leadNotifier(site, env, NOTIFIER_OPTIONS);
+    await mail.notify({ ...lead, channel: "whatsapp", messageRef: "AQ-7K3F", extras: { urgency: "later" } }, 11);
+
+    expect(sink.bodies[0]).toContain("Urgence      : Pas urgent — compare");
+    expect(sink.bodies[0]).not.toContain("later");
+  });
+});
+
+describe("a messenger lead's mail", () => {
+  let server: Server | undefined;
+  afterEach(() => {
+    server?.close();
+    server = undefined;
+  });
+
+  const shown = { need: "Eau chaude" };
+
+  it("says WhatsApp in the subject", () => {
+    expect(NOTIFIER_OPTIONS.format({ ...lead, channel: "whatsapp", messageRef: "AQ-7K3F" }, 12, shown).subject).toBe(
+      "Aquafix — nouvelle demande WhatsApp (royat)",
+    );
+  });
+
+  it("says Telegram in the subject", () => {
+    expect(NOTIFIER_OPTIONS.format({ ...lead, channel: "telegram", messageRef: "AQ-M4X9" }, 13, shown).subject).toBe(
+      "Aquafix — nouvelle demande Telegram (royat)",
+    );
+  });
+
+  it("keeps a form lead's and a callback's subject as it was", () => {
+    expect(NOTIFIER_OPTIONS.format(lead, 14, shown).subject).toBe("Aquafix — nouvelle demande (royat)");
+    expect(NOTIFIER_OPTIONS.format({ ...lead, channel: "callback" }, 15, shown).subject).toBe("Aquafix — nouvelle demande (royat)");
+  });
+
+  it("prints the channel and the reference the operator matches the chat by, through the kit's mailer", async () => {
+    const sink = smtpSink();
+    server = sink.server;
+    await new Promise<void>(resolve => sink.server.listen(0, "127.0.0.1", resolve));
+    const env = parseServerEnv(site, {
+      LEADS_DB_PATH: "/tmp/unused-aquafix-leads.db",
+      SMTP_URL: `smtp://127.0.0.1:${sink.port()}`,
+      LEAD_NOTIFY_TO: "owner@example.test",
+      LEAD_NOTIFY_FROM: "leads@example.test",
+    });
+    const mail = leadNotifier(site, env, NOTIFIER_OPTIONS);
+    await mail.notify({ ...lead, mobile: "", locality: "", channel: "whatsapp", messageRef: "AQ-7K3F" }, 16);
+    await mail.notify({ ...lead, channel: "telegram", messageRef: "AQ-M4X9" }, 17);
+    await mail.notify(lead, 18);
+
+    expect(sink.bodies).toHaveLength(3);
+    expect(sink.bodies[0]).toContain("Canal        : WhatsApp — le client vous écrit");
+    expect(sink.bodies[0]).toContain("Réf.         : AQ-7K3F");
+    expect(sink.bodies[1]).toContain("Canal        : Telegram — le client vous écrit");
+    expect(sink.bodies[1]).toContain("Réf.         : AQ-M4X9");
+    expect(sink.bodies[2]).not.toContain("Canal");
+    expect(sink.bodies[2]).not.toContain("Réf.");
+  });
 });

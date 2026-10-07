@@ -16,7 +16,7 @@ import {
 import { leadWebhook, parseServerEnv, type LeadWebhookContext, type ServerEnv } from "@evinvest/kitstart/server";
 import { afterEach, describe, expect, it } from "vitest";
 import { site } from "@/shared/config/site";
-import { needLabel, PANEL_ANALYTICS_ID, PANEL_FLOW, PANEL_SUSPECT, webhookOptions } from "@/features/quote-form/server";
+import { needLabel, PANEL_ANALYTICS_ID, PANEL_FLOW, PANEL_MESSENGER, PANEL_SUSPECT, webhookOptions, type PanelSwitches } from "@/features/quote-form/server";
 import { isOpaqueId, leadCreatedBody, panelLeadId, uuidV7, type BodyOptions } from "@/shared/lib/funnel-event";
 
 const lead: Lead = {
@@ -46,10 +46,12 @@ const LEAD_ID = "lead-42-9f86d081";
 /**
  * The names each message's fields may go by on the wire, read from the panel's
  * contract: the proto3 JSON (lowerCamelCase) name and the proto's own, which
- * protojson accepts too and kitstart's `panelFlowProperties` writes.
+ * protojson accepts too and kitstart's `panelFlowProperties` writes. Comments
+ * are dropped first: one with a brace in it (`message_ref`'s pattern,
+ * `{2,4}`) would otherwise end its message early and hide the fields after it.
  */
 function protoFields(): Map<string, Set<string>> {
-  const proto = readFileSync(new URL("./support/sa-events.proto", import.meta.url), "utf8");
+  const proto = readFileSync(new URL("./support/sa-events.proto", import.meta.url), "utf8").replace(/\/\/[^\n]*/g, "");
   const messages = new Map<string, Set<string>>();
   for (const [, name, body] of proto.matchAll(/^message (\w+) \{([^}]*)\}/gm)) {
     const fields = new Set<string>();
@@ -60,6 +62,14 @@ function protoFields(): Map<string, Set<string>> {
     messages.set(name ?? "", fields);
   }
   return messages;
+}
+
+/** The channels `LeadCreatedV1.channel` takes, as its comment in the panel's proto lists them. */
+function leadChannels(): string[] {
+  const proto = readFileSync(new URL("./support/sa-events.proto", import.meta.url), "utf8");
+  const listed = /^message LeadCreatedV1 \{\s*\/\/ ([^\n]+)\n\s*string channel = 1;/m.exec(proto)?.[1];
+  if (listed === undefined) throw new Error("LeadCreatedV1.channel has no list of its values in the proto");
+  return listed.split("|").map(c => c.trim());
 }
 
 const keysWithin = (value: object, message: string): void => {
@@ -162,6 +172,35 @@ describe("lead.created for the panel", () => {
     expect(event.properties).toEqual({ channel: "callback" });
     // The consent is the lead's record, not the panel's.
     expect(JSON.stringify(event)).not.toContain("J’accepte");
+  });
+
+  it("sends a WhatsApp lead as `whatsapp` with its reference, within LeadCreatedV1", () => {
+    const whatsapp: Lead = { ...lead, mobile: "", locality: "", channel: "whatsapp", messageRef: "AQ-7K3F" };
+    const [event] = leadCreatedBody(whatsapp, { ...ctx, channel: "whatsapp", messageRef: "AQ-7K3F" }, OPTS).events;
+    expect(event.properties).toEqual({ channel: "whatsapp", message_ref: "AQ-7K3F" });
+    keysWithin(event.properties, "LeadCreatedV1");
+    expect(leadChannels()).toContain("whatsapp");
+    // No phone, no commune: only the need goes as PII, nothing empty.
+    expect(event.pii).toEqual({ need: "Canalisation bouchée" });
+  });
+
+  it("sends a Telegram lead as `telegram` with its reference, within LeadCreatedV1", () => {
+    const telegram: Lead = { ...lead, channel: "telegram", messageRef: "AQ-M4X9" };
+    const [event] = leadCreatedBody(telegram, { ...ctx, channel: "telegram", messageRef: "AQ-M4X9" }, OPTS).events;
+    expect(event.properties).toEqual({ channel: "telegram", message_ref: "AQ-M4X9" });
+    keysWithin(event.properties, "LeadCreatedV1");
+    expect(leadChannels()).toContain("telegram");
+  });
+
+  it("sends a messenger lead as a `form` without its reference when the context says nothing, as before the switch", () => {
+    const whatsapp: Lead = { ...lead, channel: "whatsapp", messageRef: "AQ-7K3F" };
+    const [event] = leadCreatedBody(whatsapp, ctx, OPTS).events;
+    expect(event.properties).toEqual({ channel: "form" });
+  });
+
+  it("carries no message_ref for an empty reference", () => {
+    const [event] = leadCreatedBody({ ...lead, channel: "whatsapp" }, { ...ctx, channel: "whatsapp", messageRef: "" }, OPTS).events;
+    expect(event.properties).toEqual({ channel: "whatsapp" });
   });
 
   it("names the job in French for the panel, and keeps a job no longer offered as posted", () => {
@@ -348,6 +387,49 @@ describe("the lead webhook, wired as the site wires it", () => {
     } finally {
       hook.close();
     }
+  });
+
+  /** One WhatsApp lead through the webhook as the site builds it; the body's properties. */
+  async function messengerProperties(switches?: Partial<PanelSwitches>): Promise<unknown> {
+    dir = mkdtempSync(join(tmpdir(), "aquafix-hook-"));
+    const env = parseServerEnv(site, {
+      LEADS_DB_PATH: join(dir, "leads.db"),
+      LEAD_WEBHOOK_URL: "http://127.0.0.1:59120/api/ingest/v1/events",
+      LEAD_WEBHOOK_KEY_ID: "aquafix-site",
+      LEAD_WEBHOOK_SECRET: "test-secret",
+    });
+    const bodies: string[] = [];
+    const hook = leadWebhook(site, env, {
+      ...webhookOptions("aquafix-site", switches),
+      fetch: async (_input, init) => {
+        bodies.push(String(init?.body));
+        return new Response(JSON.stringify({ results: [{ index: 0, status: "accepted" }] }), { status: 207 });
+      },
+      log: { info: () => {}, warn: () => {}, error: () => {} },
+    });
+    if (!hook) throw new Error("the webhook should be on");
+    try {
+      hook.enqueue({ ...lead, mobile: "", locality: "", channel: "whatsapp", messageRef: "AQ-7K3F" }, 9, { locale: "fr", formId: "quote" });
+      expect(await hook.tick()).toMatchObject({ delivered: 1 });
+    } finally {
+      hook.close();
+    }
+    const body: unknown = JSON.parse(bodies[0] ?? "null");
+    if (typeof body !== "object" || body === null) throw new Error("nothing was sent");
+    const events: unknown = Reflect.get(body, "events");
+    return Array.isArray(events) ? Reflect.get(events[0] as object, "properties") : undefined;
+  }
+
+  // The panel on fen/messenger-leads takes both channels and `message_ref` (LeadCreatedV1 field 9).
+  it("sends a WhatsApp lead as the site wires it: its own channel and its reference", async () => {
+    expect(PANEL_MESSENGER).toBe(true);
+    const properties = await messengerProperties();
+    expect(properties).toEqual({ channel: "whatsapp", message_ref: "AQ-7K3F" });
+    keysWithin(properties as object, "LeadCreatedV1");
+  });
+
+  it("sends a WhatsApp lead as a `form`, without its reference, with the messenger switch off", async () => {
+    expect(await messengerProperties({ panelMessenger: false })).toEqual({ channel: "form" });
   });
 
   /**

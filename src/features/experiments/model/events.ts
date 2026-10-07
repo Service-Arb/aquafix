@@ -21,7 +21,21 @@ export const EXPERIMENT_EVENTS = {
 export type ExperimentChannel = "phone" | "whatsapp" | "form_open";
 
 /** Nothing a visitor typed can reach PostHog: the sink drops any other name. */
-export const EXPERIMENT_PROPS = ["brand_id", "location_id", "experiment", "variant", "channel", "forced"] as const;
+export const EXPERIMENT_PROPS = ["brand_id", "location_id", "experiment", "variant", "channel", "forced", "superseded", "channels_available"] as const;
+
+/**
+ * `channels_available` on an exposure or a lead: the messengers the card
+ * offered (`wa,tg` | `wa` | `tg` | `none`), so `lead_channel` reads only where
+ * it ran; absent on a page without the card.
+ */
+export function channelsProp(channels: string | null): { channels_available?: string } {
+  return channels !== null && /^(wa,tg|wa|tg|none)$/.test(channels) ? { channels_available: channels } : {};
+}
+
+/** `superseded: true` on an event of a test whose arm the page did not draw (`isSuperseded`); absent otherwise. */
+export function supersededProp(superseded: boolean): { superseded?: true } {
+  return superseded ? { superseded: true } : {};
+}
 
 export function experimentSink(target: AnalyticsTarget, locationId: string | null): AnalyticsSink {
   return createBeaconSink({

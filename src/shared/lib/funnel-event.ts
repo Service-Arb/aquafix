@@ -5,6 +5,7 @@ import {
   panelChannel,
   panelFlowProperties,
   type LeadWebhookContext,
+  type PanelChannel,
   type PanelFlowProperties,
   type WebhookSigning,
 } from "@evinvest/kitstart/server";
@@ -32,7 +33,13 @@ export interface LeadCreatedEvent {
   subject: { brandId: string; locationId?: string; leadId: string };
   /** The flow fields only under kitstart's `panelFlow`, and only for a lead with a flow. */
   properties: Partial<PanelFlowProperties> & {
-    channel: ReturnType<typeof panelChannel>;
+    channel: PanelChannel;
+    /**
+     * The reference the customer's WhatsApp or Telegram message carries
+     * (`AQ-7K3F`), for the panel to match the chat to the lead. Only under
+     * kitstart's `panelMessenger`, and only for a lead that posted one. Not PII.
+     */
+    message_ref?: string;
     /** Only under kitstart's `panelSuspect`, and only for a lead it marks. */
     suspect?: LeadSuspect;
     /**
@@ -137,10 +144,13 @@ export function panelLeadId(ctx: Pick<LeadWebhookContext, "leadId" | "leadRef" |
 }
 
 /**
- * The webhook body for one lead. `properties.channel` goes through
- * kitstart's `panelChannel`: the panel's set is closed and refuses the whole
- * event outside it, so the kit maps a lead's channel onto that set (a
- * callback is `callback` since kitstart 0.13, which the panel takes).
+ * The webhook body for one lead. `properties.channel` is kitstart's
+ * `ctx.channel`: the panel's set is closed and refuses the whole event
+ * outside it, so the kit maps a lead's channel onto that set (a callback is
+ * `callback` since kitstart 0.13; `whatsapp` and `telegram` only under
+ * `panelMessenger`, else `form`). A context built by hand has none, and gets
+ * the same mapping with the switch off. `properties.message_ref` is there
+ * only when the kit set `ctx.messageRef`, i.e. under `panelMessenger`.
  * The callback's consent is not in the body: the panel has no field for it.
  * `locationId` is the point the form was posted from (its slug, which is its
  * subdomain); a lead from no point carries none. `properties.suspect` is
@@ -161,7 +171,11 @@ export function leadCreatedBody(lead: Lead, ctx: LeadWebhookContext, { sourceId,
     occurredAt: ctx.at.toISOString(),
     source: { kind: "site", id: sourceId },
     subject,
-    properties: { channel: panelChannel(channelOf(lead)), ...panelFlowProperties(ctx.flow) },
+    properties: {
+      channel: ctx.channel ?? panelChannel(channelOf(lead)),
+      ...(ctx.messageRef ? { message_ref: ctx.messageRef } : {}),
+      ...panelFlowProperties(ctx.flow),
+    },
   };
   if (ctx.suspect) event.properties.suspect = ctx.suspect;
   if (analyticsId && ctx.analyticsId) event.properties.analytics_id = ctx.analyticsId;

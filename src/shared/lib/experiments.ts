@@ -50,7 +50,36 @@ export function assignmentOf(config: LiveExperiments, read: (name: string) => st
   return {
     hero_call_first: resolveVariant(config, "hero_call_first", read(cookieName("hero_call_first"))),
     lead_form: resolveVariant(config, "lead_form", read(cookieName("lead_form"))),
+    lead_channel: resolveVariant(config, "lead_channel", read(cookieName("lead_channel"))),
   };
+}
+
+/**
+ * Whether `lead_channel` runs on a card (MESSENGER-CHANNELS-SPEC §4,
+ * precedence): only at a place with its own WhatsApp — `channels` is the
+ * card's `channels_available` (kitstart's `channelsAvailable`), `wa,tg` or
+ * `wa`. There every arm, the control `a` included, draws the compact card
+ * (`lead_form` `a`) and the card's events name `lead_channel`, so the two
+ * tests' effects never mix; `b`–`g` add their board. Elsewhere — the bot
+ * alone (kitstart draws the control in every arm then: six identical arms
+ * would only take traffic from `lead_form`), or neither — the test is inert
+ * and the card is `lead_form`'s.
+ */
+export function leadChannelRuns(channels: string | null): boolean {
+  return channels === "wa,tg" || channels === "wa";
+}
+
+/**
+ * Whether a test's arm is not what the page drew, because another test's arm
+ * overrides it: a card that names `lead_channel` ({@link leadChannelRuns})
+ * replaced `lead_form`'s arm. `card` is the experiment the card itself names —
+ * its `data-experiment` on the page, the `experiment` field it posts — so the
+ * mark follows what was drawn, whatever the cookies say. `lead_form`'s
+ * exposure, contact and lead still count, marked `superseded`, so PostHog
+ * leaves them out of `lead_form`'s funnel (docs/EXPERIMENTS.md).
+ */
+export function isSuperseded(id: ExperimentId, card: string | null): boolean {
+  return id === "lead_form" && card === "lead_channel";
 }
 
 /** The `ab_*` cookies this browser carries for experiments `config` has switched off. */
