@@ -290,8 +290,9 @@ skipped, the rest still given back; leaving QA, a running test the snapshot
 lacks is drawn anew rather than left at a variant QA may have forced.
 
 A browser marked before the snapshot carries `ab__qa=1`: it is still a mark,
-but holds nothing to give back. On its next forced visit the snapshot is taken
-from its cookies as they stand; leaving QA without one, the running tests'
+but holds nothing to give back. On its next forced visit the running tests are
+drawn anew first and the snapshot saves that draw (its cookies may hold
+forced variants); leaving QA without one, the running tests'
 cookies are dropped and drawn anew, as a newcomer's — otherwise forced
 variants would go on counting as real ones.
 

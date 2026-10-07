@@ -96,9 +96,9 @@ type QaStep = { readonly variants: QaSnapshot; readonly mark: { readonly set: st
  * `encodeQaSnapshot`): saved on the first forced visit — from the cookies,
  * after `abProxy` drew a newcomer's — and never overwritten by a later one,
  * whose cookies already hold forced variants. A mark of `1` (set before the
- * snapshot) is no snapshot: a force takes the cookies as they stand, the best
- * left to know. A test missing from a snapshot (paused when it was saved, or
- * its pair unknown to this code) takes its cookie the same way.
+ * snapshot) is no snapshot: its cookies may be forced, so a force draws the
+ * running tests afresh (`assign`) and saves that draw. A test missing from a snapshot (paused when it was saved, or
+ * its pair unknown to this code) takes its cookie as it stands.
  *
  * `read` must already see `abProxy`'s draw, and leaving QA's redraw of what the
  * snapshot cannot give back ({@link redrawn}).
@@ -210,7 +210,11 @@ function assign(config: LiveExperiments, request: NextRequest): NextResponse {
   // An empty mark is no mark (`isForced`, kitstart's gate): a visitor carrying
   // one must keep their arms, not be drawn again as if leaving QA.
   const leaves = !!mark && rest.length === 0 && !EXPERIMENT_IDS.some(id => forced[id] !== undefined) && leavesQa(config, inSite, read);
-  for (const id of redrawn(config, saved, leaves, legacy)) request.cookies.delete(cookieName(id));
+  // The pre-snapshot mark `1` holds no own arm and its cookies may be forced:
+  // its next force draws them afresh, or the snapshot would save forced arms
+  // as the visitor's own and leaving QA would count them as real.
+  const unsaved = !!mark && saved === null && EXPERIMENT_IDS.some(id => forced[id] !== undefined);
+  for (const id of redrawn(config, saved, leaves, legacy || unsaved)) request.cookies.delete(cookieName(id));
   // No `forceParam`: abProxy only draws a newcomer's own variants, which QA's
   // snapshot then saves; the force is `qaStep`'s.
   const assigned = abProxy(config, request);

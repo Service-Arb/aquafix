@@ -257,10 +257,12 @@ describe("QA's snapshot of the visitor's own variants", () => {
     // Old prod left lead_form's forced b in the cookie.
     const STUCK = "ab_hero_call_first=a; ab_lead_form=b; ab_lead_channel=e; ab__qa=1";
 
-    it("a force takes the snapshot from the cookies as they stand", async () => {
-      const res = await visit(`https://${ROYAT}/fr?ab_lead_channel=c`, { cookie: STUCK });
-      expect(res.rewrite).toBe("/fr/_royat/ab/abc");
-      expect(res.cookies.sort()).toEqual(["ab__qa=hero_call_first.a~lead_form.b~lead_channel.e", "ab_lead_channel=c"]);
+    it("a force draws the running tests afresh for the snapshot: the stuck forced b is never saved as the visitor's own", async () => {
+      const res = await visit(`https://${ROYAT}/fr?ab_lead_channel=c`, { cookie: STUCK }, DRAW_ALL_A);
+      expect(res.rewrite).toBe("/fr/_royat/ab/aac");
+      expect(res.cookies).toContain("ab__qa=hero_call_first.a~lead_form.a~lead_channel.a");
+      expect(res.cookies).toContain("ab_lead_form=a");
+      expect(res.cookies).toContain("ab_lead_channel=c");
     });
 
     it("leaving QA draws every running test anew: nothing gives them back, and a forced one must not count as real", async () => {
