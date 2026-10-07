@@ -80,37 +80,48 @@ function forcedBy(config: LiveExperiments, query: URLSearchParams): QaSnapshot {
 type QaStep = { readonly variants: QaSnapshot; readonly mark: { readonly set: string } | "drop" | "keep" };
 
 /**
- * QA's state lives in the URL: a visit with a force shows exactly what its
- * query forces, every other test at the visitor's own variant, and a point's
- * home reached from outside without one is an ordinary visit again
- * ({@link leavesQa}). So the forced variants never outlive the QA session that
- * asked for them — before, they stuck for 30 days, and one test forced after
- * another kept both.
+ * QA's state lives in the URL: a visit with a force shows what its query
+ * forces, and a point's home reached from outside without one is an ordinary
+ * visit again ({@link leavesQa}). So the forced variants never outlive the QA
+ * session that asked for them — before, they stuck for 30 days, and one test
+ * forced after another kept both.
+ *
+ * A test the query does not name takes, coming from inside the site, its
+ * current cookie: after the logo or the language switch the URL has lost the
+ * earlier forces, and the menu's tap adds only its own key, so going by the
+ * snapshot would undo the others unasked. Coming from outside, the URL is the
+ * whole state, and an unnamed test is the visitor's own (the snapshot).
  *
  * The visitor's own variants are kept in the mark itself ({@link QA_COOKIE},
  * `encodeQaSnapshot`): saved on the first forced visit — from the cookies,
  * after `abProxy` drew a newcomer's — and never overwritten by a later one,
  * whose cookies already hold forced variants. A mark of `1` (set before the
- * snapshot) or of anything else is no snapshot: the cookies are taken as they
- * stand, the best left to know. A test missing from a snapshot (paused when it
- * was saved) takes its cookie the same way.
+ * snapshot) is no snapshot: a force takes the cookies as they stand, the best
+ * left to know. A test missing from a snapshot (paused when it was saved, or
+ * its pair unknown to this code) takes its cookie the same way.
  *
- * `read` must already see `abProxy`'s draw. `leaves` is {@link leavesQa}'s
- * answer: without a force and without it, the visit stays in QA as it stands.
+ * `read` must already see `abProxy`'s draw, and leaving QA's redraw of what the
+ * snapshot cannot give back ({@link redrawn}).
  */
-function qaStep(config: LiveExperiments, forced: QaSnapshot, mark: string | undefined, leaves: boolean, read: (name: string) => string | undefined): QaStep {
-  const saved = decodeQaSnapshot(mark);
+function qaStep(
+  config: LiveExperiments,
+  forced: QaSnapshot,
+  saved: QaSnapshot | null,
+  move: { readonly inSite: boolean; readonly leaves: boolean },
+  read: (name: string) => string | undefined,
+): QaStep {
   const running = (id: ExperimentId) => config[id].enabled !== false;
   if (EXPERIMENT_IDS.some(id => forced[id] !== undefined)) {
-    const snapshot: QaSnapshot = { ...assignedVariants(config, read), ...saved };
+    const current = assignedVariants(config, read);
+    const snapshot: QaSnapshot = { ...current, ...saved };
     const variants: QaSnapshot = {};
     for (const id of EXPERIMENT_IDS.filter(running)) {
-      const variant = forced[id] ?? snapshot[id];
+      const variant = forced[id] ?? (move.inSite ? current[id] : snapshot[id]);
       if (variant !== undefined) variants[id] = variant;
     }
     return { variants, mark: { set: encodeQaSnapshot(snapshot) } };
   }
-  if (leaves && mark !== undefined) {
+  if (move.leaves) {
     // A paused test's cookie is being dropped (`disabledCookies`); writing its
     // saved variant back would undo that.
     const variants: QaSnapshot = {};
@@ -124,13 +135,22 @@ function qaStep(config: LiveExperiments, forced: QaSnapshot, mark: string | unde
 }
 
 /**
+ * Whether a navigation comes from inside the site: `Sec-Fetch-Site`
+ * `same-origin` — the language switch, the logo, the thanks page's way home,
+ * Next's RSC fetches and prefetches — or `same-site`, the apex and the points'
+ * subdomains passing a visitor along. `none` (typed, a bookmark),
+ * `cross-site` (a link from another site) and no header at all (a browser too
+ * old to send it) are from outside.
+ */
+function fromInsideSite(request: NextRequest): boolean {
+  const from = request.headers.get("sec-fetch-site");
+  return from === "same-origin" || from === "same-site";
+}
+
+/**
  * Whether a visit to a point's home without a force ends QA (the owner's rule):
- * only one that comes from outside the site — typed, a bookmark, a link from
- * another site; `Sec-Fetch-Site` `none` or `cross-site`, or no header from a
- * browser too old to send it — or the menu's **Reset**. A move inside the site
- * keeps QA: the language switch (`/en`, no query), the logo, the thanks page's
- * way home, Next's RSC fetches and prefetches are all `same-origin`, and
- * `same-site` is the apex and the points' subdomains passing a visitor along.
+ * one from outside the site ({@link fromInsideSite}), or the menu's **Reset**.
+ * A move inside the site keeps QA.
  *
  * Reset is same-origin too: kitstart's `abReset("reassign")` deletes every
  * `ab_<key>` and reloads the home without the query. A QA browser has no other
@@ -138,10 +158,22 @@ function qaStep(config: LiveExperiments, forced: QaSnapshot, mark: string | unde
  * so no running test's cookie, with the mark alive, is that tap. Read before
  * `abProxy`, which would draw them again.
  */
-function leavesQa(config: LiveExperiments, request: NextRequest, read: (name: string) => string | undefined): boolean {
-  const from = request.headers.get("sec-fetch-site");
-  if (from === null || from === "none" || from === "cross-site") return true;
-  return EXPERIMENT_IDS.every(id => config[id].enabled === false || read(cookieName(id)) === undefined);
+function leavesQa(config: LiveExperiments, inSite: boolean, read: (name: string) => string | undefined): boolean {
+  return !inSite || EXPERIMENT_IDS.every(id => config[id].enabled === false || read(cookieName(id)) === undefined);
+}
+
+/**
+ * The running tests whose cookie goes before `abProxy`, so it draws them
+ * afresh: what QA may have forced and nothing can give back. Leaving QA, every
+ * test the snapshot lacks — all of them under a mark of `1` from before the
+ * snapshot, which otherwise left forced variants counted as `forced: false`.
+ * And every one under the legacy `ab_forced` mark, which never had a
+ * snapshot, unless a real one came after it.
+ */
+function redrawn(config: LiveExperiments, saved: QaSnapshot | null, leaves: boolean, legacy: boolean): ExperimentId[] {
+  const running = EXPERIMENT_IDS.filter(id => config[id].enabled !== false);
+  if (leaves) return running.filter(id => saved?.[id] === undefined);
+  return legacy && saved === null ? running : [];
 }
 
 /** The proxy over a source of the applied config; `experimentProxy` reads the panel's. */
@@ -171,12 +203,18 @@ function assign(config: LiveExperiments, request: NextRequest): NextResponse {
   const read = (name: string) => request.cookies.get(name)?.value;
   const dropped = disabledCookies(config, read);
   const mark = read(QA_COOKIE);
+  const saved = decodeQaSnapshot(mark);
   const legacy = read(LEGACY_QA_COOKIE) !== undefined;
-  const leaves = rest.length === 0 && leavesQa(config, request, read);
+  const forced = forcedBy(config, url.searchParams);
+  const inSite = fromInsideSite(request);
+  // An empty mark is no mark (`isForced`, kitstart's gate): a visitor carrying
+  // one must keep their arms, not be drawn again as if leaving QA.
+  const leaves = !!mark && rest.length === 0 && !EXPERIMENT_IDS.some(id => forced[id] !== undefined) && leavesQa(config, inSite, read);
+  for (const id of redrawn(config, saved, leaves, legacy)) request.cookies.delete(cookieName(id));
   // No `forceParam`: abProxy only draws a newcomer's own variants, which QA's
   // snapshot then saves; the force is `qaStep`'s.
   const assigned = abProxy(config, request);
-  const qa = qaStep(config, forcedBy(config, url.searchParams), mark, leaves, read);
+  const qa = qaStep(config, forced, saved, { inSite, leaves }, read);
   // Into the request too, so this render's bucket shows them; the cookie, so
   // the beacon and the lead's POST, which read `ab_<key>`, count what was drawn.
   const written = new Map<string, string>();
@@ -205,8 +243,9 @@ function assign(config: LiveExperiments, request: NextRequest): NextResponse {
   for (const name of dropped) response.headers.append("set-cookie", `${name}=; Path=/; Max-Age=0; SameSite=Lax`);
   if (qa.mark === "drop") response.headers.append("set-cookie", `${QA_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax`);
   else if (qa.mark !== "keep") response.headers.append("set-cookie", `${QA_COOKIE}=${qa.mark.set}; Path=/; Max-Age=${FORCED_MAX_AGE}; SameSite=Lax`);
-  // The legacy mark is no longer moved: it carries no snapshot, and a visit
-  // without a force now leaves QA anyway. A forced one has just set the new.
+  // The legacy mark is no longer moved: it carries no snapshot, so the
+  // variants it marked were drawn afresh above. A forced visit has just set
+  // the new mark.
   if (legacy) response.headers.append("set-cookie", `${LEGACY_QA_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax`);
   return response;
 }

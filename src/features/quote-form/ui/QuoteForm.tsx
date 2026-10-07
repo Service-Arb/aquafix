@@ -1,11 +1,11 @@
-import { channelsAvailable, LEAD_CAPTURE_TEXT, messengerFacts, type LeadCaptureText } from "@evinvest/kitstart";
+import { LEAD_CAPTURE_TEXT, messengerFacts, type LeadCaptureText } from "@evinvest/kitstart";
 import { LeadCapture, type LeadCaptureProps, type LeadIntro } from "@evinvest/kitstart/react";
 import { cn } from "@evinvest/uikit";
 import type { CopyOf, Text } from "@/entities/content";
 import type { PlaceView } from "@/entities/place";
 import { LEAD, URGENCIES, URGENCY_FIELD } from "@/shared/config/lead";
 import { site } from "@/shared/config/site";
-import { leadChannelRuns } from "@/shared/lib/experiments";
+import { leadChannelRunsAt } from "@/shared/lib/lead-channel";
 import { AfterPhone, CALLBACK_STEP, CallbackHeading } from "./FormLines";
 import { JobIcon } from "./JobIcon";
 import { messengerProps, messengerVariantOf, REF_PREFIX, type LeadChannelArm } from "./messenger";
@@ -95,7 +95,7 @@ function armProps(copy: QuoteFormWidgetCopy, arm: LeadFormArm): Partial<LeadCapt
  * number and keeps to the form and the callback.
  *
  * `channelArm` is the visitor's `lead_channel` arm. At a place with its own
- * WhatsApp (`messengerFacts`, `leadChannelRuns`) the test runs: every arm,
+ * WhatsApp (`leadChannelRunsAt`, which the QA menu's labels share) the test runs: every arm,
  * the control `a` included, draws the compact card whatever `lead_form` says
  * and names `lead_channel` on the kit's events — the beacon and `/quote` mark
  * `lead_form`'s `superseded` — and `b`–`g` add their board. Elsewhere (the bot
@@ -117,7 +117,7 @@ export function QuoteForm({
 }) {
   const q = copy.t.quoteForm;
   const facts = messengerFacts(site, point.place);
-  const runs = leadChannelRuns(channelsAvailable(facts));
+  const runs = leadChannelRunsAt(point.place);
   const variant = runs ? messengerVariantOf(channelArm) : undefined;
   const formArm = runs ? "a" : arm;
   const text = leadText(copy, formArm);

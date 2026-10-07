@@ -1,12 +1,11 @@
-import { channelsAvailable, messengerFacts } from "@evinvest/kitstart";
 import { AbSwitcher } from "@evinvest/kitstart/react";
 import { JsonLd } from "@evinvest/marketing";
 import { withLiveRating, type Copy } from "@/entities/content";
 import { freshRating, type PlaceView } from "@/entities/place";
 import { locationGraph } from "@/features/seo";
 import { CONTROL, QA_COOKIE, type Assignment } from "@/shared/config/experiments";
-import { site } from "@/shared/config/site";
 import { abSwitcherExperiments } from "@/shared/lib/experiments";
+import { leadChannelRunsAt } from "@/shared/lib/lead-channel";
 import { CallBar } from "@/widgets/call-bar";
 import { Coverage } from "@/widgets/coverage";
 import { Faq } from "@/widgets/faq";
@@ -60,7 +59,7 @@ export function LocationHome({
           static; on a phone it sits above the call bar. Its labels follow
           the card's own rule for whether lead_channel runs here. */}
       <AbSwitcher
-        experiments={abSwitcherExperiments(channelsAvailable(messengerFacts(site, point.place)))}
+        experiments={abSwitcherExperiments(leadChannelRunsAt(point.place))}
         qaCookie={QA_COOKIE}
         className="bottom-24 md:bottom-4"
       />

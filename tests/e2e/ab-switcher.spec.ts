@@ -173,6 +173,26 @@ test("the logo and the language switch keep a forced visit in QA", async ({ page
   expect((await context.cookies()).find(c => c.name === "ab_lead_form")?.value).toBe("c");
 });
 
+// After the language switch the URL has lost `ab_lead_form=c`, and the menu's
+// tap adds only its own key: a force from inside the site changes only what
+// it names, so lead_form stays c.
+test("a tap in the menu after the language switch keeps the earlier force", async ({ page, context }) => {
+  await context.addCookies(own({ hero_call_first: "a", lead_form: "a", lead_channel: "a" }));
+  await page.goto("/fr?ab_lead_form=c");
+  await page.getByRole("link", { name: "English" }).first().click();
+  await expect(page).toHaveURL(/\/en(\?|$)/);
+  await page.getByRole("button", CHIP).click();
+  const menu = page.getByRole("dialog", CHIP);
+  await menu.getByRole("group", { name: "Lead channel" }).getByRole("button", { name: "AQ-4 swap" }).click();
+  await expect(page).toHaveURL(/\/en\?ab_lead_channel=e$/);
+  await expect(page.locator("#quote")).toHaveAttribute("data-variant", "c");
+  await page.getByRole("button", CHIP).click();
+  await expect(menu.getByRole("group", { name: "Lead form" }).getByRole("button", { name: "Urgent first" })).toHaveAttribute("aria-pressed", "true");
+  await expect(menu.getByRole("group", { name: "Lead channel" }).getByRole("button", { name: "AQ-4 swap" })).toHaveAttribute("aria-pressed", "true");
+  const jar = await context.cookies();
+  expect([jar.find(c => c.name === "ab_lead_form")?.value, jar.find(c => c.name === "ab_lead_channel")?.value]).toEqual(["c", "e"]);
+});
+
 // Typing the home in the address bar is a visit from outside
 // (`Sec-Fetch-Site: none`): QA ends with the visitor's own variants.
 test("opening the home from the address bar after a force leaves the test", async ({ page, context }) => {

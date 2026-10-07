@@ -137,40 +137,55 @@ export function encodeQaSnapshot(snapshot: QaSnapshot): string {
 
 /**
  * Inverse of {@link encodeQaSnapshot}, or `null` for a value that is no
- * snapshot — `1` from before the snapshot, or anything a hand put there. A
- * variant is checked against the code's list, not the applied config: a test
- * the panel paused still gets its visitor's variant back when it resumes.
+ * snapshot — `1` from before the snapshot, an empty one, or any value with a
+ * pair not spelled `key.variant`. A well-spelled pair this code does not know —
+ * its test or its variant since deleted — is skipped, the others kept: the
+ * visitor's own variants of the tests still here are not lost to it. A variant
+ * is checked against the code's list, not the applied config: a test the
+ * panel paused still gets its visitor's variant back when it resumes.
  */
 export function decodeQaSnapshot(value: string | undefined): QaSnapshot | null {
   if (value === undefined) return null;
   if (value === EMPTY_SNAPSHOT) return {};
+  const pairs = value.split(SNAPSHOT_SEPARATOR);
+  if (!pairs.every(pair => SNAPSHOT_PAIR_SHAPE.test(pair))) return null;
   const out: QaSnapshot = {};
-  for (const pair of value.split(SNAPSHOT_SEPARATOR)) {
-    const [key = "", variant = "", ...extra] = pair.split(SNAPSHOT_PAIR);
+  for (const pair of pairs) {
+    const [key = "", variant = ""] = pair.split(SNAPSHOT_PAIR);
     const id = EXPERIMENT_IDS.find(known => known === key);
-    if (id === undefined || extra.length > 0) return null;
+    if (id === undefined) continue;
     const declared: readonly string[] = EXPERIMENTS[id].variants;
-    if (!declared.includes(variant)) return null;
-    out[id] = variant;
+    if (declared.includes(variant)) out[id] = variant;
   }
   return out;
 }
 
 /**
- * Words the QA menu adds to `lead_channel`'s label at a point where the test
- * is inert ({@link leadChannelRuns}): every arm draws the same card there, so
- * a tap seems to change nothing.
+ * Leading-letter snake_case key, a dot, a lower-case variant: how
+ * {@link encodeQaSnapshot} spells every pair, whatever the config says then.
  */
-const LEAD_CHANNEL_INERT = " — inactive here (no WhatsApp)";
+const SNAPSHOT_PAIR_SHAPE = /^[a-z][a-z0-9_]*\.[a-z0-9]+$/;
 
 /**
- * The QA menu's tests for one point: {@link AB_SWITCHER_EXPERIMENTS}, with
- * `lead_channel` saying so where it cannot change the page. `channels` is the
- * point's `channels_available`, as {@link leadChannelRuns} takes it.
+ * Words the QA menu adds to a test's label at a point where its taps change
+ * nothing: `lead_channel` where it is inert ({@link leadChannelRuns}) — every
+ * arm draws the same card — and `lead_form` where `lead_channel` runs, since
+ * every arm of it then draws the compact card.
  */
-export function abSwitcherExperiments(channels: string | null): typeof AB_SWITCHER_EXPERIMENTS {
-  if (leadChannelRuns(channels)) return AB_SWITCHER_EXPERIMENTS;
-  return AB_SWITCHER_EXPERIMENTS.map(e => (e.key === "lead_channel" ? { ...e, label: `${e.label}${LEAD_CHANNEL_INERT}` } : e));
+const INERT_SUFFIX: { readonly [K in "lead_form" | "lead_channel"]: string } = {
+  lead_form: " — inactive here (lead channel owns the card)",
+  lead_channel: " — inactive here (no WhatsApp)",
+};
+
+/**
+ * The QA menu's tests for one point: {@link AB_SWITCHER_EXPERIMENTS}, the test
+ * whose taps cannot change the page there saying so. `leadChannelRuns` is the
+ * point's answer from `leadChannelRunsAt` — the card's own — so the menu and
+ * the card cannot disagree.
+ */
+export function abSwitcherExperiments(leadChannelRuns: boolean): typeof AB_SWITCHER_EXPERIMENTS {
+  const inert = leadChannelRuns ? "lead_form" : "lead_channel";
+  return AB_SWITCHER_EXPERIMENTS.map(e => (e.key === inert ? { ...e, label: `${e.label}${INERT_SUFFIX[inert]}` } : e));
 }
 
 /**

@@ -244,10 +244,17 @@ https://royat.aquafix.top/fr?ab_hero_call_first=b&ab_lead_form=c
 https://royat.aquafix.top/fr?ab_lead_form=b
 ```
 
-The URL is the whole QA state: a visit with a force shows exactly what its
+A forced visit from outside the site — a link pasted in the address bar, a
+bookmark, a link from another site — is the whole QA state: it shows what its
 query forces, and every test it does not name at the visitor's own variant.
-`?ab_lead_channel=c` and then `?ab_lead_form=b` shows `lead_form` `b` with
-`lead_channel` back at the visitor's own arm, not both forced.
+Pasting `?ab_lead_channel=c` and then `?ab_lead_form=b` shows `lead_form` `b`
+with `lead_channel` back at the visitor's own arm, not both forced.
+
+A forced visit from inside the site — a tap in the QA menu — changes only the
+tests its query names; the rest stay as the cookies have them. After the
+logo or the language switch the URL has lost the earlier forces and the menu
+adds only the tapped one: `/fr?ab_lead_form=c` → EN → tap `lead_channel` `e`
+on `/en?ab_lead_channel=e` keeps `lead_form` `c`.
 
 The forced variant is written to the test's `ab_<experiment>` cookie, so the
 beacon and the form's POST count what the page drew, and a cookie `ab__qa`
@@ -277,16 +284,23 @@ or `cross-site`; a browser that sends no such header leaves too) — or tap
 events are an ordinary visitor's again. A test the panel paused meanwhile is
 not given back: its cookie is dropped as for everyone.
 
-`ab__qa` lasts 30 days, like the variants it marks and gives back. A browser
-marked before the snapshot carries `ab__qa=1`: it is still a mark, but holds
-nothing to give back — on its next forced visit the snapshot is taken from its
-cookies as they stand, and leaving QA keeps them as they are.
+`ab__qa` lasts 30 days, like the variants it marks and gives back. A pair in
+the snapshot this code no longer knows (its test or variant deleted) is
+skipped, the rest still given back; leaving QA, a running test the snapshot
+lacks is drawn anew rather than left at a variant QA may have forced.
+
+A browser marked before the snapshot carries `ab__qa=1`: it is still a mark,
+but holds nothing to give back. On its next forced visit the snapshot is taken
+from its cookies as they stand; leaving QA without one, the running tests'
+cookies are dropped and drawn anew, as a newcomer's — otherwise forced
+variants would go on counting as real ones.
 
 `ab__qa` is the QA mark's name on every brand (vifnet's too). Until October
 2026 Aquafix called it `ab_forced`. That name is still read as a mark (value
 `1`) until **2026-11-05**, and the proxy drops it on the browser's next visit
-to a point; it is no longer moved to `ab__qa`, since it holds no snapshot and
-a visit without a force now leaves QA anyway. Then delete `LEGACY_QA_COOKIE`
+to a point, together with the running tests' cookies, which are drawn anew
+(unless an `ab__qa` snapshot is there to go by): it holds no snapshot, so what
+it marked may be forced. It is no longer moved to `ab__qa`. Then delete `LEGACY_QA_COOKIE`
 (`src/shared/config/experiments.ts`) and its handling in the proxy.
 
 ### The QA menu on a phone
@@ -298,7 +312,8 @@ page the experiments run on: a chip in the bottom-right corner (on a phone, abov
    `https://royat.aquafix.top/fr?ab_lead_form=a`. The proxy sets `ab__qa`,
    and the chip appears.
 2. Tap the chip, then a variant: the page reloads with that variant forced,
-   the earlier forces kept in the URL.
+   the other tests as they were — whether their force is still in the URL or
+   was lost to the logo or the language switch.
 3. **Reset** drops the `ab_*` cookies and the force parameters and reloads the
    home without a query — which leaves QA (the proxy reads a QA browser with
    no `ab_*` cookie at all as this tap): the saved variants come back and the
@@ -307,10 +322,15 @@ page the experiments run on: a chip in the bottom-right corner (on a phone, abov
    To leave QA with your own variants, use **Reset** or open the home
    from the address bar without a query. **Minimize** and **Hide** last until the next page load.
 
-At a point without its own WhatsApp (`channels_available` neither `wa` nor
-`wa,tg`), `lead_channel` is inert — every arm draws the same card — and the
-menu says so in the test's label: *Lead channel — inactive here (no
-WhatsApp)*. Forcing it still works and is still recorded.
+One of `lead_form` and `lead_channel` is always inert at a point, and the
+menu says which in the test's label. Without the point's own WhatsApp
+(`channels_available` neither `wa` nor `wa,tg`) every `lead_channel` arm draws
+the same card: *Lead channel — inactive here (no WhatsApp)*. With it,
+`lead_channel` owns the card and every `lead_form` arm draws the compact one:
+*Lead form — inactive here (lead channel owns the card)*. Forcing either still
+works and is still recorded. The card and the menu ask the same function
+(`leadChannelRunsAt`, `src/shared/lib/lead-channel.ts`), so they cannot
+disagree.
 
 A visitor without `ab__qa` never downloads the menu: the page's first load
 carries only a small gate that checks for the cookie. Under `next dev` the chip
