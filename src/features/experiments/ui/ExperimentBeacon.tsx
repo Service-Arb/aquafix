@@ -4,9 +4,9 @@ import { countsAsPageView, type AnalyticsTarget } from "@evinvest/kitstart";
 import { contactChannel } from "@evinvest/marketing";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo } from "react";
-import { EXPERIMENTS } from "@/shared/config/experiments";
-import { assignedVariants, cookieReader, isForced } from "@/shared/lib/experiments";
-import { EXPERIMENT_EVENTS, experimentSink, type ExperimentChannel } from "../model/events";
+import { EXPERIMENT_IDS, EXPERIMENTS } from "@/shared/config/experiments";
+import { assignedVariants, cookieReader, isForced, isSuperseded } from "@/shared/lib/experiments";
+import { EXPERIMENT_EVENTS, experimentSink, supersededProp, type ExperimentChannel } from "../model/events";
 
 function channelOf(target: EventTarget | null): ExperimentChannel | null {
   if (!(target instanceof Element)) return null;
@@ -33,8 +33,11 @@ export function ExperimentBeacon({ target, placeSlug }: { target: AnalyticsTarge
     if (!countsAsPageView(pathname)) return;
     const read = cookieReader(document.cookie);
     const forced = isForced(read);
-    for (const [experiment, variant] of Object.entries(assignedVariants(EXPERIMENTS, read))) {
-      sink.capture(EXPERIMENT_EVENTS.exposed, { experiment, variant, forced });
+    const variants = assignedVariants(EXPERIMENTS, read);
+    for (const id of EXPERIMENT_IDS) {
+      const variant = variants[id];
+      if (variant === undefined) continue;
+      sink.capture(EXPERIMENT_EVENTS.exposed, { experiment: id, variant, forced, ...supersededProp(isSuperseded(id, variants)) });
     }
   }, [sink, pathname]);
 
@@ -44,8 +47,11 @@ export function ExperimentBeacon({ target, placeSlug }: { target: AnalyticsTarge
       if (!channel) return;
       const read = cookieReader(document.cookie);
       const forced = isForced(read);
-      for (const [experiment, variant] of Object.entries(assignedVariants(EXPERIMENTS, read))) {
-        sink.capture(EXPERIMENT_EVENTS.contact, { experiment, variant, channel, forced }, { transport: "beacon" });
+      const variants = assignedVariants(EXPERIMENTS, read);
+      for (const id of EXPERIMENT_IDS) {
+        const variant = variants[id];
+        if (variant === undefined) continue;
+        sink.capture(EXPERIMENT_EVENTS.contact, { experiment: id, variant, channel, forced, ...supersededProp(isSuperseded(id, variants)) }, { transport: "beacon" });
       }
     };
     document.addEventListener("click", onClick, { capture: true });

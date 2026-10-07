@@ -23,6 +23,13 @@ export const EXPERIMENTS = {
    * the same key, so the two brands' results pool; `c` is this brand's own.
    */
   lead_form: { variants: ["a", "b", "c"], weights: [1, 1, 1], enabled: true },
+  /**
+   * How the card offers WhatsApp and the brand's Telegram bot
+   * (MESSENGER-CHANNELS-SPEC §4): `a` the control, `b`–`g` the Figma boards
+   * AQ-1…AQ-6. Any arm but `a` draws the compact card, whatever `lead_form`
+   * says — the `lead_form` events of such a visitor say `superseded`.
+   */
+  lead_channel: { variants: ["a", "b", "c", "d", "e", "f", "g"], weights: [1, 1, 1, 1, 1, 1, 1], enabled: true },
 } as const satisfies ExperimentConfig;
 
 export type ExperimentId = keyof typeof EXPERIMENTS;
@@ -38,6 +45,8 @@ export const EXPERIMENT_SUMMARIES: { readonly [K in ExperimentId]: string } = {
   hero_call_first: "On a phone, a full-width call button first, the form behind a link, turns more visits into contacts.",
   lead_form:
     "One question per screen (b), or urgency first with an urgent call-back and job cards (c), lifts leads per visit over the compact one-screen form (a).",
+  lead_channel:
+    "WhatsApp first in the lead card, its message prefilled, the bot and a call beside it (AQ-1..AQ-6, b-g), lifts contacts per visit over the phone-only form (a).",
 };
 
 /** One visitor's variant of every experiment. */
@@ -49,6 +58,7 @@ export const EXPERIMENT_IDS = Object.keys(EXPERIMENTS) as readonly ExperimentId[
 export const CONTROL: Assignment = {
   hero_call_first: "a",
   lead_form: "a",
+  lead_channel: "a",
 };
 
 /**
@@ -61,6 +71,10 @@ const AB_MENU_LABELS: {
 } = {
   hero_call_first: { label: "Mobile hero", variants: { a: "Form first", b: "Call first" } },
   lead_form: { label: "Lead form", variants: { a: "Compact", b: "Steps", c: "Urgent first" } },
+  lead_channel: {
+    label: "Lead channel",
+    variants: { a: "Control", b: "AQ-1 select", c: "AQ-2 segment", d: "AQ-3 thanks", e: "AQ-4 swap", f: "AQ-5 saga", g: "AQ-6 urgency" },
+  },
 };
 
 /**

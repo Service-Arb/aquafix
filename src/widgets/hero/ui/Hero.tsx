@@ -93,6 +93,7 @@ export function Hero({
             point={point}
             renderedAt={renderedAt}
             arm={variants.lead_form}
+            channelArm={variants.lead_channel}
           />
         </div>
       </div>

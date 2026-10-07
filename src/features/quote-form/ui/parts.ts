@@ -1,3 +1,4 @@
+import type { MessengerKind } from "@evinvest/kitstart";
 import type { LeadCapturePart, PartClassNames } from "@evinvest/kitstart/react";
 import { CTA_FACE } from "@/shared/ui/brand";
 
@@ -90,3 +91,62 @@ export const URGENT_FIRST: PartClassNames<LeadCapturePart> = {
   need: "min-h-[92px] gap-2 rounded-[var(--corner-tile)] bg-card px-1.5 py-3 text-[13px] font-medium leading-4",
   icon: "text-primary-ink",
 };
+
+/**
+ * The kit's messenger buttons (`MessengerCta`, the squares, «Être rappelé»)
+ * take no part of their own: the brand's CTA face reaches them from the
+ * variant's wrapper (`messenger`).
+ */
+const MESSENGER_BUTTONS = "[&_[data-slot=button]]:font-display [&_[data-slot=button]]:[font-weight:600]";
+
+/** The ticked small print under a field, as `AfterPhone` draws it — on the select's hint, not on the in-app one. */
+const MESSENGER_HINT = "text-[13px] font-medium leading-4 text-ink-mid [p&]:flex [p&]:gap-2 [p&]:before:font-semibold [p&]:before:text-positive [p&]:before:content-['✓']";
+
+/**
+ * `lead_channel`'s parts over the compact card (Figma, Aquafix "Lead form
+ * A/B", «Мессенджеры v3»): every state of an arm one height — the channel's
+ * slot 92px (the phone and its line, or the message ready), `swap`'s 52px
+ * (the WhatsApp button, or the phone). `relative` holds the kit's «Message
+ * envoyé ?» screen over the card, padded as the card is.
+ */
+const MESSENGER: PartClassNames<LeadCapturePart> = {
+  ...COMPACT,
+  root: `${COMPACT.root ?? ""} relative`,
+  messenger: MESSENGER_BUTTONS,
+  messengerSlot: "h-[92px]",
+  messengerPreview: "h-full items-center gap-3 rounded-[var(--corner-control)] bg-primary/8 px-4 py-3",
+  messengerHint: MESSENGER_HINT,
+  messengerQr: "rounded-[var(--corner-control)]",
+  messengerReturn: "rounded-[var(--corner-float)] px-6 py-7 md:px-[34px] md:pb-[30px] md:pt-8",
+};
+
+/** What one board sets over {@link MESSENGER}. */
+const BY_KIND: { readonly [K in MessengerKind]?: PartClassNames<LeadCapturePart> } = {
+  // AQ-1: the picker is the phone field's frame, 52px as every field.
+  select: { messengerPicker: "h-[52px]" },
+  // AQ-2: «WhatsApp | Appel» on a muted track, the picked one lifted.
+  segment: {
+    messengerPicker: "h-12 rounded-[var(--corner-control)] bg-muted p-1",
+    messengerOption: "h-10 text-[15px] font-medium text-ink-soft data-[state=on]:bg-card data-[state=on]:shadow-sm",
+  },
+  // AQ-4: slot A is the WhatsApp button or the phone, 52px; row B under it.
+  swap: { messengerSlot: "h-[52px] [&>a]:h-full", messengerSquare: "size-[49px] min-h-0 rounded-[var(--corner-control)]" },
+  // AQ-5: the card as tall as its tallest screen, so the screens change what is in it, not its size.
+  saga: {
+    root: `${COMPACT.root ?? ""} relative min-h-[497px]`,
+    messengerOption: "rounded-[var(--corner-control)] p-3.5 [&.border-primary]:bg-primary/8",
+  },
+  // AQ-6: two answers side by side, the picked one tinted.
+  urgency: {
+    messengerOption: "h-[42px] text-[14px] font-semibold data-[state=on]:bg-primary/8",
+  },
+};
+
+/**
+ * The card's classes in a `lead_channel` arm. `callInside`: the arm offers
+ * the call itself (AQ-1/2/4/5), so the line under the card — "Pas envie de
+ * taper ? Rappelez-moi" — is not drawn twice; Figma's boards have none.
+ */
+export function messengerParts(kind: MessengerKind, callInside: boolean): PartClassNames<LeadCapturePart> {
+  return { ...MESSENGER, ...BY_KIND[kind], ...(callInside ? { others: "hidden" } : {}) };
+}

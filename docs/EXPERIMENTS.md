@@ -8,7 +8,7 @@ winner goes into the page, the loser is deleted.
 
 ## Running now
 
-Two tests, drawn independently: a visitor is in one arm of each. The splits
+Three tests, drawn independently: a visitor is in one arm of each. The splits
 below are the code's; the panel may have changed a split or switched a test
 off since — its "Experiments" screen is what runs now.
 
@@ -69,6 +69,58 @@ the card and the call bar under it — so the card repeats neither.
   `lead_form_step` (each screen: `intro`, `need`, `locality`, `phone`), and the
   server's `lead_form_submit` — carry `experiment: "lead_form"` and the
   `variant`, for the funnel inside the form.
+
+### `lead_channel`
+
+Seven arms, 1:1:1:1:1:1:1 (MESSENGER-CHANNELS-SPEC §4; Figma, Aquafix file,
+page "Lead form A/B", section 78:642 «Мессенджеры v3»), on kitstart's
+`LeadCapture` `messenger` variants. WhatsApp is the customer sending our
+prefilled message (the need, the postcode, the urgency when asked, and a
+reference `Réf. AQ-7K3F`), answered by hand in WhatsApp Business; Telegram is
+the place's bot opened as `t.me/<bot>?start=AQ-7K3F`; the phone is asked only
+for a call. Every state of an arm keeps the card's height (the channel's slot
+is 92 px, `e`'s 52 px; AQ-5's card is 497 px tall at 390).
+
+- **`a`** — the control: today's card.
+- **`b`, AQ-1** — a channel select inside the phone field, WhatsApp first: the
+  number optional, «Envoyer sur WhatsApp →»; Appel — the number, «Rappelez-moi
+  sous 10 min →»; Telegram — the bot.
+- **`c`, AQ-2** — «WhatsApp | Appel» over the slot: the message ready, or the
+  phone; «ou via Telegram» under the button.
+- **`d`, AQ-3** — the control's form; the card stays after the lead («C’est
+  noté !») and asks for a photo on WhatsApp (a QR code on a computer) and the bot.
+- **`e`, AQ-4** — no phone: «Recevoir mon prix sur WhatsApp», then
+  [Telegram][Être rappelé]; «Être rappelé» swaps the phone in.
+- **`f`, AQ-5** — the channel first on a screen of its own, then the job and
+  the channel's slot; «Changer de canal» back.
+- **`g`, AQ-6** — «C’est urgent ?»: today a call, «je compare» the message. The
+  answer is the lead's extra `urgency`, `today` or `later` (the mail prints
+  «Pas urgent — compare» for `later`).
+
+A place without its own WhatsApp number — or with WhatsApp switched off in the
+panel — draws the control in every arm (`d` and `g` keep their bot / question);
+no bot, no Telegram piece. The arm stays assigned: every kitstart event of the
+card says `channels_available` (`wa,tg` | `wa` | `tg` | `none`) — read an arm
+only where its channels were there. No place has its own WhatsApp number yet:
+until the owner sets them in the panel, every arm is the control.
+
+- **Precedence over `lead_form`.** Any arm but `a` draws the compact card
+  (`lead_form` `a`), whatever the visitor's `lead_form` arm. Such a visitor's
+  `lead_form` events (`experiment_exposed`, `experiment_contact`,
+  `experiment_lead`) carry `superseded: true`: leave them out of `lead_form`'s
+  funnel (`superseded` is not `true`). kitstart's own form events name
+  `lead_channel` for them, with `messenger_variant`. Pausing `lead_form` in the
+  panel instead is the owner's call.
+- **Hypothesis.** A plumbing customer would rather send a message — with a
+  photo of the leak — than type a phone number and wait: WhatsApp first, the
+  message written for them, lifts contacts per visit over the phone-only form.
+- **Metric.** Contact rate primary (a messenger tap posts the lead first, so
+  it counts as `experiment_lead`); kitstart's `lead_messenger_return` (`sent` /
+  `failed`) says how many chats were really started.
+- **The lead.** A messenger lead is posted in the background before the app
+  opens (`channel=whatsapp|telegram`, `message_ref`), needs no phone and no
+  postcode, is mailed with «Canal» and «Réf.», and goes to the panel as its own
+  channel with `properties.message_ref` (`PANEL_MESSENGER`).
 
 ### Ended
 

@@ -50,7 +50,19 @@ export function assignmentOf(config: LiveExperiments, read: (name: string) => st
   return {
     hero_call_first: resolveVariant(config, "hero_call_first", read(cookieName("hero_call_first"))),
     lead_form: resolveVariant(config, "lead_form", read(cookieName("lead_form"))),
+    lead_channel: resolveVariant(config, "lead_channel", read(cookieName("lead_channel"))),
   };
+}
+
+/**
+ * Whether a test's arm is not what the page drew, because another test's arm
+ * overrides it: any `lead_channel` arm but the control draws the compact card
+ * (`lead_form` `a`) whatever `lead_form` says. Its `lead_form` exposure and
+ * lead still count, marked `superseded`, so PostHog leaves them out of
+ * `lead_form`'s funnel (docs/EXPERIMENTS.md).
+ */
+export function isSuperseded(id: ExperimentId, variants: Partial<Record<ExperimentId, string>>): boolean {
+  return id === "lead_form" && variants.lead_channel !== undefined && variants.lead_channel !== CONTROL.lead_channel;
 }
 
 /** The `ab_*` cookies this browser carries for experiments `config` has switched off. */

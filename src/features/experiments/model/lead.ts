@@ -1,10 +1,11 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { after } from "next/server";
 import { LOCATION_FIELD, type AnalyticsTarget } from "@evinvest/kitstart";
+import { EXPERIMENT_IDS } from "@/shared/config/experiments";
 import { site } from "@/shared/config/site";
-import { assignedVariants, cookieReader, isForced } from "@/shared/lib/experiments";
+import { assignedVariants, cookieReader, isForced, isSuperseded } from "@/shared/lib/experiments";
 import { liveExperiments, type LiveConfig } from "../api/live";
-import { EXPERIMENT_EVENTS, experimentSink } from "./events";
+import { EXPERIMENT_EVENTS, experimentSink, supersededProp } from "./events";
 
 type Deferred = () => Promise<void> | void;
 
@@ -42,8 +43,8 @@ export function experimentLeads(deps: ExperimentLeadDeps) {
     (post: (request: Request) => Promise<Response>) =>
     async (request: Request): Promise<Response> => {
       const read = cookieReader(request.headers.get("cookie"));
-      const variants = Object.entries(assignedVariants(await live(), read));
-      const copy = variants.length > 0 ? request.clone() : null;
+      const variants = assignedVariants(await live(), read);
+      const copy = Object.keys(variants).length > 0 ? request.clone() : null;
       const mark = { accepted: false };
       const response = await accepted.run(mark, () => post(request));
       if (mark.accepted && copy) {
@@ -52,7 +53,11 @@ export function experimentLeads(deps: ExperimentLeadDeps) {
           const place = typeof slug === "string" && site.placeSlugs.includes(slug) ? slug : null;
           const sink = experimentSink(deps.target(), place);
           const forced = isForced(read);
-          for (const [experiment, variant] of variants) sink.capture(EXPERIMENT_EVENTS.lead, { experiment, variant, forced });
+          for (const id of EXPERIMENT_IDS) {
+            const variant = variants[id];
+            if (variant === undefined) continue;
+            sink.capture(EXPERIMENT_EVENTS.lead, { experiment: id, variant, forced, ...supersededProp(isSuperseded(id, variants)) });
+          }
         });
       }
       return response;
