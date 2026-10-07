@@ -102,17 +102,45 @@ async function nextLoadCookies(page: Page, act: () => Promise<void>): Promise<st
 
 const names = (header: string) => header.split(";").map(pair => pair.split("=")[0]?.trim());
 
-// The proxy draws a new variant on the reload and sets its cookie again, so
-// "dropped" is read off the reload's request, not off the jar after it.
-test("Reset draws the variants again and keeps the visit a test", async ({ page, context }) => {
+/** A browser's own draw, as the proxy would have left it: set before the first forced visit. */
+const own = (variants: { hero_call_first: string; lead_form: string; lead_channel: string }) =>
+  Object.entries(variants).map(([id, value]) => ({ name: `ab_${id}`, value, url: "http://royat.localhost" }));
+
+// Reset drops the assignments and the force parameters but keeps `ab__qa`, so
+// the reload is the home without a force: the proxy gives back the variants
+// the mark saved and drops it. "Dropped" is read off the reload's request, the
+// variants given back off the jar after it.
+test("Reset leaves the test with the visitor's own variants, and the chip goes", async ({ page, context }) => {
+  await context.addCookies(own({ hero_call_first: "a", lead_form: "c", lead_channel: "a" }));
+  const ready = await hydration(page);
   await page.goto("/fr?ab_lead_form=b");
+  await expect(page.locator("#quote")).toHaveAttribute("data-variant", "b");
   await page.getByRole("button", CHIP).click();
   const sent = await nextLoadCookies(page, () => page.getByRole("dialog", CHIP).getByRole("button", { name: "Reset" }).click());
   expect(names(sent)).not.toContain("ab_lead_form");
   expect(names(sent)).toContain("ab__qa");
   await expect(page).not.toHaveURL(/ab_lead_form=/);
-  await expect(page.getByRole("button", CHIP)).toBeVisible();
-  expect((await context.cookies()).map(c => c.name)).toContain("ab__qa");
+  await ready();
+  await expect(page.getByRole("button", CHIP)).toHaveCount(0);
+  await expect(page.locator("#quote")).toHaveAttribute("data-variant", "c");
+  const jar = await context.cookies();
+  expect(jar.find(c => c.name === "ab_lead_form")?.value).toBe("c");
+  expect(jar.map(c => c.name)).not.toContain("ab__qa");
+});
+
+// The URL is the whole QA state: a test the query no longer names is back at
+// the visitor's own variant, not left at the earlier force.
+test("forcing another test gives the first one back the visitor's own variant", async ({ page, context }) => {
+  await context.addCookies(own({ hero_call_first: "a", lead_form: "a", lead_channel: "a" }));
+  await page.goto("/fr?ab_lead_form=c");
+  await expect(page.locator("#quote")).toHaveAttribute("data-variant", "c");
+  await page.goto("/fr?ab_hero_call_first=b");
+  await expect(page.locator("#quote")).toHaveAttribute("data-variant", "a");
+  await page.getByRole("button", CHIP).click();
+  const menu = page.getByRole("dialog", CHIP);
+  await expect(menu.getByRole("group", { name: "Lead form" }).getByRole("button", { name: "Compact" })).toHaveAttribute("aria-pressed", "true");
+  await expect(menu.getByRole("group", { name: "Mobile hero" }).getByRole("button", { name: "Call first" })).toHaveAttribute("aria-pressed", "true");
+  expect((await context.cookies()).find(c => c.name === "ab_lead_form")?.value).toBe("a");
 });
 
 test("Leave test drops the QA mark and the chip", async ({ page, context }) => {
@@ -128,13 +156,15 @@ test("Leave test drops the QA mark and the chip", async ({ page, context }) => {
 });
 
 // A browser QA marked under the old name (`ab_forced`, read until 2026-11-05):
-// the proxy moves the mark on the first request, before the page's scripts
-// run, so the chip shows on that very load — no second visit needed.
-test("a browser with the legacy QA mark keeps it under the new name, chip included", async ({ page, context }) => {
+// the proxy drops it on the first request and no longer moves it to `ab__qa` —
+// it holds no snapshot, and a visit without a force leaves QA anyway.
+test("a browser with the legacy QA mark loses it and is not marked anew", async ({ page, context }) => {
   await context.addCookies([{ name: "ab_forced", value: "1", url: "http://royat.localhost" }]);
+  const ready = await hydration(page);
   await page.goto("/fr");
-  await expect(page.getByRole("button", CHIP)).toBeVisible();
-  const jar = await context.cookies();
-  expect(jar.find(c => c.name === "ab__qa")?.value).toBe("1");
-  expect(jar.map(c => c.name)).not.toContain("ab_forced");
+  await ready();
+  await expect(page.getByRole("button", CHIP)).toHaveCount(0);
+  const jar = (await context.cookies()).map(c => c.name);
+  expect(jar).not.toContain("ab_forced");
+  expect(jar).not.toContain("ab__qa");
 });

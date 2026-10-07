@@ -1,11 +1,30 @@
-import { forcedVariant } from "@evinvest/experiments";
+import { cookieName, forcedVariant } from "@evinvest/experiments";
 import { abProxy } from "@evinvest/experiments/next";
 import { createRouting, GONE_HEADER, LANG_COOKIE, parsePlaceParam } from "@evinvest/kitstart";
 import { createProxy } from "@evinvest/kitstart/proxy";
 import { NextResponse, type NextRequest } from "next/server";
-import { EXPERIMENT_IDS, FORCE_PARAM, FORCED_MAX_AGE, LEGACY_QA_COOKIE, QA_COOKIE, type LiveExperiments } from "@/shared/config/experiments";
+import {
+  EXPERIMENT_IDS,
+  FORCE_PARAM,
+  FORCED_MAX_AGE,
+  LEGACY_QA_COOKIE,
+  QA_COOKIE,
+  type ExperimentId,
+  type LiveExperiments,
+} from "@/shared/config/experiments";
 import { site } from "@/shared/config/site";
-import { assignmentOf, BUCKET_SEGMENT, decodeBucket, disabledCookies, encodeBucket, isBot } from "@/shared/lib/experiments";
+import {
+  assignedVariants,
+  assignmentOf,
+  BUCKET_SEGMENT,
+  decodeBucket,
+  decodeQaSnapshot,
+  disabledCookies,
+  encodeBucket,
+  encodeQaSnapshot,
+  isBot,
+  type QaSnapshot,
+} from "@/shared/lib/experiments";
 import { liveExperiments, type LiveConfig } from "../api/live";
 
 /**
@@ -47,22 +66,60 @@ function isOurBucket(config: LiveExperiments, pathname: string): boolean {
   return site.i18n.isLocale(locale) && site.placeSlugs.includes(parsePlaceParam(param).slug) && decodeBucket(config, bucket) !== null;
 }
 
-function wasForced(config: LiveExperiments, request: NextRequest): boolean {
-  return EXPERIMENT_IDS.some(id => forcedVariant(config, id, request.nextUrl.searchParams.get(`${FORCE_PARAM}${id}`)) !== undefined);
+/** The variants this request's query forces: valid ones of running tests only, as abProxy's force would take. */
+function forcedBy(config: LiveExperiments, query: URLSearchParams): QaSnapshot {
+  const out: QaSnapshot = {};
+  for (const id of EXPERIMENT_IDS) {
+    const variant = forcedVariant(config, id, query.get(`${FORCE_PARAM}${id}`));
+    if (variant !== undefined) out[id] = variant;
+  }
+  return out;
 }
 
+/** What QA changes on a request: the variants to write, and the mark — set to a snapshot, dropped, or left as it is. */
+type QaStep = { readonly variants: QaSnapshot; readonly mark: { readonly set: string } | "drop" | "keep" };
+
 /**
- * QA's mark: set on a forced visit, and moved from its legacy name on the
- * first visit that still carries it — the page that answers already has the
- * new name, so the QA menu and the analytics see it on that same load.
+ * QA's state lives in the URL: a visit with a force shows exactly what its
+ * query forces, every other test at the visitor's own variant, and a point's
+ * home without one is an ordinary visit again. So the forced variants never
+ * outlive the URL that asked for them — before, they stuck for 30 days, and
+ * one test forced after another kept both.
+ *
+ * The visitor's own variants are kept in the mark itself ({@link QA_COOKIE},
+ * `encodeQaSnapshot`): saved on the first forced visit — from the cookies,
+ * after `abProxy` drew a newcomer's — and never overwritten by a later one,
+ * whose cookies already hold forced variants. A mark of `1` (set before the
+ * snapshot) or of anything else is no snapshot: the cookies are taken as they
+ * stand, the best left to know. A test missing from a snapshot (paused when it
+ * was saved) takes its cookie the same way.
+ *
+ * `read` must already see `abProxy`'s draw. Only the home exits: QA's menu
+ * lives there, and a page further in is reached without the query.
  */
-function qaMark(config: LiveExperiments, request: NextRequest, read: (name: string) => string | undefined): string[] {
-  const legacy = read(LEGACY_QA_COOKIE) !== undefined;
-  const mark = wasForced(config, request) || (legacy && read(QA_COOKIE) === undefined);
-  return [
-    ...(mark ? [`${QA_COOKIE}=1; Path=/; Max-Age=${FORCED_MAX_AGE}; SameSite=Lax`] : []),
-    ...(legacy ? [`${LEGACY_QA_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax`] : []),
-  ];
+function qaStep(config: LiveExperiments, forced: QaSnapshot, mark: string | undefined, home: boolean, read: (name: string) => string | undefined): QaStep {
+  const saved = decodeQaSnapshot(mark);
+  const running = (id: ExperimentId) => config[id].enabled !== false;
+  if (EXPERIMENT_IDS.some(id => forced[id] !== undefined)) {
+    const snapshot: QaSnapshot = { ...assignedVariants(config, read), ...saved };
+    const variants: QaSnapshot = {};
+    for (const id of EXPERIMENT_IDS.filter(running)) {
+      const variant = forced[id] ?? snapshot[id];
+      if (variant !== undefined) variants[id] = variant;
+    }
+    return { variants, mark: { set: encodeQaSnapshot(snapshot) } };
+  }
+  if (home && mark !== undefined) {
+    // A paused test's cookie is being dropped (`disabledCookies`); writing its
+    // saved variant back would undo that.
+    const variants: QaSnapshot = {};
+    for (const id of EXPERIMENT_IDS.filter(running)) {
+      const variant = saved?.[id];
+      if (variant !== undefined) variants[id] = variant;
+    }
+    return { variants, mark: "drop" };
+  }
+  return { variants: {}, mark: "keep" };
 }
 
 /** The proxy over a source of the applied config; `experimentProxy` reads the panel's. */
@@ -91,18 +148,42 @@ function assign(config: LiveExperiments, request: NextRequest): NextResponse {
 
   const read = (name: string) => request.cookies.get(name)?.value;
   const dropped = disabledCookies(config, read);
-  const assigned = abProxy(config, request, { forceParam: FORCE_PARAM });
+  const mark = read(QA_COOKIE);
+  const legacy = read(LEGACY_QA_COOKIE) !== undefined;
+  // No `forceParam`: abProxy only draws a newcomer's own variants, which QA's
+  // snapshot then saves; the force is `qaStep`'s.
+  const assigned = abProxy(config, request);
+  const qa = qaStep(config, forcedBy(config, url.searchParams), mark, rest.length === 0, read);
+  // Into the request too, so this render's bucket shows them; the cookie, so
+  // the beacon and the lead's POST, which read `ab_<key>`, count what was drawn.
+  const written = new Map<string, string>();
+  for (const id of EXPERIMENT_IDS) {
+    const variant = qa.variants[id];
+    const name = cookieName(id);
+    if (variant === undefined || read(name) === variant) continue;
+    request.cookies.set(name, variant);
+    written.set(name, variant);
+  }
   const bucket = rest.length === 0 ? encodeBucket(assignmentOf(config, read)) : null;
   const response = bucket
     ? onward(request, new URL(`${decision.pathname.replace(/\/+$/, "")}/${BUCKET_SEGMENT}/${bucket}${url.search}`, url))
     : kit(request);
-  for (const cookie of assigned.headers.getSetCookie()) response.headers.append("set-cookie", cookie);
+  // One header per cookie: a newcomer's draw that QA overrode in the same
+  // request is left out, rather than relying on the browser applying the last.
+  for (const cookie of assigned.headers.getSetCookie()) {
+    if (!written.has(cookie.slice(0, cookie.indexOf("=")))) response.headers.append("set-cookie", cookie);
+  }
+  // Appended raw, like the rest: `response.cookies.set` would rewrite the
+  // header from its own map and drop them. As long-lived as abProxy's own
+  // (`FORCED_MAX_AGE`), and the mark as long as the variants it gives back.
+  for (const [name, value] of written) response.headers.append("set-cookie", `${name}=${value}; Path=/; Max-Age=${FORCED_MAX_AGE}; SameSite=Lax`);
   // Dropped rather than kept for a test that may come back: an operator's
   // switch is "stop counting this", and a visitor re-entering is drawn anew.
   for (const name of dropped) response.headers.append("set-cookie", `${name}=; Path=/; Max-Age=0; SameSite=Lax`);
-  // As long-lived as the variant it marks (`FORCED_MAX_AGE`). Appended raw,
-  // like the ones above: `response.cookies.set` would rewrite the header from
-  // its own map and drop them.
-  for (const cookie of qaMark(config, request, read)) response.headers.append("set-cookie", cookie);
+  if (qa.mark === "drop") response.headers.append("set-cookie", `${QA_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax`);
+  else if (qa.mark !== "keep") response.headers.append("set-cookie", `${QA_COOKIE}=${qa.mark.set}; Path=/; Max-Age=${FORCED_MAX_AGE}; SameSite=Lax`);
+  // The legacy mark is no longer moved: it carries no snapshot, and a visit
+  // without a force now leaves QA anyway. A forced one has just set the new.
+  if (legacy) response.headers.append("set-cookie", `${LEGACY_QA_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax`);
   return response;
 }

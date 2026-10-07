@@ -1,5 +1,15 @@
 import { cookieName, resolveVariant } from "@evinvest/experiments";
-import { CONTROL, EXPERIMENT_IDS, LEGACY_QA_COOKIE, QA_COOKIE, type Assignment, type ExperimentId, type LiveExperiments } from "@/shared/config/experiments";
+import {
+  AB_SWITCHER_EXPERIMENTS,
+  CONTROL,
+  EXPERIMENT_IDS,
+  EXPERIMENTS,
+  LEGACY_QA_COOKIE,
+  QA_COOKIE,
+  type Assignment,
+  type ExperimentId,
+  type LiveExperiments,
+} from "@/shared/config/experiments";
 
 /**
  * Crawlers, link unfurlers and ad reviewers. They always get the control and
@@ -87,9 +97,80 @@ export function disabledCookies(config: LiveExperiments, read: (name: string) =>
   return EXPERIMENT_IDS.filter(id => config[id].enabled === false && read(cookieName(id)) !== undefined).map(id => cookieName(id));
 }
 
-/** Whether the browser carries QA's mark, under its name or the legacy one the proxy has yet to move. */
+/**
+ * Whether the browser carries QA's mark: {@link QA_COOKIE} with any non-empty
+ * value — kitstart's `qaVisit` and the menu's gate go by the same rule, and
+ * the value is the visitor's own variants ({@link encodeQaSnapshot}), or `1`
+ * on a browser marked before the snapshot. The legacy name was only ever
+ * written as `1`, so it keeps its exact test until it is deleted.
+ */
 export function isForced(read: (name: string) => string | undefined): boolean {
-  return read(QA_COOKIE) === "1" || read(LEGACY_QA_COOKIE) === "1";
+  return (read(QA_COOKIE) ?? "") !== "" || read(LEGACY_QA_COOKIE) === "1";
+}
+
+/** A visitor's own variants, saved while QA forces others, so leaving QA gives them back. */
+export type QaSnapshot = Partial<Record<ExperimentId, string>>;
+
+const SNAPSHOT_PAIR = ".";
+const SNAPSHOT_SEPARATOR = "~";
+/**
+ * The snapshot with no entry. Never empty: an empty `ab__qa` is no mark at all
+ * to kitstart (`qaVisit`, `abSwitcherVisible`), and the forced visit holding
+ * it would lose its menu and its `forced: true`. Unreachable today — a force
+ * needs a running test, and the proxy assigns every running one first — so it
+ * only keeps the encoding total.
+ */
+const EMPTY_SNAPSHOT = "-";
+
+/**
+ * {@link QaSnapshot} as {@link QA_COOKIE}'s value:
+ * `hero_call_first.a~lead_form.b~lead_channel.c`. Keys are snake_case and
+ * variants one letter, so it needs no percent-encoding in a cookie.
+ */
+export function encodeQaSnapshot(snapshot: QaSnapshot): string {
+  const pairs = EXPERIMENT_IDS.flatMap(id => {
+    const variant = snapshot[id];
+    return variant === undefined ? [] : [`${id}${SNAPSHOT_PAIR}${variant}`];
+  });
+  return pairs.length === 0 ? EMPTY_SNAPSHOT : pairs.join(SNAPSHOT_SEPARATOR);
+}
+
+/**
+ * Inverse of {@link encodeQaSnapshot}, or `null` for a value that is no
+ * snapshot — `1` from before the snapshot, or anything a hand put there. A
+ * variant is checked against the code's list, not the applied config: a test
+ * the panel paused still gets its visitor's variant back when it resumes.
+ */
+export function decodeQaSnapshot(value: string | undefined): QaSnapshot | null {
+  if (value === undefined) return null;
+  if (value === EMPTY_SNAPSHOT) return {};
+  const out: QaSnapshot = {};
+  for (const pair of value.split(SNAPSHOT_SEPARATOR)) {
+    const [key = "", variant = "", ...extra] = pair.split(SNAPSHOT_PAIR);
+    const id = EXPERIMENT_IDS.find(known => known === key);
+    if (id === undefined || extra.length > 0) return null;
+    const declared: readonly string[] = EXPERIMENTS[id].variants;
+    if (!declared.includes(variant)) return null;
+    out[id] = variant;
+  }
+  return out;
+}
+
+/**
+ * Words the QA menu adds to `lead_channel`'s label at a point where the test
+ * is inert ({@link leadChannelRuns}): every arm draws the same card there, so
+ * a tap seems to change nothing.
+ */
+const LEAD_CHANNEL_INERT = " — inactive here (no WhatsApp)";
+
+/**
+ * The QA menu's tests for one point: {@link AB_SWITCHER_EXPERIMENTS}, with
+ * `lead_channel` saying so where it cannot change the page. `channels` is the
+ * point's `channels_available`, as {@link leadChannelRuns} takes it.
+ */
+export function abSwitcherExperiments(channels: string | null): typeof AB_SWITCHER_EXPERIMENTS {
+  if (leadChannelRuns(channels)) return AB_SWITCHER_EXPERIMENTS;
+  return AB_SWITCHER_EXPERIMENTS.map(e => (e.key === "lead_channel" ? { ...e, label: `${e.label}${LEAD_CHANNEL_INERT}` } : e));
 }
 
 /**
