@@ -262,12 +262,20 @@ the PostHog funnel leaves them out. kitstart's lead-form events (`lead_form_*`,
 (EV-invest/lib#219): a QA lead still counts there. A disabled experiment
 cannot be forced.
 
-**Leaving QA:** open the point's home without any valid `?ab_*` — e.g.
-`https://royat.aquafix.top/fr`. The proxy writes the saved variants back into
-the `ab_*` cookies, drops `ab__qa`, and the page, the menu's absence and the
+**Moving around keeps QA.** Inside the site the forced variants stay: the
+language switch (`/en` without the query shows the same variant in English),
+the logo, the thanks page's link home, the other pages (`/fr/prices`), and a
+move between the apex and a point's subdomain. The proxy tells them by the
+browser's `Sec-Fetch-Site` (`same-origin`, `same-site`).
+
+**Leaving QA:** come to the point's home from outside, without any valid
+`?ab_*` — type or paste `https://royat.aquafix.top/fr` in the address bar,
+open a bookmark, or follow a link from another site (`Sec-Fetch-Site` `none`
+or `cross-site`; a browser that sends no such header leaves too) — or tap
+**Reset** in the menu. The proxy writes the saved variants back into the
+`ab_*` cookies, drops `ab__qa`, and the page, the menu's absence and the
 events are an ordinary visitor's again. A test the panel paused meanwhile is
-not given back: its cookie is dropped as for everyone. Pages further in
-(`/fr/prices`) do not leave QA — they are reached without the query.
+not given back: its cookie is dropped as for everyone.
 
 `ab__qa` lasts 30 days, like the variants it marks and gives back. A browser
 marked before the snapshot carries `ab__qa=1`: it is still a mark, but holds
@@ -292,11 +300,12 @@ page the experiments run on: a chip in the bottom-right corner (on a phone, abov
 2. Tap the chip, then a variant: the page reloads with that variant forced,
    the earlier forces kept in the URL.
 3. **Reset** drops the `ab_*` cookies and the force parameters and reloads the
-   home without a query — which now leaves QA: the saved variants come back
-   and the chip is gone. **Leave test** drops `ab__qa` too, before the reload,
+   home without a query — which leaves QA (the proxy reads a QA browser with
+   no `ab_*` cookie at all as this tap): the saved variants come back and the
+   chip is gone. **Leave test** drops `ab__qa` too, before the reload,
    so nothing is saved any more: the browser is drawn anew, as a newcomer.
    To leave QA with your own variants, use **Reset** or open the home
-   without a query. **Minimize** and **Hide** last until the next page load.
+   from the address bar without a query. **Minimize** and **Hide** last until the next page load.
 
 At a point without its own WhatsApp (`channels_available` neither `wa` nor
 `wa,tg`), `lead_channel` is inert — every arm draws the same card — and the

@@ -270,6 +270,75 @@ describe("QA's snapshot of the visitor's own variants", () => {
   });
 });
 
+describe("where a QA visit to the home comes from", () => {
+  // Forced lead_form c over the visitor's own hero b, lead_form a, lead_channel a.
+  const SNAPSHOT = "hero_call_first.b~lead_form.a~lead_channel.a";
+  const Q = `ab_hero_call_first=b; ab_lead_form=c; ab_lead_channel=a; ab__qa=${SNAPSHOT}`;
+
+  it("a move inside the point's site (same-origin), such as the language switch, keeps QA as it stands", async () => {
+    expect(await visit(`https://${ROYAT}/en`, { cookie: Q, "sec-fetch-site": "same-origin" })).toEqual({ rewrite: "/en/_royat/ab/bca", cookies: [] });
+  });
+
+  it("a move from a sibling host (same-site) keeps QA as it stands", async () => {
+    expect(await visit(`https://${ROYAT}/en`, { cookie: Q, "sec-fetch-site": "same-site" })).toEqual({ rewrite: "/en/_royat/ab/bca", cookies: [] });
+  });
+
+  it("a move to the point's page on the apex (same-site) keeps QA as it stands", async () => {
+    expect(await visit("https://aquafix.top/fr/royat", { cookie: Q, "sec-fetch-site": "same-site" })).toEqual({ rewrite: "/fr/royat/ab/bca", cookies: [] });
+  });
+
+  it.each([["none"], ["cross-site"]])("a visit from outside the site (%s) leaves QA with the own variants", async from => {
+    const res = await visit(`https://${ROYAT}/en`, { cookie: Q, "sec-fetch-site": from });
+    expect(res.rewrite).toBe("/en/_royat/ab/baa");
+    expect(res.cookies.sort()).toEqual(["ab__qa=", "ab_lead_form=a"]);
+  });
+
+  it("a browser that sends no Sec-Fetch-Site leaves QA with the own variants", async () => {
+    const res = await visit(`https://${ROYAT}/en`, { cookie: Q });
+    expect(res.rewrite).toBe("/en/_royat/ab/baa");
+    expect(res.cookies.sort()).toEqual(["ab__qa=", "ab_lead_form=a"]);
+  });
+
+  it("Reset (the mark alive, no running test's cookie) leaves QA from inside the site, the snapshot given back", async () => {
+    const res = await visit(`https://${ROYAT}/fr`, { cookie: `ab__qa=${SNAPSHOT}`, "sec-fetch-site": "same-origin" });
+    expect(res.rewrite).toBe("/fr/_royat/ab/baa");
+    expect(res.cookies.sort()).toEqual(["ab__qa=", "ab_hero_call_first=b", "ab_lead_channel=a", "ab_lead_form=a"]);
+  });
+
+  it("Reset on a browser marked `1` leaves QA with a new draw: there is nothing to give back", async () => {
+    // Weights pin the new draw to hero b, lead_form b, lead_channel f.
+    const DRAW_BBF = { hero_call_first: { weights: [0, 1] }, lead_form: { weights: [0, 1, 0] }, lead_channel: { weights: [0, 0, 0, 0, 0, 1, 0] } };
+    const res = await visit(`https://${ROYAT}/fr`, { cookie: "ab__qa=1", "sec-fetch-site": "same-origin" }, DRAW_BBF);
+    expect(res.rewrite).toBe("/fr/_royat/ab/bbf");
+    expect(res.cookies.sort()).toEqual(["ab__qa=", "ab_hero_call_first=b", "ab_lead_channel=f", "ab_lead_form=b"]);
+  });
+
+  it("Reset is told by the running tests' cookies alone: a paused test's leftover does not hide it", async () => {
+    const CHANNEL_OFF = { lead_channel: { enabled: false } };
+    const res = await visit(`https://${ROYAT}/fr`, { cookie: `ab_lead_channel=e; ab__qa=${SNAPSHOT}`, "sec-fetch-site": "same-origin" }, CHANNEL_OFF);
+    expect(res.rewrite).toBe("/fr/_royat/ab/baa");
+    expect(res.cookies.sort()).toEqual(["ab__qa=", "ab_hero_call_first=b", "ab_lead_channel=", "ab_lead_form=a"]);
+  });
+
+  it("a force from inside the site applies and keeps the snapshot", async () => {
+    const res = await visit(`https://${ROYAT}/fr?ab_lead_form=b`, { cookie: Q, "sec-fetch-site": "same-origin" });
+    expect(res.rewrite).toBe("/fr/_royat/ab/bba");
+    expect(res.cookies.sort()).toEqual([`ab__qa=${SNAPSHOT}`, "ab_lead_form=b"]);
+  });
+
+  it("the legacy mark is dropped on a move inside the site too, and nothing else changes", async () => {
+    const res = await visit(`https://${ROYAT}/fr`, { cookie: "ab_hero_call_first=a; ab_lead_form=b; ab_lead_channel=a; ab_forced=1", "sec-fetch-site": "same-origin" });
+    expect(res).toEqual({ rewrite: "/fr/_royat/ab/aba", cookies: ["ab_forced="] });
+  });
+
+  it("leaving from outside drops a paused lead_channel's cookie and the mark, not giving it back", async () => {
+    const CHANNEL_OFF = { lead_channel: { enabled: false } };
+    const res = await visit(`https://${ROYAT}/fr`, { cookie: Q, "sec-fetch-site": "cross-site" }, CHANNEL_OFF);
+    expect(res.rewrite).toBe("/fr/_royat/ab/baa");
+    expect(res.cookies.sort()).toEqual(["ab__qa=", "ab_lead_channel=", "ab_lead_form=a"]);
+  });
+});
+
 describe("the panel's overrides", () => {
   const HERO_OFF = { hero_call_first: { enabled: false } };
 
