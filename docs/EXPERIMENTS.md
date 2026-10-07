@@ -244,23 +244,66 @@ https://royat.aquafix.top/fr?ab_hero_call_first=b&ab_lead_form=c
 https://royat.aquafix.top/fr?ab_lead_form=b
 ```
 
-The forced variant is stored in the cookie, and a cookie `ab__qa=1` — kept
-30 days, as long as the variant it marks — tags that browser's experiment
-events `forced: true`, and also kitstart's `location_page_view` and
+A forced visit from outside the site — a link pasted in the address bar, a
+bookmark, a link from another site — is the whole QA state: it shows what its
+query forces, and every test it does not name at the visitor's own variant.
+Pasting `?ab_lead_channel=c` and then `?ab_lead_form=b` shows `lead_form` `b`
+with `lead_channel` back at the visitor's own arm, not both forced.
+
+A forced visit from inside the site — a tap in the QA menu — changes only the
+tests its query names; the rest stay as the cookies have them. After the
+logo or the language switch the URL has lost the earlier forces and the menu
+adds only the tapped one: `/fr?ab_lead_form=c` → EN → tap `lead_channel` `e`
+on `/en?ab_lead_channel=e` keeps `lead_form` `c`.
+
+The forced variant is written to the test's `ab_<experiment>` cookie, so the
+beacon and the form's POST count what the page drew, and a cookie `ab__qa`
+marks the browser. Its value is the visitor's own variants, saved on the first
+forced visit — `hero_call_first.a~lead_form.b~lead_channel.c`; a newcomer
+arriving with a force gets the draw they would have had — and never
+overwritten by a later force. Any non-empty `ab__qa` tags that browser's
+experiment events `forced: true`, and also kitstart's `location_page_view` and
 `contact_intent_click`, so a tester's reloads stay out of a place's traffic;
 the PostHog funnel leaves them out. kitstart's lead-form events (`lead_form_*`,
 `lead_booking_*`, the server's `lead_form_submit`) are not tagged yet
-(EV-invest/lib#219): a QA lead still counts there. **Leave test** in
-the QA menu (below), or deleting the site's cookies, makes the browser an
-ordinary visitor again. A disabled experiment cannot be forced.
+(EV-invest/lib#219): a QA lead still counts there. A disabled experiment
+cannot be forced.
+
+**Moving around keeps QA.** Inside the site the forced variants stay: the
+language switch (`/en` without the query shows the same variant in English),
+the logo, the thanks page's link home and the other pages (`/fr/prices`). The
+proxy tells them by the browser's `Sec-Fetch-Site` (`same-origin`,
+`same-site`). The cookies are host-only, so the apex and each point's
+subdomain keep QA apart: a move between them reaches a host with no mark.
+
+**Leaving QA:** come to the point's home from outside, without any valid
+`?ab_*` — type or paste `https://royat.aquafix.top/fr` in the address bar,
+open a bookmark, or follow a link from another site (`Sec-Fetch-Site` `none`
+or `cross-site`; a browser that sends no such header leaves too) — or tap
+**Reset** in the menu. The proxy writes the saved variants back into the
+`ab_*` cookies, drops `ab__qa`, and the page, the menu's absence and the
+events are an ordinary visitor's again. A test the panel paused meanwhile is
+not given back: its cookie is dropped as for everyone.
+
+`ab__qa` lasts 30 days, like the variants it marks and gives back. A pair in
+the snapshot this code no longer knows (its test or variant deleted) is
+skipped, the rest still given back; leaving QA, a running test the snapshot
+lacks is drawn anew rather than left at a variant QA may have forced.
+
+A browser marked before the snapshot carries `ab__qa=1`: it is still a mark,
+but holds nothing to give back. On its next forced visit the running tests are
+drawn anew first and the snapshot saves that draw (its cookies may hold
+forced variants); leaving QA without one, the running tests'
+cookies are dropped and drawn anew, as a newcomer's — otherwise forced
+variants would go on counting as real ones.
 
 `ab__qa` is the QA mark's name on every brand (vifnet's too). Until October
-2026 Aquafix called it `ab_forced`. That name is still read as a mark, and
-the proxy moves it on a browser's next visit to a point: `ab__qa=1` set for
-30 days, `ab_forced` deleted, on the same response — so a browser marked
-before the rename stays a test, and the chip shows on that first load. The
-legacy name is read until **2026-11-05**; then delete `LEGACY_QA_COOKIE`
-(`src/shared/config/experiments.ts`) and the migration in the proxy.
+2026 Aquafix called it `ab_forced`. That name is still read as a mark (value
+`1`) until **2026-11-05**, and the proxy drops it on the browser's next visit
+to a point, together with the running tests' cookies, which are drawn anew
+(unless an `ab__qa` snapshot is there to go by): it holds no snapshot, so what
+it marked may be forced. It is no longer moved to `ab__qa`. Then delete `LEGACY_QA_COOKIE`
+(`src/shared/config/experiments.ts`) and its handling in the proxy.
 
 ### The QA menu on a phone
 
@@ -270,18 +313,32 @@ page the experiments run on: a chip in the bottom-right corner (on a phone, abov
 1. Open any point with a force parameter, e.g.
    `https://royat.aquafix.top/fr?ab_lead_form=a`. The proxy sets `ab__qa`,
    and the chip appears.
-2. Tap the chip, then a variant: the page reloads with that variant forced.
-3. **Reset** drops the assignments and draws new random variants; the visit
-   stays a test and the menu stays. **Leave test** drops `ab__qa` too: the
-   chip is gone and the browser counts as an ordinary visitor again.
-   **Minimize** and **Hide** last until the next page load.
+2. Tap the chip, then a variant: the page reloads with that variant forced,
+   the other tests as they were — whether their force is still in the URL or
+   was lost to the logo or the language switch.
+3. **Reset** drops the `ab_*` cookies and the force parameters and reloads the
+   home without a query — which leaves QA (the proxy reads a QA browser with
+   no `ab_*` cookie at all as this tap): the saved variants come back and the
+   chip is gone. **Leave test** drops `ab__qa` too, before the reload,
+   so nothing is saved any more: the browser is drawn anew, as a newcomer.
+   To leave QA with your own variants, use **Reset** or open the home
+   from the address bar without a query. **Minimize** and **Hide** last until the next page load.
 
-`ab__qa` lasts 30 days, like the variant it marks, so closing the browser
-does not leave the test — use **Leave test**. (Until 2026-10 it was a session
-cookie: a closed browser kept the forced variant but lost the mark.) A visitor without it never downloads the menu: the page's first load
+One of `lead_form` and `lead_channel` is always inert at a point, and the
+menu says which in the test's label. Without the point's own WhatsApp
+(`channels_available` neither `wa` nor `wa,tg`) every `lead_channel` arm draws
+the same card: *Lead channel — inactive here (no WhatsApp)*. With it,
+`lead_channel` owns the card and every `lead_form` arm draws the compact one:
+*Lead form — inactive here (lead channel owns the card)*. Forcing either still
+works and is still recorded. The card and the menu ask the same function
+(`leadChannelRunsAt`, `src/shared/lib/lead-channel.ts`), so they cannot
+disagree.
+
+A visitor without `ab__qa` never downloads the menu: the page's first load
 carries only a small gate that checks for the cookie. Under `next dev` the chip
 is always there. The tests and their labels come from `AB_SWITCHER_EXPERIMENTS`
-in `src/shared/config/experiments.ts`.
+in `src/shared/config/experiments.ts`, adjusted per point by
+`abSwitcherExperiments` (`src/shared/lib/experiments.ts`).
 
 ## Ending an experiment
 

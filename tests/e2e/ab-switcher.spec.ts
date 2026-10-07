@@ -93,34 +93,126 @@ test("the menu offers every lead_channel board and forces the one picked", async
   await expect(group.getByRole("button", { name: "AQ-4 swap" })).toHaveAttribute("aria-pressed", "true");
 });
 
-/** The `Cookie` header of the next page load: what the browser kept after the menu's reset. */
-async function nextLoadCookies(page: Page, act: () => Promise<void>): Promise<string> {
+/**
+ * The request headers of the next page load: its `Cookie` (what the browser
+ * kept after the menu's reset) and its `Sec-Fetch-Site`, which the proxy reads
+ * to tell a move inside the site from a visit from outside. Under a
+ * `page.route` (`hydration`) Playwright does not report `Sec-Fetch-Site`,
+ * though the browser sends it: read `from` only in a test without one.
+ */
+async function nextLoad(page: Page, act: () => Promise<void>): Promise<{ cookie: string; from: string | undefined }> {
   const load = page.waitForRequest(req => req.isNavigationRequest() && req.frame() === page.mainFrame());
   await act();
-  return (await (await load).allHeaders())["cookie"] ?? "";
+  const headers = await (await load).allHeaders();
+  return { cookie: headers["cookie"] ?? "", from: headers["sec-fetch-site"] };
 }
 
 const names = (header: string) => header.split(";").map(pair => pair.split("=")[0]?.trim());
 
-// The proxy draws a new variant on the reload and sets its cookie again, so
-// "dropped" is read off the reload's request, not off the jar after it.
-test("Reset draws the variants again and keeps the visit a test", async ({ page, context }) => {
+/** A browser's own draw, as the proxy would have left it: set before the first forced visit. */
+const own = (variants: { hero_call_first: string; lead_form: string; lead_channel: string }) =>
+  Object.entries(variants).map(([id, value]) => ({ name: `ab_${id}`, value, url: "http://royat.localhost" }));
+
+// Reset drops the assignments and the force parameters but keeps `ab__qa`, so
+// the reload is the home without a force and without a running test's cookie,
+// from inside the site: the proxy reads it as the tap, gives back the variants
+// the mark saved and drops it. "Dropped" is read off the reload's request, the
+// variants given back off the jar after it.
+test("Reset leaves the test with the visitor's own variants, and the chip goes", async ({ page, context }) => {
+  await context.addCookies(own({ hero_call_first: "a", lead_form: "c", lead_channel: "a" }));
+  const ready = await hydration(page);
   await page.goto("/fr?ab_lead_form=b");
+  await expect(page.locator("#quote")).toHaveAttribute("data-variant", "b");
   await page.getByRole("button", CHIP).click();
-  const sent = await nextLoadCookies(page, () => page.getByRole("dialog", CHIP).getByRole("button", { name: "Reset" }).click());
-  expect(names(sent)).not.toContain("ab_lead_form");
-  expect(names(sent)).toContain("ab__qa");
+  const sent = await nextLoad(page, () => page.getByRole("dialog", CHIP).getByRole("button", { name: "Reset" }).click());
+  expect(names(sent.cookie)).not.toContain("ab_lead_form");
+  expect(names(sent.cookie)).toContain("ab__qa");
   await expect(page).not.toHaveURL(/ab_lead_form=/);
+  await ready();
+  await expect(page.getByRole("button", CHIP)).toHaveCount(0);
+  await expect(page.locator("#quote")).toHaveAttribute("data-variant", "c");
+  const jar = await context.cookies();
+  expect(jar.find(c => c.name === "ab_lead_form")?.value).toBe("c");
+  expect(jar.map(c => c.name)).not.toContain("ab__qa");
+});
+
+// The URL is the whole QA state: a test the query no longer names is back at
+// the visitor's own variant, not left at the earlier force.
+test("forcing another test gives the first one back the visitor's own variant", async ({ page, context }) => {
+  await context.addCookies(own({ hero_call_first: "a", lead_form: "a", lead_channel: "a" }));
+  await page.goto("/fr?ab_lead_form=c");
+  await expect(page.locator("#quote")).toHaveAttribute("data-variant", "c");
+  await page.goto("/fr?ab_hero_call_first=b");
+  await expect(page.locator("#quote")).toHaveAttribute("data-variant", "a");
+  await page.getByRole("button", CHIP).click();
+  const menu = page.getByRole("dialog", CHIP);
+  await expect(menu.getByRole("group", { name: "Lead form" }).getByRole("button", { name: "Compact" })).toHaveAttribute("aria-pressed", "true");
+  await expect(menu.getByRole("group", { name: "Mobile hero" }).getByRole("button", { name: "Call first" })).toHaveAttribute("aria-pressed", "true");
+  expect((await context.cookies()).find(c => c.name === "ab_lead_form")?.value).toBe("a");
+});
+
+// QA survives a move inside the site (`Sec-Fetch-Site: same-origin`): the
+// logo and the language switch lead to the home without the query, and the
+// forced variant, the mark and the chip stay.
+test("the logo and the language switch keep a forced visit in QA", async ({ page, context }) => {
+  await context.addCookies(own({ hero_call_first: "a", lead_form: "a", lead_channel: "a" }));
+  await page.goto("/fr?ab_lead_form=c");
+  await expect(page.locator("#quote")).toHaveAttribute("data-variant", "c");
+
+  const logo = await nextLoad(page, () => page.getByRole("link", { name: "Aquafix Royat" }).click());
+  expect(logo.from).toBe("same-origin");
+  await expect(page).toHaveURL(/\/fr$/);
+  await expect(page.locator("#quote")).toHaveAttribute("data-variant", "c");
   await expect(page.getByRole("button", CHIP)).toBeVisible();
-  expect((await context.cookies()).map(c => c.name)).toContain("ab__qa");
+
+  const english = await nextLoad(page, () => page.getByRole("link", { name: "English" }).first().click());
+  expect(english.from).toBe("same-origin");
+  await expect(page).toHaveURL(/\/en(\?|$)/);
+  await expect(page.locator("#quote")).toHaveAttribute("data-variant", "c");
+  await expect(page.getByRole("button", CHIP)).toBeVisible();
+  expect((await context.cookies()).find(c => c.name === "ab_lead_form")?.value).toBe("c");
+});
+
+// After the language switch the URL has lost `ab_lead_form=c`, and the menu's
+// tap adds only its own key: a force from inside the site changes only what
+// it names, so lead_form stays c.
+test("a tap in the menu after the language switch keeps the earlier force", async ({ page, context }) => {
+  await context.addCookies(own({ hero_call_first: "a", lead_form: "a", lead_channel: "a" }));
+  await page.goto("/fr?ab_lead_form=c");
+  await page.getByRole("link", { name: "English" }).first().click();
+  await expect(page).toHaveURL(/\/en(\?|$)/);
+  await page.getByRole("button", CHIP).click();
+  const menu = page.getByRole("dialog", CHIP);
+  await menu.getByRole("group", { name: "Lead channel" }).getByRole("button", { name: "AQ-4 swap" }).click();
+  await expect(page).toHaveURL(/\/en\?ab_lead_channel=e$/);
+  await expect(page.locator("#quote")).toHaveAttribute("data-variant", "c");
+  await page.getByRole("button", CHIP).click();
+  await expect(menu.getByRole("group", { name: "Lead form" }).getByRole("button", { name: "Urgent first" })).toHaveAttribute("aria-pressed", "true");
+  await expect(menu.getByRole("group", { name: "Lead channel" }).getByRole("button", { name: "AQ-4 swap" })).toHaveAttribute("aria-pressed", "true");
+  const jar = await context.cookies();
+  expect([jar.find(c => c.name === "ab_lead_form")?.value, jar.find(c => c.name === "ab_lead_channel")?.value]).toEqual(["c", "e"]);
+});
+
+// Typing the home in the address bar is a visit from outside
+// (`Sec-Fetch-Site: none`): QA ends with the visitor's own variants.
+test("opening the home from the address bar after a force leaves the test", async ({ page, context }) => {
+  await context.addCookies(own({ hero_call_first: "a", lead_form: "a", lead_channel: "a" }));
+  const ready = await hydration(page);
+  await page.goto("/fr?ab_lead_form=c");
+  await expect(page.getByRole("button", CHIP)).toBeVisible();
+  await page.goto("/fr");
+  await ready();
+  await expect(page.locator("#quote")).toHaveAttribute("data-variant", "a");
+  await expect(page.getByRole("button", CHIP)).toHaveCount(0);
+  expect((await context.cookies()).map(c => c.name)).not.toContain("ab__qa");
 });
 
 test("Leave test drops the QA mark and the chip", async ({ page, context }) => {
   const ready = await hydration(page);
   await page.goto("/fr?ab_lead_form=b");
   await page.getByRole("button", CHIP).click();
-  const sent = await nextLoadCookies(page, () => page.getByRole("dialog", CHIP).getByRole("button", { name: "Leave test" }).click());
-  expect(names(sent)).not.toContain("ab__qa");
+  const sent = await nextLoad(page, () => page.getByRole("dialog", CHIP).getByRole("button", { name: "Leave test" }).click());
+  expect(names(sent.cookie)).not.toContain("ab__qa");
   await expect(page).not.toHaveURL(/ab_lead_form=/);
   await ready();
   await expect(page.getByRole("button", CHIP)).toHaveCount(0);
@@ -128,13 +220,15 @@ test("Leave test drops the QA mark and the chip", async ({ page, context }) => {
 });
 
 // A browser QA marked under the old name (`ab_forced`, read until 2026-11-05):
-// the proxy moves the mark on the first request, before the page's scripts
-// run, so the chip shows on that very load — no second visit needed.
-test("a browser with the legacy QA mark keeps it under the new name, chip included", async ({ page, context }) => {
+// the proxy drops it on the first request and no longer moves it to `ab__qa` —
+// it holds no snapshot, and a visit without a force leaves QA anyway.
+test("a browser with the legacy QA mark loses it and is not marked anew", async ({ page, context }) => {
   await context.addCookies([{ name: "ab_forced", value: "1", url: "http://royat.localhost" }]);
+  const ready = await hydration(page);
   await page.goto("/fr");
-  await expect(page.getByRole("button", CHIP)).toBeVisible();
-  const jar = await context.cookies();
-  expect(jar.find(c => c.name === "ab__qa")?.value).toBe("1");
-  expect(jar.map(c => c.name)).not.toContain("ab_forced");
+  await ready();
+  await expect(page.getByRole("button", CHIP)).toHaveCount(0);
+  const jar = (await context.cookies()).map(c => c.name);
+  expect(jar).not.toContain("ab_forced");
+  expect(jar).not.toContain("ab__qa");
 });

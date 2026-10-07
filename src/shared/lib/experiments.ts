@@ -1,5 +1,15 @@
 import { cookieName, resolveVariant } from "@evinvest/experiments";
-import { CONTROL, EXPERIMENT_IDS, LEGACY_QA_COOKIE, QA_COOKIE, type Assignment, type ExperimentId, type LiveExperiments } from "@/shared/config/experiments";
+import {
+  AB_SWITCHER_EXPERIMENTS,
+  CONTROL,
+  EXPERIMENT_IDS,
+  EXPERIMENTS,
+  LEGACY_QA_COOKIE,
+  QA_COOKIE,
+  type Assignment,
+  type ExperimentId,
+  type LiveExperiments,
+} from "@/shared/config/experiments";
 
 /**
  * Crawlers, link unfurlers and ad reviewers. They always get the control and
@@ -87,9 +97,95 @@ export function disabledCookies(config: LiveExperiments, read: (name: string) =>
   return EXPERIMENT_IDS.filter(id => config[id].enabled === false && read(cookieName(id)) !== undefined).map(id => cookieName(id));
 }
 
-/** Whether the browser carries QA's mark, under its name or the legacy one the proxy has yet to move. */
+/**
+ * Whether the browser carries QA's mark: {@link QA_COOKIE} with any non-empty
+ * value — kitstart's `qaVisit` and the menu's gate go by the same rule, and
+ * the value is the visitor's own variants ({@link encodeQaSnapshot}), or `1`
+ * on a browser marked before the snapshot. The legacy name was only ever
+ * written as `1`, so it keeps its exact test until it is deleted.
+ */
 export function isForced(read: (name: string) => string | undefined): boolean {
-  return read(QA_COOKIE) === "1" || read(LEGACY_QA_COOKIE) === "1";
+  return (read(QA_COOKIE) ?? "") !== "" || read(LEGACY_QA_COOKIE) === "1";
+}
+
+/** A visitor's own variants, saved while QA forces others, so leaving QA gives them back. */
+export type QaSnapshot = Partial<Record<ExperimentId, string>>;
+
+const SNAPSHOT_PAIR = ".";
+const SNAPSHOT_SEPARATOR = "~";
+/**
+ * The snapshot with no entry. Never empty: an empty `ab__qa` is no mark at all
+ * to kitstart (`qaVisit`, `abSwitcherVisible`), and the forced visit holding
+ * it would lose its menu and its `forced: true`. Unreachable today — a force
+ * needs a running test, and the proxy assigns every running one first — so it
+ * only keeps the encoding total.
+ */
+const EMPTY_SNAPSHOT = "-";
+
+/**
+ * {@link QaSnapshot} as {@link QA_COOKIE}'s value:
+ * `hero_call_first.a~lead_form.b~lead_channel.c`. Keys are snake_case and
+ * variants one letter, so it needs no percent-encoding in a cookie.
+ */
+export function encodeQaSnapshot(snapshot: QaSnapshot): string {
+  const pairs = EXPERIMENT_IDS.flatMap(id => {
+    const variant = snapshot[id];
+    return variant === undefined ? [] : [`${id}${SNAPSHOT_PAIR}${variant}`];
+  });
+  return pairs.length === 0 ? EMPTY_SNAPSHOT : pairs.join(SNAPSHOT_SEPARATOR);
+}
+
+/**
+ * Inverse of {@link encodeQaSnapshot}, or `null` for a value that is no
+ * snapshot — `1` from before the snapshot, an empty one, or any value with a
+ * pair not spelled `key.variant`. A well-spelled pair this code does not know —
+ * its test or its variant since deleted — is skipped, the others kept: the
+ * visitor's own variants of the tests still here are not lost to it. A variant
+ * is checked against the code's list, not the applied config: a test the
+ * panel paused still gets its visitor's variant back when it resumes.
+ */
+export function decodeQaSnapshot(value: string | undefined): QaSnapshot | null {
+  if (value === undefined) return null;
+  if (value === EMPTY_SNAPSHOT) return {};
+  const pairs = value.split(SNAPSHOT_SEPARATOR);
+  if (!pairs.every(pair => SNAPSHOT_PAIR_SHAPE.test(pair))) return null;
+  const out: QaSnapshot = {};
+  for (const pair of pairs) {
+    const [key = "", variant = ""] = pair.split(SNAPSHOT_PAIR);
+    const id = EXPERIMENT_IDS.find(known => known === key);
+    if (id === undefined) continue;
+    const declared: readonly string[] = EXPERIMENTS[id].variants;
+    if (declared.includes(variant)) out[id] = variant;
+  }
+  return out;
+}
+
+/**
+ * Leading-letter snake_case key, a dot, a lower-case variant: how
+ * {@link encodeQaSnapshot} spells every pair, whatever the config says then.
+ */
+const SNAPSHOT_PAIR_SHAPE = /^[a-z][a-z0-9_]*\.[a-z0-9]+$/;
+
+/**
+ * Words the QA menu adds to a test's label at a point where its taps change
+ * nothing: `lead_channel` where it is inert ({@link leadChannelRuns}) — every
+ * arm draws the same card — and `lead_form` where `lead_channel` runs, since
+ * every arm of it then draws the compact card.
+ */
+const INERT_SUFFIX: { readonly [K in "lead_form" | "lead_channel"]: string } = {
+  lead_form: " — inactive here (lead channel owns the card)",
+  lead_channel: " — inactive here (no WhatsApp)",
+};
+
+/**
+ * The QA menu's tests for one point: {@link AB_SWITCHER_EXPERIMENTS}, the test
+ * whose taps cannot change the page there saying so. `leadChannelRuns` is the
+ * point's answer from `leadChannelRunsAt` — the card's own — so the menu and
+ * the card cannot disagree.
+ */
+export function abSwitcherExperiments(leadChannelRuns: boolean): typeof AB_SWITCHER_EXPERIMENTS {
+  const inert = leadChannelRuns ? "lead_form" : "lead_channel";
+  return AB_SWITCHER_EXPERIMENTS.map(e => (e.key === inert ? { ...e, label: `${e.label}${INERT_SUFFIX[inert]}` } : e));
 }
 
 /**

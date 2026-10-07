@@ -95,21 +95,25 @@ export const FORCE_PARAM = "ab_";
  * Set when a visit forced a variant, so every event from that browser says
  * `forced: true` and PostHog's funnel can leave it out. The same name on every
  * brand (vifnet's), so one QA habit works on all of them. Starting with the
- * assignment prefix is safe: no experiment is keyed `_qa`.
+ * assignment prefix is safe: no experiment is keyed `_qa`. Its value is the
+ * visitor's own variants (`encodeQaSnapshot`), given back when a point's home
+ * is opened without a force; any non-empty value marks the visit.
  */
 export const QA_COOKIE = "ab__qa";
 
 /**
- * The QA mark's name before {@link QA_COOKIE}. Still read, and moved to the
- * new name by the proxy on the browser's next visit, so a QA browser marked
- * before the rename keeps its mark. Read until 2026-11-05, then delete — the
- * 30-day mark set on the last day of the old name has expired by then.
+ * The QA mark's name before {@link QA_COOKIE}. Still read as a mark, and
+ * dropped by the proxy on the browser's next visit to a point: it holds no
+ * snapshot to give back, and a forced visit sets the new name. Read until
+ * 2026-11-05, then delete — the 30-day mark set on the last day of the old
+ * name has expired by then.
  */
 export const LEGACY_QA_COOKIE = "ab_forced";
 
 /**
  * As long as the variant cookies it marks (30 days): a session-only mark
  * expired with the browser while the forced variant stayed, and QA's later
- * visits counted as real ones in that arm.
+ * visits counted as real ones in that arm. Its snapshot must outlive them too,
+ * or leaving QA would have nothing to give back.
  */
 export const FORCED_MAX_AGE = 60 * 60 * 24 * 30;

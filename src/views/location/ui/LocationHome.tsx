@@ -3,7 +3,9 @@ import { JsonLd } from "@evinvest/marketing";
 import { withLiveRating, type Copy } from "@/entities/content";
 import { freshRating, type PlaceView } from "@/entities/place";
 import { locationGraph } from "@/features/seo";
-import { AB_SWITCHER_EXPERIMENTS, CONTROL, QA_COOKIE, type Assignment } from "@/shared/config/experiments";
+import { CONTROL, QA_COOKIE, type Assignment } from "@/shared/config/experiments";
+import { abSwitcherExperiments } from "@/shared/lib/experiments";
+import { leadChannelRunsAt } from "@/shared/lib/lead-channel";
 import { CallBar } from "@/widgets/call-bar";
 import { Coverage } from "@/widgets/coverage";
 import { Faq } from "@/widgets/faq";
@@ -54,8 +56,13 @@ export function LocationHome({
       <CallBar copy={copy} point={point} renderedAt={now.getTime()} />
       {/* The QA menu: here, not in the layout, because the experiments run on
           this page alone. Renders nothing on the server, so the page stays
-          static; on a phone it sits above the call bar. */}
-      <AbSwitcher experiments={AB_SWITCHER_EXPERIMENTS} qaCookie={QA_COOKIE} className="bottom-24 md:bottom-4" />
+          static; on a phone it sits above the call bar. Its labels follow
+          the card's own rule for whether lead_channel runs here. */}
+      <AbSwitcher
+        experiments={abSwitcherExperiments(leadChannelRunsAt(point.place))}
+        qaCookie={QA_COOKIE}
+        className="bottom-24 md:bottom-4"
+      />
     </>
   );
 }
