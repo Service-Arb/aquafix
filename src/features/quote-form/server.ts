@@ -36,25 +36,48 @@ export const PANEL_FLOW = true;
  */
 export const PANEL_ANALYTICS_ID = true;
 
-/** The switches over what `lead.created` carries: kitstart's two, and the site's own. */
+/**
+ * kitstart's `panelMessenger`: a WhatsApp or Telegram lead (`lead_channel`)
+ * goes to the panel as its own channel, with `properties.message_ref` — the
+ * reference the customer's chat carries, which the panel matches the chat to
+ * (`LeadCreatedV1` field 9, panel `fen/messenger-leads`). On ahead of that
+ * panel's release, as `PANEL_ANALYTICS_ID` was: the panel ships before the
+ * sites (MESSENGER-CHANNELS-SPEC §5), and a panel without it refuses
+ * `whatsapp` / `telegram` and parks the lead in the outbox until
+ * `kitstart-outbox requeue`. Off, a messenger lead goes as a `form` without
+ * its reference; the leads table and the mail keep both either way.
+ */
+export const PANEL_MESSENGER = true;
+
+/** The switches over what `lead.created` carries: kitstart's three, and the site's own. */
 export interface PanelSwitches {
   panelSuspect: boolean;
   panelFlow: boolean;
   panelAnalyticsId: boolean;
+  panelMessenger: boolean;
 }
+
+const SWITCHES: PanelSwitches = {
+  panelSuspect: PANEL_SUSPECT,
+  panelFlow: PANEL_FLOW,
+  panelAnalyticsId: PANEL_ANALYTICS_ID,
+  panelMessenger: PANEL_MESSENGER,
+};
 
 /** The job as the mail names it; a job the form no longer offers stays as posted. */
 export const needLabel = (subject: string): string => jobLabelFr(subject) ?? subject;
 
-/** How the site builds and signs its lead webhook; the switches are a parameter for the tests that flip them. */
-export function webhookOptions(
-  keyId: string,
-  { panelSuspect, panelFlow, panelAnalyticsId }: PanelSwitches = { panelSuspect: PANEL_SUSPECT, panelFlow: PANEL_FLOW, panelAnalyticsId: PANEL_ANALYTICS_ID },
-): LeadWebhookOptions {
+/**
+ * How the site builds and signs its lead webhook; the switches are a
+ * parameter for the tests that flip them, each one left out the site's own.
+ */
+export function webhookOptions(keyId: string, switches: Partial<PanelSwitches> = {}): LeadWebhookOptions {
+  const { panelSuspect, panelFlow, panelAnalyticsId, panelMessenger } = { ...SWITCHES, ...switches };
   return {
     signing: SA_INGEST_SIGNING,
     panelSuspect,
     panelFlow,
+    panelMessenger,
     buildBody: (lead, ctx) => leadCreatedBody(lead, ctx, { sourceId: keyId, needLabel, analyticsId: panelAnalyticsId }),
   };
 }
