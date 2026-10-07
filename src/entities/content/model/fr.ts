@@ -123,6 +123,7 @@ export const FR = {
         messengerChange: "Changer de canal",
         messengerWhatsappTitle: "Sur WhatsApp",
         messengerWhatsappLede: "Puis WhatsApp s’ouvre, message prêt.",
+        messengerTelegramLede: "Puis notre bot vous répond.",
         messengerCallTitle: "On vous rappelle",
         messengerCallLede: "Sous 10 min, 7j/7.",
         messengerUrgencyLabel: "C’est urgent ?",

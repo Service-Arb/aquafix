@@ -5,7 +5,7 @@ import type { Assignment } from "@/shared/config/experiments";
 import { URGENCY_FIELD } from "@/shared/config/lead";
 import { ChannelGlyph } from "./ChannelGlyph";
 import { AfterPhone } from "./FormLines";
-import { messengerParts } from "./parts";
+import { MESSENGER_FALLBACK, messengerParts } from "./parts";
 
 type MessengerFormCopy = CopyOf<Pick<Text, "quoteForm">>;
 
@@ -25,10 +25,7 @@ const VARIANTS: { readonly [A in Exclude<LeadChannelArm, "a">]: MessengerVariant
 
 export const messengerVariantOf = (arm: LeadChannelArm): MessengerVariant | undefined => (arm === "a" ? undefined : VARIANTS[arm]);
 
-/**
- * The boards whose phone is for a call, and which offer that call
- * themselves: the submit says so, and the line under the card goes.
- */
+/** The boards whose phone is for a call: the submit says so. */
 const CALL_INSIDE: ReadonlySet<MessengerKind> = new Set(["select", "segment", "swap", "saga"]);
 
 /** The brand's reference prefix: `AQ-7K3F`, in the message and the bot's `start`. */
@@ -59,13 +56,15 @@ export function messengerProps(
       // AQ-5's message is the message alone: no line after it, which the kit leaves out when empty.
       ...(drawn && kind === "saga" ? { messengerPreviewNote: "" } : {}),
     },
-    classNames: messengerParts(kind, callInside),
+    // Without WhatsApp kitstart draws the control (with the bot as a link, when there is one): the control's classes.
+    classNames: drawn ? messengerParts(kind) : MESSENGER_FALLBACK,
     channelIcons: {
       whatsapp: <ChannelGlyph name="whatsapp" />,
       telegram: <ChannelGlyph name="telegram" />,
-      // The kit draws the call's glyph from `callback`, which the control
-      // fills with its ask; where the board draws the call, it is the phone.
-      callback: callInside ? <ChannelGlyph name="phone" /> : copy.t.quoteForm.callbackAsk,
+      // The boards' call (a segment, a picker item, «Être rappelé»); the
+      // line under the card keeps its ask in `callback`, as the control's.
+      phone: <ChannelGlyph name="phone" />,
+      callback: copy.t.quoteForm.callbackAsk,
     },
     // No text message in this test: where the board asks the phone, it is for the call.
     ...(drawn && kind !== "thanks" ? { afterPhone: <AfterPhone line={m.callAfterPhone} /> } : {}),

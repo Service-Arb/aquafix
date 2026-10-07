@@ -125,6 +125,7 @@ export const EN = {
         messengerChange: "Change channel",
         messengerWhatsappTitle: "On WhatsApp",
         messengerWhatsappLede: "Then WhatsApp opens, the message ready.",
+        messengerTelegramLede: "Then our bot answers you.",
         messengerCallTitle: "We call you back",
         messengerCallLede: "Within 10 min, 7 days a week.",
         messengerUrgencyLabel: "Is it urgent?",

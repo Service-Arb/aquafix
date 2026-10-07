@@ -93,60 +93,109 @@ export const URGENT_FIRST: PartClassNames<LeadCapturePart> = {
 };
 
 /**
- * The kit's messenger buttons (`MessengerCta`, the squares, «Être rappelé»)
- * take no part of their own: the brand's CTA face reaches them from the
- * variant's wrapper (`messenger`).
+ * Every main button of a `lead_channel` arm — the messenger's link
+ * (`messengerCta`) and the submit, inside the board or the control's — one
+ * height, Figma's 48px: a state that swaps one for the other must not move
+ * the card. The brand's CTA face and padding, a fixed box instead of the
+ * control's vertical padding. The kit hands the submit inside a board the
+ * phone glyph (`channelIcons.phone`); the call's button in Figma has none, so
+ * on a `<button>` it is hidden — a messenger's link keeps its mark.
  */
-const MESSENGER_BUTTONS = "[&_[data-slot=button]]:font-display [&_[data-slot=button]]:[font-weight:600]";
+const CTA_48 = `h-12 min-h-0 px-[var(--control-px)] py-0 text-[length:var(--control-text)] leading-6 [button&>span[aria-hidden]]:hidden ${CTA_FACE}`;
 
-/** The ticked small print under a field, as `AfterPhone` draws it — on the select's hint, not on the in-app one. */
-const MESSENGER_HINT = "text-[13px] font-medium leading-4 text-ink-mid [p&]:flex [p&]:gap-2 [p&]:before:font-semibold [p&]:before:text-positive [p&]:before:content-['✓']";
+/**
+ * The ticked small print under a field, as `AfterPhone` draws it — on the
+ * select's hint (a `<p>`), not on the in-app one. Two lines tall whatever it
+ * says: WhatsApp's hint takes two at 390, Telegram's one.
+ */
+const MESSENGER_HINT =
+  "text-[13px] font-medium leading-4 text-ink-mid [p&]:-mt-1 [p&]:flex [p&]:h-8 [p&]:gap-2 [p&]:before:font-semibold [p&]:before:text-positive [p&]:before:content-['✓']";
+
+/** The kit's «Message envoyé ?» screen over the card, padded and rounded as the card is. */
+const RETURN = "rounded-[var(--corner-float)] px-6 py-7 md:px-[34px] md:pb-[30px] md:pt-8";
 
 /**
  * `lead_channel`'s parts over the compact card (Figma, Aquafix "Lead form
- * A/B", «Мессенджеры v3»): every state of an arm one height — the channel's
- * slot 92px (the phone and its line, or the message ready), `swap`'s 52px
- * (the WhatsApp button, or the phone). `relative` holds the kit's «Message
- * envoyé ?» screen over the card, padded as the card is.
+ * A/B", the messengers v3 section): every state of an arm one height — the
+ * channel's slot 92px (the phone and its line, or the message ready),
+ * `swap`'s 52px (the WhatsApp button, or the phone), every main button 48px.
+ * `relative` holds the kit's «Message envoyé ?» screen over the card, padded
+ * as the card is.
  */
 const MESSENGER: PartClassNames<LeadCapturePart> = {
   ...COMPACT,
   root: `${COMPACT.root ?? ""} relative`,
-  messenger: MESSENGER_BUTTONS,
+  submit: CTA_48,
+  messengerCta: CTA_48,
+  // Under a board the kit's trust box holds only the no-script fallback (a
+  // `<noscript>`, drawn by no browser that runs the board): out of the
+  // column, or its gap is 12px more card than Figma's.
+  trust: "[&:not(:has(>:not(noscript)))]:hidden",
+  messengerSecondary: CTA_FACE,
   messengerSlot: "h-[92px]",
   messengerPreview: "h-full items-center gap-3 rounded-[var(--corner-control)] bg-primary/8 px-4 py-3",
   messengerHint: MESSENGER_HINT,
   messengerQr: "rounded-[var(--corner-control)]",
-  messengerReturn: "rounded-[var(--corner-float)] px-6 py-7 md:px-[34px] md:pb-[30px] md:pt-8",
+  messengerReturn: RETURN,
 };
+
+/**
+ * «ou via Telegram» under the button: a line of orange text, Figma's 17px —
+ * not the kit's 44px link box, which would make the board taller than its
+ * frame. The boards that draw it have no other secondary button in the card
+ * (the return screen's «Rouvrir WhatsApp» is drawn over it).
+ */
+const VIA_TELEGRAM = `h-auto min-h-0 py-0.5 text-[14px] leading-[17px] text-primary-ink ${CTA_FACE}`;
 
 /** What one board sets over {@link MESSENGER}. */
 const BY_KIND: { readonly [K in MessengerKind]?: PartClassNames<LeadCapturePart> } = {
   // AQ-1: the picker is the phone field's frame, 52px as every field.
   select: { messengerPicker: "h-[52px]" },
-  // AQ-2: «WhatsApp | Appel» on a muted track, the picked one lifted.
+  // AQ-2: «WhatsApp | Appel» on a muted track, the picked one lifted; «ou via Telegram» a line of text.
   segment: {
+    messengerSecondary: VIA_TELEGRAM,
     messengerPicker: "h-12 rounded-[var(--corner-control)] bg-muted p-1",
     messengerOption: "h-10 text-[15px] font-medium text-ink-soft data-[state=on]:bg-card data-[state=on]:shadow-sm",
   },
   // AQ-4: slot A is the WhatsApp button or the phone, 52px; row B under it.
-  swap: { messengerSlot: "h-[52px] [&>a]:h-full", messengerSquare: "size-[49px] min-h-0 rounded-[var(--corner-control)]" },
+  swap: {
+    messengerSlot: "h-[52px] [&>a]:h-full",
+    messengerSecondary: `h-[49px] min-h-0 ${CTA_FACE}`,
+    messengerSquare: "size-[49px] min-h-0 rounded-[var(--corner-control)]",
+  },
+  // AQ-3: the success's Telegram button as tall as the photo's.
+  thanks: { messengerSecondary: CTA_48 },
   // AQ-5: the card as tall as its tallest screen, so the screens change what is in it, not its size.
   saga: {
-    root: `${COMPACT.root ?? ""} relative min-h-[497px]`,
-    messengerOption: "rounded-[var(--corner-control)] p-3.5 [&.border-primary]:bg-primary/8",
+    // Figma draws it 449px (its 497px frame less 48px of margin); the channel screen measures 454px at 390 here, the tallest.
+    root: `${COMPACT.root ?? ""} relative min-h-[454px]`,
+    messengerOption: "rounded-[var(--corner-control)] p-3 [&.border-primary]:bg-primary/8",
   },
-  // AQ-6: two answers side by side, the picked one tinted.
+  // AQ-6: two answers side by side, the picked one tinted; «ou via Telegram» a line of text.
   urgency: {
+    messengerSecondary: VIA_TELEGRAM,
     messengerOption: "h-[42px] text-[14px] font-semibold data-[state=on]:bg-primary/8",
   },
 };
 
 /**
- * The card's classes in a `lead_channel` arm. `callInside`: the arm offers
- * the call itself (AQ-1/2/4/5), so the line under the card — "Pas envie de
- * taper ? Rappelez-moi" — is not drawn twice; Figma's boards have none.
+ * A `lead_channel` arm at a place with the bot and no WhatsApp: kitstart
+ * draws the control and «ou via Telegram» under its submit (Figma's
+ * fallback) — the control's card, the link as the boards draw it.
  */
-export function messengerParts(kind: MessengerKind, callInside: boolean): PartClassNames<LeadCapturePart> {
-  return { ...MESSENGER, ...BY_KIND[kind], ...(callInside ? { others: "hidden" } : {}) };
+export const MESSENGER_FALLBACK: PartClassNames<LeadCapturePart> = {
+  ...COMPACT,
+  root: `${COMPACT.root ?? ""} relative`,
+  messengerSecondary: VIA_TELEGRAM,
+  messengerReturn: RETURN,
+};
+
+/**
+ * The card's classes in a `lead_channel` arm whose board is drawn. The line
+ * under the card — "Pas envie de taper ? Rappelez-moi" — is not: every board
+ * offers the call itself, and Figma's frames (the boards, and the control
+ * beside them) have none.
+ */
+export function messengerParts(kind: MessengerKind): PartClassNames<LeadCapturePart> {
+  return { ...MESSENGER, ...BY_KIND[kind], others: "hidden" };
 }

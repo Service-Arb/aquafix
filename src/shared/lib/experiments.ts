@@ -55,14 +55,27 @@ export function assignmentOf(config: LiveExperiments, read: (name: string) => st
 }
 
 /**
+ * Whether a `lead_channel` arm draws the card (MESSENGER-CHANNELS-SPEC §4,
+ * precedence): any arm but the control, at a place that offers a messenger —
+ * `channels` is the card's `channels_available` (`wa,tg` | `wa` | `tg` |
+ * `none`, kitstart's `channelsAvailable`). There it draws the compact card
+ * with its board, whatever `lead_form` says; at a place with neither WhatsApp
+ * nor a bot the arm is inert and the card is `lead_form`'s. Unknown (`null`:
+ * no card read) is inert.
+ */
+export function channelArmDraws(arm: string | undefined, channels: string | null): boolean {
+  return arm !== undefined && arm !== CONTROL.lead_channel && channels !== null && channels !== "none";
+}
+
+/**
  * Whether a test's arm is not what the page drew, because another test's arm
- * overrides it: any `lead_channel` arm but the control draws the compact card
- * (`lead_form` `a`) whatever `lead_form` says. Its `lead_form` exposure and
- * lead still count, marked `superseded`, so PostHog leaves them out of
+ * overrides it: a `lead_channel` arm that draws the card ({@link
+ * channelArmDraws}) replaces `lead_form`'s. Its `lead_form` exposure and lead
+ * still count, marked `superseded`, so PostHog leaves them out of
  * `lead_form`'s funnel (docs/EXPERIMENTS.md).
  */
-export function isSuperseded(id: ExperimentId, variants: Partial<Record<ExperimentId, string>>): boolean {
-  return id === "lead_form" && variants.lead_channel !== undefined && variants.lead_channel !== CONTROL.lead_channel;
+export function isSuperseded(id: ExperimentId, variants: Partial<Record<ExperimentId, string>>, channels: string | null): boolean {
+  return id === "lead_form" && channelArmDraws(variants.lead_channel, channels);
 }
 
 /** The `ab_*` cookies this browser carries for experiments `config` has switched off. */

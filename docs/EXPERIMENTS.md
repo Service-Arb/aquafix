@@ -79,7 +79,7 @@ prefilled message (the need, the postcode, the urgency when asked, and a
 reference `Réf. AQ-7K3F`), answered by hand in WhatsApp Business; Telegram is
 the place's bot opened as `t.me/<bot>?start=AQ-7K3F`; the phone is asked only
 for a call. Every state of an arm keeps the card's height (the channel's slot
-is 92 px, `e`'s 52 px; AQ-5's card is 497 px tall at 390).
+is 92 px, `e`'s 52 px, every main button 48 px; AQ-5's card is 449 px tall at 390).
 
 - **`a`** — the control: today's card.
 - **`b`, AQ-1** — a channel select inside the phone field, WhatsApp first: the
@@ -97,20 +97,25 @@ is 92 px, `e`'s 52 px; AQ-5's card is 497 px tall at 390).
   answer is the lead's extra `urgency`, `today` or `later` (the mail prints
   «Pas urgent — compare» for `later`).
 
-A place without its own WhatsApp number — or with WhatsApp switched off in the
-panel — draws the control in every arm (`d` and `g` keep their bot / question);
-no bot, no Telegram piece. The arm stays assigned: every kitstart event of the
+A place with the bot but without its own WhatsApp number — or with WhatsApp
+switched off in the panel — draws the control in every arm, with «ou via
+Telegram» (`d` and `g` keep their bot / question); no bot, no Telegram piece;
+neither, and the arm is inert (below). The arm stays assigned: every kitstart event of the
 card says `channels_available` (`wa,tg` | `wa` | `tg` | `none`) — read an arm
-only where its channels were there. No place has its own WhatsApp number yet:
-until the owner sets them in the panel, every arm is the control.
+only where its channels were there. No place has its own WhatsApp number or bot yet:
+until the owner sets them in the panel, every arm is inert.
 
-- **Precedence over `lead_form`.** Any arm but `a` draws the compact card
-  (`lead_form` `a`), whatever the visitor's `lead_form` arm. Such a visitor's
-  `lead_form` events (`experiment_exposed`, `experiment_contact`,
+- **Precedence over `lead_form`** (as vifnet's). At a place that offers a
+  messenger — its own WhatsApp, or the bot — any arm but `a` draws the compact
+  card (`lead_form` `a`), whatever the visitor's `lead_form` arm; such a
+  visitor's `lead_form` events (`experiment_exposed`, `experiment_contact`,
   `experiment_lead`) carry `superseded: true`: leave them out of `lead_form`'s
   funnel (`superseded` is not `true`). kitstart's own form events name
-  `lead_channel` for them, with `messenger_variant`. Pausing `lead_form` in the
-  panel instead is the owner's call.
+  `lead_channel` for them, with `messenger_variant`. At a place with neither,
+  the arm is inert: the card is the `lead_form` arm's, its events name
+  `lead_form`, nothing is superseded. Which one a page was is the card's
+  `channels_available` (on the page, and posted with the lead). Pausing
+  `lead_form` in the panel instead is the owner's call.
 - **Hypothesis.** A plumbing customer would rather send a message — with a
   photo of the leak — than type a phone number and wait: WhatsApp first, the
   message written for them, lifts contacts per visit over the phone-only form.

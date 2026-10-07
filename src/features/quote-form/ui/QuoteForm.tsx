@@ -1,10 +1,11 @@
-import { LEAD_CAPTURE_TEXT, messengerFacts, type LeadCaptureText } from "@evinvest/kitstart";
+import { channelsAvailable, LEAD_CAPTURE_TEXT, messengerFacts, type LeadCaptureText } from "@evinvest/kitstart";
 import { LeadCapture, type LeadCaptureProps, type LeadIntro } from "@evinvest/kitstart/react";
 import { cn } from "@evinvest/uikit";
 import type { CopyOf, Text } from "@/entities/content";
 import type { PlaceView } from "@/entities/place";
 import { LEAD, URGENCIES, URGENCY_FIELD } from "@/shared/config/lead";
 import { site } from "@/shared/config/site";
+import { channelArmDraws } from "@/shared/lib/experiments";
 import { AfterPhone, CALLBACK_STEP, CallbackHeading } from "./FormLines";
 import { JobIcon } from "./JobIcon";
 import { messengerProps, messengerVariantOf, REF_PREFIX, type LeadChannelArm } from "./messenger";
@@ -93,11 +94,13 @@ function armProps(copy: QuoteFormWidgetCopy, arm: LeadFormArm): Partial<LeadCapt
  * beside it (`HeroActions`) and the call bar under it, so the kit is given no
  * number and keeps to the form and the callback.
  *
- * `channelArm` is the visitor's `lead_channel` arm: any but `a` draws its
- * WhatsApp board over the compact card, whatever `lead_form` says, and names
+ * `channelArm` is the visitor's `lead_channel` arm. At a place that offers a
+ * messenger (`messengerFacts`: its own WhatsApp, or the bot) any arm but `a`
+ * draws its board over the compact card, whatever `lead_form` says, and names
  * `lead_channel` on the kit's events (the beacon marks the `lead_form`
- * exposure `superseded`). The messengers are the place's own (`messengerFacts`):
- * without its WhatsApp the arm draws the control. Every arm, the control
+ * exposure `superseded`); with the bot alone kitstart draws the control and
+ * «ou via Telegram». At a place with neither the arm is inert: the card is
+ * `lead_form`'s, as vifnet's (`channelArmDraws`). Every arm, the control
  * included, gives the kit the facts, so every event says `channels_available`.
  */
 export function QuoteForm({
@@ -114,9 +117,9 @@ export function QuoteForm({
   channelArm?: LeadChannelArm;
 }) {
   const q = copy.t.quoteForm;
-  const variant = messengerVariantOf(channelArm);
-  const formArm = variant ? "a" : arm;
   const facts = messengerFacts(site, point.place);
+  const variant = channelArmDraws(channelArm, channelsAvailable(facts)) ? messengerVariantOf(channelArm) : undefined;
+  const formArm = variant ? "a" : arm;
   const text = leadText(copy, formArm);
   const props: LeadCaptureProps = {
     place: point.place,
@@ -146,7 +149,7 @@ export function QuoteForm({
     ...armProps(copy, formArm),
     ...(variant ? { messenger: variant, ...messengerProps(copy, variant, facts, text) } : {}),
   };
-  if (variant?.kind === "thanks" && (facts.whatsapp !== null || facts.telegram !== null)) {
+  if (variant?.kind === "thanks") {
     return <ThanksCapture {...props} doneTitle={q.messenger.doneTitle} doneBody={q.messenger.doneBody} />;
   }
   return <LeadCapture {...props} />;

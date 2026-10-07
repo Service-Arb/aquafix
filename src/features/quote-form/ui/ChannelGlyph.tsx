@@ -1,8 +1,9 @@
 /**
  * The channels' marks on `lead_channel`'s cards, in the surrounding colour.
  * WhatsApp and Telegram are their owners' glyphs as published (Simple Icons,
- * CC0), unaltered but for colour: both brands allow the single-colour mark,
- * and a hex green or blue here would ignore the theme. The phone is a line
+ * CC0), unaltered. WhatsApp is green, as Figma draws it — the theme's
+ * `positive`, not a hex of its own; Telegram is single-colour, in the
+ * surrounding one, which its brand allows. The phone is a line
  * glyph in the job icons' stroke (`JobIcon`). Inline rather than an icon
  * package: three paths do not earn a dependency.
  */
@@ -39,7 +40,7 @@ export function ChannelGlyph({ name }: { name: ChannelGlyphName }) {
     );
   }
   return (
-    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false" className={name === "whatsapp" ? "text-positive" : undefined}>
       <path d={name === "whatsapp" ? WHATSAPP : TELEGRAM} fill="currentColor" />
     </svg>
   );

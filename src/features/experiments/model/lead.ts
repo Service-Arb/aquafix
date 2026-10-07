@@ -1,6 +1,6 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { after } from "next/server";
-import { LOCATION_FIELD, type AnalyticsTarget } from "@evinvest/kitstart";
+import { CHANNELS_FIELD, LOCATION_FIELD, type AnalyticsTarget } from "@evinvest/kitstart";
 import { EXPERIMENT_IDS } from "@/shared/config/experiments";
 import { site } from "@/shared/config/site";
 import { assignedVariants, cookieReader, isForced, isSuperseded } from "@/shared/lib/experiments";
@@ -49,14 +49,18 @@ export function experimentLeads(deps: ExperimentLeadDeps) {
       const response = await accepted.run(mark, () => post(request));
       if (mark.accepted && copy) {
         later(async () => {
-          const slug = (await copy.formData()).get(LOCATION_FIELD);
+          const form = await copy.formData();
+          const slug = form.get(LOCATION_FIELD);
+          // What the card offered, as kitstart posts it: a lead_channel arm overrides lead_form only where it drew.
+          const offered = form.get(CHANNELS_FIELD);
+          const channels = typeof offered === "string" ? offered : null;
           const place = typeof slug === "string" && site.placeSlugs.includes(slug) ? slug : null;
           const sink = experimentSink(deps.target(), place);
           const forced = isForced(read);
           for (const id of EXPERIMENT_IDS) {
             const variant = variants[id];
             if (variant === undefined) continue;
-            sink.capture(EXPERIMENT_EVENTS.lead, { experiment: id, variant, forced, ...supersededProp(isSuperseded(id, variants)) });
+            sink.capture(EXPERIMENT_EVENTS.lead, { experiment: id, variant, forced, ...supersededProp(isSuperseded(id, variants, channels)) });
           }
         });
       }
