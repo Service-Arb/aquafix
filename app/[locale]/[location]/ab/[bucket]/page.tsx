@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { locationMetadata } from "@/features/seo";
 import { EXPERIMENTS } from "@/shared/config/experiments";
 import { decodeBucket } from "@/shared/lib/experiments";
-import { LocationHome } from "@/views/location";
+import { LocationHome } from "@/views/location/home";
 import { loadPoint, type LocationParams } from "@/views/location/server";
 
 /**

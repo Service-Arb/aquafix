@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { locationMetadata } from "@/features/seo";
-import { LocationHome } from "@/views/location";
+import { LocationHome } from "@/views/location/home";
 import { loadPoint, type LocationParams } from "@/views/location/server";
 
 type Props = { params: Promise<LocationParams> };
