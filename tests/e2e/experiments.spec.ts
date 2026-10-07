@@ -138,36 +138,30 @@ test("exposure and contact events carry the experiment and the variant", async (
   for (const e of events.filter(e => e.event.startsWith("experiment_"))) expect(e.properties, e.event).not.toHaveProperty("superseded");
 });
 
-// Any lead_channel arm but a draws the compact card whatever lead_form says
-// (docs/EXPERIMENTS.md): lead_form's events say so, the others' do not.
-test("under a lead_channel arm, lead_form's exposure and contact are marked superseded", async ({ page }) => {
+// Royat here has neither its own WhatsApp nor a bot: a lead_channel arm is
+// inert (docs/EXPERIMENTS.md, as vifnet's) — the card is lead_form's, its
+// events name lead_form, and nothing is marked superseded. The arm's drawn
+// case is messenger.spec.ts's, on a Royat with both.
+test("a lead_channel arm at a point without messengers is inert: lead_form's events are not superseded", async ({ page }) => {
   const events = await capture(page);
   await page.goto("/fr?ab_hero_call_first=b&ab_lead_form=c&ab_lead_channel=e");
   await expect.poll(() => of(events, "experiment_exposed")).toEqual([
     { experiment: "hero_call_first", variant: "b", forced: true, channel: undefined, superseded: undefined },
     { experiment: "lead_channel", variant: "e", forced: true, channel: undefined, superseded: undefined },
-    { experiment: "lead_form", variant: "c", forced: true, channel: undefined, superseded: true },
+    { experiment: "lead_form", variant: "c", forced: true, channel: undefined, superseded: undefined },
   ]);
   await page.locator('main a[href^="tel:"]:visible').first().click({ noWaitAfter: true });
-  await expect.poll(() => of(events, "experiment_contact")).toEqual([
-    { experiment: "hero_call_first", variant: "b", forced: true, channel: "phone", superseded: undefined },
-    { experiment: "lead_channel", variant: "e", forced: true, channel: "phone", superseded: undefined },
-    { experiment: "lead_form", variant: "c", forced: true, channel: "phone", superseded: true },
-  ]);
-  const unmarked = events.filter(e => e.event.startsWith("experiment_") && e.properties["experiment"] !== "lead_form");
-  for (const e of unmarked) expect(e.properties, `${e.event} ${String(e.properties["experiment"])}`).not.toHaveProperty("superseded");
+  await expect.poll(() => of(events, "experiment_contact")).toHaveLength(3);
+  for (const e of events.filter(e => e.event.startsWith("experiment_"))) expect(e.properties, e.event).not.toHaveProperty("superseded");
 });
 
-// Royat here has no WhatsApp of its own: the arm stays assigned and named,
-// and the card is the control's, compact — not lead_form c's urgency first.
-test("a lead_channel arm at a point without WhatsApp draws the compact control, whatever lead_form says", async ({ page }) => {
+test("a lead_channel arm at a point without messengers draws lead_form's arm, and its events name lead_form", async ({ page }) => {
   await page.goto("/fr?ab_lead_form=c&ab_lead_channel=c");
   const card = page.locator("#quote");
-  await expect(card).toHaveAttribute("data-experiment", "lead_channel");
+  await expect(card).toHaveAttribute("data-experiment", "lead_form");
   await expect(card).toHaveAttribute("data-variant", "c");
   await expect(card).toHaveAttribute("data-channels-available", "none");
-  await expect(card.getByRole("button", { name: /Envoyez-moi mon prix/ })).toBeVisible();
-  await expect(card.getByText("C’est pour quand ?")).toHaveCount(0);
+  await expect(card.getByText("C’est pour quand ?")).toBeVisible();
   await expect(card.getByRole("link", { name: /WhatsApp|Telegram/ })).toHaveCount(0);
 });
 

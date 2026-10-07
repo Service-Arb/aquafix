@@ -50,7 +50,9 @@ test("b, AQ-1: WhatsApp picked in the phone field, the number optional, the mess
   const card = await open(page, "b");
   await expect(card).toHaveAttribute("data-experiment", "lead_channel");
   await expect(card.getByRole("combobox", { name: "Canal de réponse" })).toHaveText(/WhatsApp/);
-  await expect(card.getByRole("textbox", { name: "Mobile (facultatif)" })).toBeVisible();
+  // The field keeps its label for assistive technology; the board says "optional" in the placeholder.
+  const mobile = card.getByRole("textbox", { name: "Votre mobile" });
+  await expect(mobile).toHaveAttribute("placeholder", "Mobile (facultatif)");
   const send = card.getByRole("link", { name: "Envoyer sur WhatsApp →" });
   await expect(send).toHaveAttribute("href", WA_WITH_REF);
   const ref = await refOf(card);
@@ -59,25 +61,30 @@ test("b, AQ-1: WhatsApp picked in the phone field, the number optional, the mess
   await card.getByRole("combobox", { name: "Canal de réponse" }).click();
   await page.getByRole("option", { name: /^Telegram/ }).click();
   await expect(card.getByRole("link", { name: "Ouvrir Telegram" })).toHaveAttribute("href", `https://t.me/${ROYAT_TELEGRAM_BOT}?start=${ref}`);
-  await expect(card.getByRole("textbox", { name: "Mobile (facultatif)" })).toBeDisabled();
+  await expect(mobile).toBeDisabled();
 });
 
 // A slow phone shows the server's card (React's inline script swaps the
-// streamed board in) seconds before the bundle hydrates it. A tap then is a
-// plain link: the lead is not posted in the background, so the reference in
-// the message is all the operator has to find the customer by.
-test("b, AQ-1: the WhatsApp link a visitor can tap before the bundle hydrates carries the reference", async ({ page }) => {
-  test.fail(true, "the reference is minted on mount (useMessageRef): the server's link has neither «Réf.» nor the postcode");
-  await page.route("**/_next/static/chunks/**", route => route.abort());
-  await page.route(`${POSTHOG_HOST}/**`, route => route.fulfill({ status: 200, body: "{}" }));
-  await page.goto("/fr?ab_lead_channel=b");
-  const send = cardOf(page).getByRole("link", { name: "Envoyer sur WhatsApp →" });
-  await expect(send).toBeVisible();
-  await expect(send).toHaveAttribute("href", WA_WITH_REF);
+// streamed board in) seconds before the bundle hydrates it. The reference is
+// minted in the browser, so until then the WhatsApp button leads nowhere — no
+// `href`, never a wa.me link without «Réf.» that would post no lead — and the
+// hydrated one carries the reference.
+test("b, AQ-1: the WhatsApp button is inert before the bundle hydrates, and carries the reference after", async ({ page: cold }) => {
+  await cold.route("**/_next/static/chunks/**", route => route.abort());
+  await cold.route(`${POSTHOG_HOST}/**`, route => route.fulfill({ status: 200, body: "{}" }));
+  await cold.goto("/fr?ab_lead_channel=b");
+  const inert = cardOf(cold).locator("a", { hasText: "Envoyer sur WhatsApp →" });
+  await expect(inert).toBeVisible();
+  expect(await inert.getAttribute("href")).toBeNull();
+  await expect(cardOf(cold).locator('a[href^="https://wa.me/"]')).toHaveCount(0);
+
+  // The same context, without the blocked bundle: the page hydrates.
+  const warm = await cold.context().newPage();
+  const card = await open(warm, "b");
+  await expect(card.getByRole("link", { name: "Envoyer sur WhatsApp →" })).toHaveAttribute("href", WA_WITH_REF);
 });
 
 test("b, AQ-1: WhatsApp, Appel and Telegram keep the card's height", async ({ page }) => {
-  test.fail(true, "Appel draws the brand's 50.5px submit where WhatsApp has the kit's 44px link (+2.5px), Telegram a one-line hint (-16px)");
   const card = await open(page, "b");
   await expect(card.getByRole("link", { name: "Envoyer sur WhatsApp →" })).toBeVisible();
   const whatsapp = await heightOf(card);
@@ -108,7 +115,6 @@ test("c, AQ-2: «WhatsApp | Appel», the message ready, the bot under the button
 });
 
 test("c, AQ-2: WhatsApp and Appel keep the card's height", async ({ page }) => {
-  test.fail(true, "Appel draws the brand's 50.5px submit where WhatsApp has the kit's 44px link: +6.5px");
   const card = await open(page, "c");
   await expect(card.getByText("Votre message est prêt")).toBeVisible();
   const whatsapp = await heightOf(card);
@@ -155,7 +161,6 @@ test("e, AQ-4: no phone, WhatsApp first; «Être rappelé» swaps the phone in a
 });
 
 test("e, AQ-4: WhatsApp and «Être rappelé» keep the card's height", async ({ page }) => {
-  test.fail(true, "the call's row is the brand's 50.5px submit where the WhatsApp row is the kit's 44px link: +6.5px");
   const card = await open(page, "e");
   await expect(card.getByRole("link", { name: "Recevoir mon prix sur WhatsApp" })).toBeVisible();
   const whatsapp = await heightOf(card);
@@ -212,7 +217,6 @@ test("g, AQ-6: «C’est urgent ?» — today a call, «je compare» the message
 });
 
 test("g, AQ-6: no answer yet, «je compare» and «aujourd’hui» keep the card's height", async ({ page }) => {
-  test.fail(true, "«Non, je compare» draws the kit's 44px WhatsApp link where the call has the brand's 50.5px submit: -6.5px");
   const card = await open(page, "g");
   const urgent = card.getByRole("group", { name: "C’est urgent ?" });
   await expect(urgent.getByRole("button", { name: "Non, je compare" })).toBeVisible();
@@ -224,3 +228,27 @@ test("g, AQ-6: no answer yet, «je compare» and «aujourd’hui» keep the card
   await expect(card.getByRole("textbox", { name: "Votre mobile" })).toBeVisible();
   await expect.poll(() => heightOf(card)).toBe(unanswered);
 });
+
+// Where the arm draws the card (Royat here offers both), lead_form's events say
+// superseded: its arm is not what the visitor saw (docs/EXPERIMENTS.md).
+test("a drawn lead_channel arm marks lead_form's exposure superseded, and no other test's", async ({ page }) => {
+  const exposed: Record<string, unknown>[] = [];
+  await page.route(`${POSTHOG_HOST}/**`, async route => {
+    const body: unknown = JSON.parse(route.request().postData() ?? "null");
+    if (typeof body === "object" && body !== null && Reflect.get(body, "event") === "experiment_exposed") {
+      const properties: unknown = Reflect.get(body, "properties");
+      if (typeof properties === "object" && properties !== null) exposed.push({ ...properties });
+    }
+    await route.fulfill({ status: 200, body: "{}" });
+  });
+  await page.goto("/fr?ab_lead_form=c&ab_lead_channel=e");
+  await expect(cardOf(page)).toHaveAttribute("data-experiment", "lead_channel");
+  await expect
+    .poll(() => exposed.map(p => [p["experiment"], p["variant"], p["superseded"]]).sort((a, b) => String(a[0]).localeCompare(String(b[0]))))
+    .toEqual([
+      ["hero_call_first", "a", undefined],
+      ["lead_channel", "e", undefined],
+      ["lead_form", "c", true],
+    ]);
+});
+

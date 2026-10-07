@@ -223,20 +223,30 @@ describe("reading the cookies back", () => {
 });
 
 describe("lead_channel's precedence over lead_form", () => {
-  it("marks lead_form superseded for a visitor in any lead_channel arm but the control", () => {
+  it("marks lead_form superseded for any lead_channel arm but the control, where the card offered a messenger", () => {
     for (const channel of ["b", "c", "d", "e", "f", "g"]) {
-      expect(isSuperseded("lead_form", { lead_form: "c", lead_channel: channel }), channel).toBe(true);
+      for (const offered of ["wa,tg", "wa", "tg"]) {
+        expect(isSuperseded("lead_form", { lead_form: "c", lead_channel: channel }, offered), `${channel} ${offered}`).toBe(true);
+      }
+    }
+  });
+
+  // vifnet's rule: at a place with neither WhatsApp nor a bot the arm is inert, the card lead_form's.
+  it("leaves lead_form alone where the card offered no messenger, or no card was read", () => {
+    for (const channel of ["b", "c", "d", "e", "f", "g"]) {
+      expect(isSuperseded("lead_form", { lead_form: "c", lead_channel: channel }, "none"), channel).toBe(false);
+      expect(isSuperseded("lead_form", { lead_form: "c", lead_channel: channel }, null), channel).toBe(false);
     }
   });
 
   it("leaves lead_form alone under the control, or with no lead_channel cookie at all", () => {
-    expect(isSuperseded("lead_form", { lead_form: "c", lead_channel: "a" })).toBe(false);
-    expect(isSuperseded("lead_form", { lead_form: "c" })).toBe(false);
+    expect(isSuperseded("lead_form", { lead_form: "c", lead_channel: "a" }, "wa,tg")).toBe(false);
+    expect(isSuperseded("lead_form", { lead_form: "c" }, "wa,tg")).toBe(false);
   });
 
   it("never marks lead_channel or hero_call_first", () => {
-    expect(isSuperseded("lead_channel", { lead_form: "b", lead_channel: "e" })).toBe(false);
-    expect(isSuperseded("hero_call_first", { hero_call_first: "b", lead_form: "b", lead_channel: "e" })).toBe(false);
+    expect(isSuperseded("lead_channel", { lead_form: "b", lead_channel: "e" }, "wa,tg")).toBe(false);
+    expect(isSuperseded("hero_call_first", { hero_call_first: "b", lead_form: "b", lead_channel: "e" }, "wa,tg")).toBe(false);
   });
 });
 
@@ -304,7 +314,7 @@ describe("experiment_lead", () => {
 
   it("marks lead_form's lead superseded when lead_channel drew the card, and no other test's", async () => {
     const { post, run } = route();
-    expect((await post(submit("ab_hero_call_first=b; ab_lead_form=c; ab_lead_channel=e"))).status).toBe(303);
+    expect((await post(submit("ab_hero_call_first=b; ab_lead_form=c; ab_lead_channel=e", { channels_available: "wa,tg" }))).status).toBe(303);
     await run();
     const events = captured.mock.calls.map(([body]) => JSON.parse(body) as { properties: Record<string, unknown> });
     expect(events.map(e => [e.properties["experiment"], e.properties["variant"], e.properties["superseded"]])).toEqual([
@@ -312,6 +322,15 @@ describe("experiment_lead", () => {
       ["lead_form", "c", true],
       ["lead_channel", "e", undefined],
     ]);
+  });
+
+  it("does not mark lead_form's lead when the card offered no messenger: the lead_channel arm was inert", async () => {
+    const { post, run } = route();
+    expect((await post(submit("ab_hero_call_first=b; ab_lead_form=c; ab_lead_channel=e", { channels_available: "none" }))).status).toBe(303);
+    await run();
+    const events = captured.mock.calls.map(([body]) => JSON.parse(body) as { properties: Record<string, unknown> });
+    expect(events).toHaveLength(3);
+    for (const e of events) expect(e.properties, String(e.properties["experiment"])).not.toHaveProperty("superseded");
   });
 
   it("does not mark lead_form's lead under lead_channel's control: the property is absent, not false", async () => {
