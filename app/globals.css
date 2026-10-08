@@ -1,8 +1,14 @@
-@import "tailwindcss";
+/* `source(none)`: Tailwind's detection would walk the whole repo — docs/refs'
+ * saved pages, tests, the print materials — and emit rules for class names no
+ * page renders. Only the app's code is scanned, plus the packages below. */
+@import "tailwindcss" source(none);
 @import "@evinvest/uikit/styles/tokens.css";
 /* Generated from assets/brand.toml by `npm run palette`; a test holds the
  * committed copy to its source. */
 @import "./brand.css";
+
+@source "../app";
+@source "../src";
 
 /* The kit, the marketing layer and kitstart's widgets ship class literals in
  * their bundles, which Tailwind's detection skips with the rest of node_modules. */
