@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { statusMetadata } from "@/features/seo";
 import { thanksChannel, thanksSuffix } from "@evinvest/kitstart";
 import type { Copy } from "@/entities/content";
-import { LocationStatus } from "@/views/location";
+import { LocationStatus } from "@/views/location/status";
 import { loadPoint, type LocationParams } from "@/views/location/server";
 
 /**

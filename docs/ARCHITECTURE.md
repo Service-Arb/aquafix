@@ -107,7 +107,7 @@ owner chose to keep on the page, not in the schema.
 | `src/entities/lead` | The lead's type (kitstart's). What a lead asks is `LEAD` in `shared/config/lead.ts`. |
 | `src/features` | The quote form (kitstart's `LeadCapture` in this brand's card and words; on `server.ts` the notifier that mails a lead to the business in French and the lead webhook to the panel, both naming the job in the copy's words), SEO (which of Aquafix's words kitstart's `placeGraph` and `placeMetadata` quote), the A/B tests' proxy, events and lead capture (`experiments`). |
 | `src/widgets` | One band per slice, ≤120 lines a file, over a `Copy` and a `PlaceView`. The structural ones are kitstart's widgets in the brand's band, with the Figma frame's geometry passed through their `classNames` parts. |
-| `src/views` | The compositions: a point's home, its sub-pages, its status screens; the brand page. |
+| `src/views` | The compositions: a point's home, its sub-pages, its status screens; the brand page. `views/location` has an entry per page (`home`, `subpage`, `status`) and the loader on `server`, but no barrel: a route reaching another page's view also ships its client islands. |
 
 ## Routing
 
